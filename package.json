@@ -1,0 +1,45 @@
+{
+  "name": "promptcraft",
+  "version": "4.3.0",
+  "description": "智能提示词生成器 - 专业设计提示词工作台",
+  "main": "backend/server.js",
+  "bin": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js",
+    "test": "node utils/test.js",
+    "build": "pkg . --out-path dist --targets node18-win-x64"
+  },
+  "keywords": [
+    "prompt",
+    "ai",
+    "generator",
+    "mvp"
+  ],
+  "author": "PromptCraft Team",
+  "license": "MIT",
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "compression": "^1.7.4",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "js-yaml": "^4.1.1",
+    "open": "8.4.2",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "jest": "^30.2.0",
+    "nodemon": "^3.1.10",
+    "pkg": "^5.8.1"
+  },
+  "pkg": {
+    "assets": [
+      "frontend/**/*",
+      "data/**/*"
+    ]
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}

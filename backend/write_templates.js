@@ -1,0 +1,369 @@
+const fs = require('fs');
+const path = require('path');
+
+const templates = [
+  {
+    "act": "Professional Analyst",
+    "prompt": "Please analyze {input} from a professional perspective, providing detailed logical reasoning and relevant theoretical support.",
+    "tags": ["professional", "logic", "analysis"],
+    "style": "professional",
+    "framework": {
+      "role": "Professional Analyst",
+      "instruction": "Analyze the input with logical reasoning and theoretical support.",
+      "constraints": "Use professional terminology, maintain objectivity.",
+      "format": "Structured analysis report"
+    }
+  },
+  {
+    "act": "System Architect",
+    "prompt": "Based on {input}, provide a structured professional analysis including background, current status, problems, and recommendations.",
+    "tags": ["professional", "structure", "architecture"],
+    "style": "professional",
+    "framework": {
+      "role": "System Architect",
+      "instruction": "Provide a structured analysis of the input.",
+      "constraints": "Include background, status, problems, and recommendations.",
+      "format": "Markdown report"
+    }
+  },
+  {
+    "act": "Academic Researcher",
+    "prompt": "Explore {input} in depth from an academic research perspective, providing a rigorous analytical framework and empirical support.",
+    "tags": ["professional", "academic", "research"],
+    "style": "professional",
+    "framework": {
+      "role": "Academic Researcher",
+      "instruction": "Conduct an in-depth academic exploration of the input.",
+      "constraints": "Cite relevant theories, ensure rigor.",
+      "format": "Academic paper structure"
+    }
+  },
+  {
+    "act": "Visual Critic",
+    "prompt": "Systematically analyze the expression techniques and visual effects of {input}, combining professional elements such as composition, perspective, and lighting.",
+    "tags": ["professional", "visual", "art"],
+    "style": "professional",
+    "framework": {
+      "role": "Visual Critic",
+      "instruction": "Analyze visual effects using professional elements.",
+      "constraints": "Focus on composition, perspective, and lighting.",
+      "format": "Critical review"
+    }
+  },
+  {
+    "act": "Design Mentor",
+    "prompt": "Elaborate on the best practices and common pitfalls of {input} in terms of composition, perspective, and lighting from a professional designer's perspective.",
+    "tags": ["professional", "design", "education"],
+    "style": "professional",
+    "framework": {
+      "role": "Design Mentor",
+      "instruction": "Explain best practices and pitfalls.",
+      "constraints": "Focus on design elements.",
+      "format": "Educational guide"
+    }
+  },
+  {
+    "act": "Technical Consultant",
+    "prompt": "For {input}, list applicable composition methods, recommended perspectives, and lighting settings, and explain their impact on the final effect.",
+    "tags": ["professional", "technical", "consulting"],
+    "style": "professional",
+    "framework": {
+      "role": "Technical Consultant",
+      "instruction": "List technical recommendations and their impacts.",
+      "constraints": "Be specific and actionable.",
+      "format": "Technical specification"
+    }
+  },
+  {
+    "act": "Code Reviewer",
+    "prompt": "Review the code related to {input}, focusing on performance, security, and maintainability. Provide specific refactoring suggestions.",
+    "tags": ["professional", "code", "review"],
+    "style": "professional",
+    "framework": {
+      "role": "Code Reviewer",
+      "instruction": "Review code for quality attributes.",
+      "constraints": "Focus on performance, security, maintainability.",
+      "format": "Code review comments"
+    }
+  },
+  {
+    "act": "Data Scientist",
+    "prompt": "Analyze the data implications of {input}, suggesting appropriate statistical models and visualization techniques to uncover hidden trends.",
+    "tags": ["professional", "data", "science"],
+    "style": "professional",
+    "framework": {
+      "role": "Data Scientist",
+      "instruction": "Analyze data implications and suggest models.",
+      "constraints": "Use statistical rigor.",
+      "format": "Data analysis report"
+    }
+  },
+  {
+    "act": "Project Manager",
+    "prompt": "Create a detailed project plan for {input}, including milestones, resource allocation, risk assessment, and timeline.",
+    "tags": ["professional", "management", "planning"],
+    "style": "professional",
+    "framework": {
+      "role": "Project Manager",
+      "instruction": "Develop a comprehensive project plan.",
+      "constraints": "Include milestones, resources, risks.",
+      "format": "Gantt chart or project document"
+    }
+  },
+  {
+    "act": "Legal Advisor",
+    "prompt": "Examine the legal implications of {input}, identifying potential compliance issues and liability risks.",
+    "tags": ["professional", "legal", "compliance"],
+    "style": "professional",
+    "framework": {
+      "role": "Legal Advisor",
+      "instruction": "Assess legal risks and compliance.",
+      "constraints": "Reference relevant laws and regulations.",
+      "format": "Legal opinion"
+    }
+  },
+  {
+    "act": "Storyteller",
+    "prompt": "Unleash your imagination and create a unique and engaging storyline around {input}.",
+    "tags": ["creative", "story", "fiction"],
+    "style": "creative",
+    "framework": {
+      "role": "Storyteller",
+      "instruction": "Create an engaging story.",
+      "constraints": "Be original and imaginative.",
+      "format": "Narrative text"
+    }
+  },
+  {
+    "act": "Innovator",
+    "prompt": "Re-examine {input} with an innovative mindset and propose 3 unprecedented creative angles.",
+    "tags": ["creative", "innovation", "ideas"],
+    "style": "creative",
+    "framework": {
+      "role": "Innovator",
+      "instruction": "Propose novel creative angles.",
+      "constraints": "Think outside the box.",
+      "format": "List of ideas"
+    }
+  },
+  {
+    "act": "Concept Artist",
+    "prompt": "Combine {input} with art, literature, or sci-fi elements to create a stunning creative proposal.",
+    "tags": ["creative", "art", "concept"],
+    "style": "creative",
+    "framework": {
+      "role": "Concept Artist",
+      "instruction": "Merge input with artistic elements.",
+      "constraints": "Create a visual or conceptual proposal.",
+      "format": "Concept description"
+    }
+  },
+  {
+    "act": "Logo Designer",
+    "prompt": "Design a logo creative proposal for {input} that is unique, easy to recognize, and combines modern design trends.",
+    "tags": ["creative", "design", "logo"],
+    "style": "creative",
+    "framework": {
+      "role": "Logo Designer",
+      "instruction": "Propose a unique logo design.",
+      "constraints": "Modern, recognizable, unique.",
+      "format": "Design brief"
+    }
+  },
+  {
+    "act": "Visual Stylist",
+    "prompt": "Around {input}, try to describe logo or visual creativity in multiple styles such as ink wash, minimalist, cartoon, retro, etc.",
+    "tags": ["creative", "style", "visual"],
+    "style": "creative",
+    "framework": {
+      "role": "Visual Stylist",
+      "instruction": "Describe visual creativity in various styles.",
+      "constraints": "Explore diverse aesthetics.",
+      "format": "Style descriptions"
+    }
+  },
+  {
+    "act": "AI Art Director",
+    "prompt": "Generate a creative prompt suitable for AI drawing/design with the theme of '{input}', including elements such as composition, perspective, lighting, and color.",
+    "tags": ["creative", "ai-art", "prompt-engineering"],
+    "style": "creative",
+    "framework": {
+      "role": "AI Art Director",
+      "instruction": "Generate a detailed AI art prompt.",
+      "constraints": "Include visual elements like lighting and composition.",
+      "format": "AI Image Prompt"
+    }
+  },
+  {
+    "act": "Brand Strategist",
+    "prompt": "Write a logo design creative explanation for {input}, highlighting brand tonality, artistic style, and unique selling points.",
+    "tags": ["creative", "branding", "marketing"],
+    "style": "creative",
+    "framework": {
+      "role": "Brand Strategist",
+      "instruction": "Explain the creative rationale for a logo.",
+      "constraints": "Highlight brand identity.",
+      "format": "Creative rationale"
+    }
+  },
+  {
+    "act": "Master Designer",
+    "prompt": "Simulate a top international designer to generate a high-quality logo design prompt for {input}, requiring distinct style, rich details, and suitability for AI generation.",
+    "tags": ["creative", "design", "expert"],
+    "style": "creative",
+    "framework": {
+      "role": "Master Designer",
+      "instruction": "Generate a high-end design prompt.",
+      "constraints": "High quality, detailed, distinct style.",
+      "format": "Expert prompt"
+    }
+  },
+  {
+    "act": "Sci-Fi Writer",
+    "prompt": "Reimagine {input} as a technology from the year 3000. Describe its function, appearance, and impact on society.",
+    "tags": ["creative", "scifi", "futuristic"],
+    "style": "creative",
+    "framework": {
+      "role": "Sci-Fi Writer",
+      "instruction": "Describe the input as future technology.",
+      "constraints": "Futuristic setting.",
+      "format": "Sci-fi description"
+    }
+  },
+  {
+    "act": "Poet",
+    "prompt": "Compose a poem that captures the essence and emotion of {input}, using metaphorical language and vivid imagery.",
+    "tags": ["creative", "poetry", "literature"],
+    "style": "creative",
+    "framework": {
+      "role": "Poet",
+      "instruction": "Write a poem about the input.",
+      "constraints": "Use metaphors and imagery.",
+      "format": "Poem"
+    }
+  },
+  {
+    "act": "Simplifier",
+    "prompt": "Explain {input} in the simplest and most direct language so that anyone can understand.",
+    "tags": ["simple", "explanation", "clarity"],
+    "style": "simple",
+    "framework": {
+      "role": "Simplifier",
+      "instruction": "Explain the input simply.",
+      "constraints": "Use plain language.",
+      "format": "Simple explanation"
+    }
+  },
+  {
+    "act": "Summarizer",
+    "prompt": "Summarize the core points of {input}, using 3-5 keywords.",
+    "tags": ["simple", "summary", "keywords"],
+    "style": "simple",
+    "framework": {
+      "role": "Summarizer",
+      "instruction": "Summarize core points.",
+      "constraints": "Use 3-5 keywords.",
+      "format": "Keyword list"
+    }
+  },
+  {
+    "act": "Advisor",
+    "prompt": "Give practical suggestions on {input}, highlighting actionability.",
+    "tags": ["simple", "advice", "actionable"],
+    "style": "simple",
+    "framework": {
+      "role": "Advisor",
+      "instruction": "Provide practical advice.",
+      "constraints": "Focus on actionability.",
+      "format": "Action items"
+    }
+  },
+  {
+    "act": "Describer",
+    "prompt": "Describe the design goal and style of {input} in one sentence.",
+    "tags": ["simple", "description", "concise"],
+    "style": "simple",
+    "framework": {
+      "role": "Describer",
+      "instruction": "Describe goal and style.",
+      "constraints": "One sentence limit.",
+      "format": "Single sentence"
+    }
+  },
+  {
+    "act": "Idea Distiller",
+    "prompt": "Express the core creativity of {input} in concise language, suitable for direct use in AI generation.",
+    "tags": ["simple", "creativity", "ai-prompt"],
+    "style": "simple",
+    "framework": {
+      "role": "Idea Distiller",
+      "instruction": "Distill core creativity.",
+      "constraints": "Concise, AI-ready.",
+      "format": "Core concept"
+    }
+  },
+  {
+    "act": "Prompt Converter",
+    "prompt": "Convert {input} into a concise and clear logo/visual design prompt, highlighting the theme and style.",
+    "tags": ["simple", "conversion", "design"],
+    "style": "simple",
+    "framework": {
+      "role": "Prompt Converter",
+      "instruction": "Convert input to design prompt.",
+      "constraints": "Concise, clear theme and style.",
+      "format": "Design prompt"
+    }
+  },
+  {
+    "act": "TL;DR Bot",
+    "prompt": "Provide a TL;DR (Too Long; Didn't Read) version of {input}.",
+    "tags": ["simple", "summary", "tldr"],
+    "style": "simple",
+    "framework": {
+      "role": "TL;DR Bot",
+      "instruction": "Provide a very brief summary.",
+      "constraints": "Maximum brevity.",
+      "format": "TL;DR summary"
+    }
+  },
+  {
+    "act": "Checklist Maker",
+    "prompt": "Create a simple checklist for {input} to ensure all basics are covered.",
+    "tags": ["simple", "checklist", "organization"],
+    "style": "simple",
+    "framework": {
+      "role": "Checklist Maker",
+      "instruction": "Create a checklist.",
+      "constraints": "Simple items.",
+      "format": "Checklist"
+    }
+  },
+  {
+    "act": "Headline Writer",
+    "prompt": "Write a catchy and concise headline for {input}.",
+    "tags": ["simple", "writing", "headline"],
+    "style": "simple",
+    "framework": {
+      "role": "Headline Writer",
+      "instruction": "Write a headline.",
+      "constraints": "Catchy, concise.",
+      "format": "Headline"
+    }
+  },
+  {
+    "act": "Tweet Generator",
+    "prompt": "Draft a tweet about {input} that is under 280 characters and includes relevant hashtags.",
+    "tags": ["simple", "social-media", "twitter"],
+    "style": "simple",
+    "framework": {
+      "role": "Tweet Generator",
+      "instruction": "Write a tweet.",
+      "constraints": "Under 280 chars, include hashtags.",
+      "format": "Tweet"
+    }
+  }
+];
+
+const filePath = path.join(__dirname, '../data/templates.json');
+fs.writeFileSync(filePath, JSON.stringify(templates, null, 2), 'utf8');
+console.log(`Successfully wrote ${templates.length} templates to ${filePath}`);

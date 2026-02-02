@@ -1,0 +1,87 @@
+# PromptCraft .gitignore
+# ======================
+
+# Dependencies
+node_modules/
+
+# Logs
+logs/*.log
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Build outputs
+dist/
+build/
+coverage/
+.pnp/
+.pnp.js
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-workspace
+*.sublime-project
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+*~
+
+# Python (for skills with Python scripts)
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.so
+.pytest_cache/
+.mypy_cache/
+
+# Test outputs
+*.lcov
+.nyc_output/
+
+# Package manager
+package-lock.json.old
+yarn.lock.old
+.npm/
+.yarn-integrity
+
+# Binary outputs
+*.exe
+*.zip
+*.tar.gz
+*.rar
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Optional: Keep empty logs directory
+!logs/.gitkeep

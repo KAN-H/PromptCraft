@@ -1,0 +1,29 @@
+{
+  "style": "creative",
+  "composition": [
+    "Golden ratio",
+    "rule of thirds"
+  ],
+  "cameraAngle": [
+    "portrait",
+    "closeup view"
+  ],
+  "lighting": [
+    "Cinematic light",
+    "warm light",
+    "Rim light"
+  ],
+  "colorScheme": [
+    "warm white",
+    "golden tones",
+    "high contrast"
+  ],
+  "subject": "一位穿着现代商务装的年轻女性，自信的微笑，背景是现代办公环境",
+  "details": [
+    "专业妆容",
+    "现代办公室背景虚化",
+    "自然光线从窗户射入",
+    "高品质商务形象"
+  ],
+  "promptText": "creative style, Golden ratio and rule of thirds composition, portrait closeup view, Cinematic light with warm light and rim light, warm white and golden tones with high contrast color scheme, a confident young businesswoman in modern business attire with a confident smile in a modern office environment, professional makeup, blurred modern office background, natural light streaming through windows, high-quality business image, high detail, hyper quality, 8K resolution"
+}

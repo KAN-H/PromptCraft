@@ -1,0 +1,39 @@
+{
+  "title": "科技产品宣传片",
+  "duration": "00:01:30",
+  "style": "creative",
+  "scenes": [
+    {
+      "sceneNumber": 1,
+      "cameraMovement": "缓慢推镜",
+      "description": "阳光透过窗户洒在现代办公桌上，一台笔记本电脑静静地放在桌面",
+      "shotType": "extremeWideShot",
+      "dialogue": "在这个快节奏的时代，我们需要一个可靠的伙伴",
+      "action": "阳光渐亮，突出产品轮廓"
+    },
+    {
+      "sceneNumber": 2,
+      "cameraMovement": "环绕镜头",
+      "description": "笔记本电脑特写，屏幕缓缓亮起显示精美界面",
+      "shotType": "closeUp",
+      "dialogue": "全新的设计理念，为您带来前所未有的体验",
+      "action": "屏幕点亮，界面动画展示"
+    },
+    {
+      "sceneNumber": 3,
+      "cameraMovement": "快速切换",
+      "description": "用户双手在键盘上快速打字，屏幕显示代码和图表",
+      "shotType": "mediumShot",
+      "action": "手指快速敲击键盘，数据实时更新"
+    },
+    {
+      "sceneNumber": 4,
+      "cameraMovement": "拉镜头",
+      "description": "从产品细节拉远到整个工作场景，展现完整的使用环境",
+      "shotType": "wideShot",
+      "dialogue": "让科技成就更好的自己",
+      "action": "镜头拉远，展现整体工作环境"
+    }
+  ],
+  "promptText": "科技产品宣传片，创意风格，时长1分30秒。场景1：超广角镜头，缓慢推镜，阳光透过窗户洒在现代办公桌上的笔记本电脑，配音'在这个快节奏的时代，我们需要一个可靠的伙伴'，阳光渐亮突出产品轮廓。场景2：特写镜头，环绕运镜，笔记本电脑屏幕亮起显示精美界面，配音'全新的设计理念，为您带来前所未有的体验'，屏幕点亮展示界面动画。场景3：中景镜头，快速切换，用户双手快速打字显示代码图表，手指敲击键盘数据实时更新。场景4：广角镜头，拉镜头，从产品细节拉远到整个工作场景，配音'让科技成就更好的自己'，展现完整使用环境。"
+}

@@ -1,0 +1,46 @@
+{
+  "name": "nippon-colors",
+  "version": "1.0.0",
+  "description": "基于 nipponcolors.com 的日本传统色数据库，提供完整的188种传统颜色名称、色值及文化背景参考。成为设计类智能体的'日本传统色顾问'+'颜色搭配数据库'。",
+  "author": "Skill Seeker",
+  "license": "MIT",
+  "files": [
+    "SKILL.md",
+    "colors_cleaned.csv",
+    "generator.py"
+  ],
+  "entry_point": "generator.py",
+  "functions": [
+    {
+      "name": "search_colors",
+      "description": "根据关键词搜索日本传统颜色，支持多种查询方式",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "keyword": {
+            "type": "string",
+            "description": "搜索关键词，可以是：颜色名称（英文/日文）、季节（春/夏/秋/冬）、色彩家族（红/蓝/绿/紫/黄/棕等）、情感（温暖/冷静/活泼/优雅/自然）或文化意象（樱花/枫叶/海洋/天空）"
+          }
+        },
+        "required": ["keyword"]
+      }
+    }
+  ],
+  "metadata": {
+    "color_count": 188,
+    "data_source": "nipponcolors.com",
+    "categories": [
+      "seasonal_colors",
+      "color_families",
+      "emotional_colors",
+      "cultural_colors"
+    ],
+    "supported_queries": [
+      "color_name",
+      "season",
+      "emotion",
+      "color_family",
+      "cultural_reference"
+    ]
+  }
+}

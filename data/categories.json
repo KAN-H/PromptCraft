@@ -1,0 +1,328 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2026-01-17",
+  "categories": [
+    {
+      "id": "writing",
+      "name": "写作创作",
+      "icon": "✍️",
+      "description": "各类文字创作、文案写作和内容生成",
+      "subcategories": [
+        {
+          "id": "copywriting",
+          "name": "文案写作",
+          "icon": "📝",
+          "tags": ["营销", "广告", "品牌"]
+        },
+        {
+          "id": "creative",
+          "name": "创意写作",
+          "icon": "✨",
+          "tags": ["故事", "小说", "剧本"]
+        },
+        {
+          "id": "technical",
+          "name": "技术写作",
+          "icon": "📚",
+          "tags": ["文档", "说明书", "API"]
+        },
+        {
+          "id": "academic",
+          "name": "学术写作",
+          "icon": "🎓",
+          "tags": ["论文", "研究", "报告"]
+        }
+      ]
+    },
+    {
+      "id": "coding",
+      "name": "编程开发",
+      "icon": "💻",
+      "description": "代码生成、调试和开发辅助",
+      "subcategories": [
+        {
+          "id": "code-gen",
+          "name": "代码生成",
+          "icon": "⚡",
+          "tags": ["函数", "类", "模块"]
+        },
+        {
+          "id": "code-review",
+          "name": "代码审查",
+          "icon": "🔍",
+          "tags": ["质量", "安全", "最佳实践"]
+        },
+        {
+          "id": "debugging",
+          "name": "调试排错",
+          "icon": "🐛",
+          "tags": ["错误", "异常", "日志"]
+        },
+        {
+          "id": "refactoring",
+          "name": "重构优化",
+          "icon": "🔧",
+          "tags": ["性能", "架构", "可读性"]
+        }
+      ]
+    },
+    {
+      "id": "image",
+      "name": "图像生成",
+      "icon": "🎨",
+      "description": "AI图像生成提示词，支持多种风格和场景",
+      "subcategories": [
+        {
+          "id": "logo-design",
+          "name": "Logo设计",
+          "icon": "🏷️",
+          "tags": ["品牌", "标识", "矢量"]
+        },
+        {
+          "id": "character-design",
+          "name": "角色设计",
+          "icon": "🧸",
+          "tags": ["IP", "动漫", "3D"]
+        },
+        {
+          "id": "photo-style",
+          "name": "摄影风格",
+          "icon": "📷",
+          "tags": ["人像", "产品", "风景"]
+        },
+        {
+          "id": "illustration",
+          "name": "插画艺术",
+          "icon": "🖼️",
+          "tags": ["扁平", "手绘", "概念"]
+        },
+        {
+          "id": "ui-design",
+          "name": "UI设计",
+          "icon": "📱",
+          "tags": ["界面", "图标", "组件"]
+        }
+      ]
+    },
+    {
+      "id": "video",
+      "name": "视频生成",
+      "icon": "🎬",
+      "description": "AI视频生成和编辑提示词",
+      "subcategories": [
+        {
+          "id": "short-video",
+          "name": "短视频",
+          "icon": "📹",
+          "tags": ["抖音", "快手", "Reels"]
+        },
+        {
+          "id": "animation",
+          "name": "动画制作",
+          "icon": "🎞️",
+          "tags": ["2D", "3D", "特效"]
+        },
+        {
+          "id": "commercial",
+          "name": "商业广告",
+          "icon": "📺",
+          "tags": ["品牌", "产品", "宣传"]
+        }
+      ]
+    },
+    {
+      "id": "analysis",
+      "name": "分析推理",
+      "icon": "📊",
+      "description": "数据分析、逻辑推理和决策支持",
+      "subcategories": [
+        {
+          "id": "data-analysis",
+          "name": "数据分析",
+          "icon": "📈",
+          "tags": ["统计", "可视化", "洞察"]
+        },
+        {
+          "id": "research",
+          "name": "调研分析",
+          "icon": "🔬",
+          "tags": ["市场", "竞品", "用户"]
+        },
+        {
+          "id": "decision",
+          "name": "决策支持",
+          "icon": "🎯",
+          "tags": ["评估", "建议", "风险"]
+        }
+      ]
+    },
+    {
+      "id": "language",
+      "name": "语言处理",
+      "icon": "🌐",
+      "description": "翻译、摘要、校对等语言相关任务",
+      "subcategories": [
+        {
+          "id": "translation",
+          "name": "翻译",
+          "icon": "🔄",
+          "tags": ["多语言", "本地化", "专业"]
+        },
+        {
+          "id": "summarization",
+          "name": "摘要提取",
+          "icon": "📋",
+          "tags": ["压缩", "要点", "精简"]
+        },
+        {
+          "id": "proofreading",
+          "name": "校对润色",
+          "icon": "✏️",
+          "tags": ["语法", "风格", "表达"]
+        }
+      ]
+    },
+    {
+      "id": "education",
+      "name": "教育学习",
+      "icon": "📖",
+      "description": "教学辅助、知识解释和学习支持",
+      "subcategories": [
+        {
+          "id": "tutoring",
+          "name": "辅导教学",
+          "icon": "👨‍🏫",
+          "tags": ["讲解", "答疑", "练习"]
+        },
+        {
+          "id": "explanation",
+          "name": "概念解释",
+          "icon": "💡",
+          "tags": ["通俗", "类比", "深入"]
+        },
+        {
+          "id": "quiz",
+          "name": "测验出题",
+          "icon": "❓",
+          "tags": ["选择题", "问答", "案例"]
+        }
+      ]
+    },
+    {
+      "id": "roleplay",
+      "name": "角色扮演",
+      "icon": "🎭",
+      "description": "模拟特定角色或人物进行对话",
+      "subcategories": [
+        {
+          "id": "expert",
+          "name": "专家顾问",
+          "icon": "🎓",
+          "tags": ["法律", "医疗", "财务"]
+        },
+        {
+          "id": "character",
+          "name": "虚拟角色",
+          "icon": "🤖",
+          "tags": ["AI助手", "游戏NPC", "虚拟人"]
+        },
+        {
+          "id": "historical",
+          "name": "历史人物",
+          "icon": "🏛️",
+          "tags": ["名人", "作家", "科学家"]
+        }
+      ]
+    }
+  ],
+  "techniques": [
+    {
+      "id": "zero-shot",
+      "name": "零样本提示",
+      "nameEn": "Zero-shot Prompting",
+      "icon": "0️⃣",
+      "description": "不提供示例，直接让模型完成任务",
+      "difficulty": "beginner",
+      "effectiveness": "medium"
+    },
+    {
+      "id": "few-shot",
+      "name": "少样本提示",
+      "nameEn": "Few-shot Prompting",
+      "icon": "📝",
+      "description": "提供少量示例引导模型输出",
+      "difficulty": "beginner",
+      "effectiveness": "high"
+    },
+    {
+      "id": "cot",
+      "name": "思维链",
+      "nameEn": "Chain-of-Thought (CoT)",
+      "icon": "🔗",
+      "description": "引导模型逐步推理，展示思考过程",
+      "difficulty": "intermediate",
+      "effectiveness": "high"
+    },
+    {
+      "id": "tot",
+      "name": "思维树",
+      "nameEn": "Tree of Thoughts (ToT)",
+      "icon": "🌳",
+      "description": "探索多条推理路径，评估最优解",
+      "difficulty": "advanced",
+      "effectiveness": "very-high"
+    },
+    {
+      "id": "react",
+      "name": "推理行动",
+      "nameEn": "ReAct",
+      "icon": "⚡",
+      "description": "结合推理和行动，支持工具调用",
+      "difficulty": "advanced",
+      "effectiveness": "very-high"
+    },
+    {
+      "id": "self-consistency",
+      "name": "自我一致性",
+      "nameEn": "Self-Consistency",
+      "icon": "🔄",
+      "description": "多次采样取一致性最高的结果",
+      "difficulty": "intermediate",
+      "effectiveness": "high"
+    },
+    {
+      "id": "rag",
+      "name": "检索增强",
+      "nameEn": "Retrieval Augmented Generation (RAG)",
+      "icon": "🔍",
+      "description": "结合外部知识库增强生成能力",
+      "difficulty": "advanced",
+      "effectiveness": "very-high"
+    },
+    {
+      "id": "meta-prompting",
+      "name": "元提示",
+      "nameEn": "Meta Prompting",
+      "icon": "🎯",
+      "description": "让模型帮助优化和改进提示词",
+      "difficulty": "intermediate",
+      "effectiveness": "high"
+    }
+  ],
+  "tags": [
+    "营销", "广告", "品牌", "故事", "小说", "剧本",
+    "文档", "说明书", "API", "论文", "研究", "报告",
+    "函数", "类", "模块", "质量", "安全", "最佳实践",
+    "错误", "异常", "日志", "性能", "架构", "可读性",
+    "品牌", "标识", "矢量", "IP", "动漫", "3D",
+    "人像", "产品", "风景", "扁平", "手绘", "概念",
+    "界面", "图标", "组件", "抖音", "快手", "Reels",
+    "2D", "3D", "特效", "品牌", "产品", "宣传",
+    "统计", "可视化", "洞察", "市场", "竞品", "用户",
+    "评估", "建议", "风险", "多语言", "本地化", "专业",
+    "压缩", "要点", "精简", "语法", "风格", "表达",
+    "讲解", "答疑", "练习", "通俗", "类比", "深入",
+    "选择题", "问答", "案例", "法律", "医疗", "财务",
+    "AI助手", "游戏NPC", "虚拟人", "名人", "作家", "科学家"
+  ]
+}

@@ -1,0 +1,102 @@
+{
+  "version": "1.0.0",
+  "description": "PromptCraft Skills 索引文件",
+  "lastUpdated": "2026-02-02",
+  "skills": [
+    {
+      "id": "brand-strategy-advisor",
+      "name": "品牌战略顾问",
+      "description": "提供专业的品牌定位、品牌故事和设计方向建议，帮助构建强大的品牌识别系统",
+      "version": "1.0.0",
+      "triggers": [
+        "品牌定位",
+        "品牌策略",
+        "品牌故事",
+        "品牌调性",
+        "品牌价值",
+        "目标受众",
+        "品牌差异化",
+        "品牌识别"
+      ],
+      "tags": [
+        "品牌",
+        "战略",
+        "定位",
+        "商业"
+      ],
+      "author": "PromptCraft",
+      "enabled": true,
+      "createdAt": "2026-01-29",
+      "updatedAt": "2026-02-02"
+    },
+    {
+      "id": "color-theory-master",
+      "name": "色彩理论大师",
+      "description": "专业的色彩搭配和色彩心理学专家，为设计项目提供科学的配色方案",
+      "version": "1.0.0",
+      "triggers": [
+        "配色",
+        "色彩搭配",
+        "颜色选择",
+        "色彩方案",
+        "调色板",
+        "色彩心理",
+        "品牌色"
+      ],
+      "tags": [
+        "色彩",
+        "配色",
+        "设计基础",
+        "视觉设计"
+      ],
+      "author": "PromptCraft",
+      "enabled": true,
+      "createdAt": "2026-01-29",
+      "updatedAt": "2026-02-02"
+    },
+    {
+      "id": "logo-critique-expert",
+      "name": "Logo 评审专家",
+      "description": "专业分析和评估 Logo 设计，提供详细的设计评审意见和改进建议",
+      "version": "1.0.0",
+      "triggers": [
+        "logo评审",
+        "logo分析",
+        "评估logo",
+        "logo设计评价",
+        "品牌标识分析",
+        "logo改进",
+        "标志设计审查"
+      ],
+      "tags": [
+        "logo",
+        "设计评审",
+        "品牌",
+        "视觉识别"
+      ],
+      "author": "PromptCraft",
+      "enabled": true,
+      "createdAt": "2026-01-29",
+      "updatedAt": "2026-02-02"
+    },
+    {
+      "id": "nippon-colors",
+      "name": "NipponColors",
+      "description": "基于 Nipponcolors.com 的日本传统色数据库，提供188种传统颜色的名称、色值及文化背景参考。成为设计类智能体的\"日本传统色顾问\"+\"颜色搭配数据库\"。",
+      "version": "1.0.0",
+      "triggers": [],
+      "tags": [
+        "色彩",
+        "日本传统色",
+        "文化",
+        "设计",
+        "和风",
+        "配色"
+      ],
+      "author": "PromptCraft",
+      "enabled": true,
+      "createdAt": "2026-02-02",
+      "updatedAt": "2026-02-02"
+    }
+  ]
+}

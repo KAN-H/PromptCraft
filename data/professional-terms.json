@@ -1,0 +1,285 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2026-02-02",
+  "description": "专业设计术语库 - 来源于提示词优化.md，供设计角色参数使用",
+  
+  "composition": {
+    "name": "构图",
+    "nameEn": "Composition",
+    "options": [
+      { "zh": "对称构图", "en": "symmetrical" },
+      { "zh": "居中构图", "en": "centered" },
+      { "zh": "三分法构图", "en": "rule of thirds" },
+      { "zh": "S型构图", "en": "S-shaped" },
+      { "zh": "对角线构图", "en": "diagonal" },
+      { "zh": "黄金分割", "en": "golden ratio" },
+      { "zh": "不对称构图", "en": "asymmetrical" },
+      { "zh": "对比构图", "en": "contrasting" },
+      { "zh": "水平构图", "en": "horizontal" },
+      { "zh": "框架构图", "en": "framing" },
+      { "zh": "负空间构图", "en": "negative space" }
+    ],
+    "recommendations": {
+      "logo": ["对称构图", "黄金分割", "负空间构图", "居中构图"],
+      "poster": ["三分法构图", "对角线构图", "S型构图", "对比构图"],
+      "ui": ["居中构图", "三分法构图", "黄金分割"],
+      "illustration": ["三分法构图", "S型构图", "对角线构图"],
+      "character": ["三分法构图", "对称构图", "居中构图"]
+    }
+  },
+
+  "camera": {
+    "name": "视角",
+    "nameEn": "Camera Angle",
+    "options": [
+      { "zh": "正面视角", "en": "front view" },
+      { "zh": "侧面视角", "en": "side view, profile" },
+      { "zh": "3/4视角", "en": "three-quarter view" },
+      { "zh": "鸟瞰视角", "en": "bird's-eye view" },
+      { "zh": "仰视视角", "en": "low angle, worm's-eye view" },
+      { "zh": "俯视视角", "en": "top view, overhead" },
+      { "zh": "等距视角", "en": "isometric view" },
+      { "zh": "特写视角", "en": "close-up" },
+      { "zh": "全身视角", "en": "full body shot" },
+      { "zh": "半身视角", "en": "medium shot, waist up" },
+      { "zh": "头肩视角", "en": "head and shoulders" },
+      { "zh": "超广角", "en": "ultra wide angle" },
+      { "zh": "微距视角", "en": "macro shot" },
+      { "zh": "过肩视角", "en": "over the shoulder" }
+    ],
+    "recommendations": {
+      "logo": ["正面视角", "等距视角"],
+      "character": ["3/4视角", "正面视角", "全身视角", "半身视角"],
+      "product": ["3/4视角", "正面视角", "俯视视角", "特写视角"],
+      "concept-art": ["鸟瞰视角", "仰视视角", "超广角", "俯视视角"]
+    }
+  },
+
+  "lighting": {
+    "name": "灯光",
+    "nameEn": "Lighting",
+    "options": [
+      { "zh": "自然光", "en": "natural light" },
+      { "zh": "柔和光线", "en": "soft light" },
+      { "zh": "电影光", "en": "cinematic lighting" },
+      { "zh": "影棚光", "en": "studio lighting" },
+      { "zh": "逆光", "en": "backlight, rim light" },
+      { "zh": "侧光", "en": "side light" },
+      { "zh": "顶光", "en": "top light" },
+      { "zh": "伦勃朗光", "en": "Rembrandt lighting" },
+      { "zh": "霓虹光", "en": "neon lighting" },
+      { "zh": "黄金时段光", "en": "golden hour light" },
+      { "zh": "冷色调光", "en": "cold light" },
+      { "zh": "暖色调光", "en": "warm light" },
+      { "zh": "体积光", "en": "volumetric light" },
+      { "zh": "戏剧光", "en": "dramatic lighting" },
+      { "zh": "全局照明", "en": "global illumination" }
+    ],
+    "recommendations": {
+      "character": ["影棚光", "伦勃朗光", "柔和光线", "逆光"],
+      "product": ["影棚光", "柔和光线", "自然光", "全局照明"],
+      "concept-art": ["电影光", "体积光", "黄金时段光", "戏剧光"],
+      "illustration": ["柔和光线", "自然光", "暖色调光"]
+    }
+  },
+
+  "medium": {
+    "name": "媒介/表现形式",
+    "nameEn": "Medium",
+    "options": [
+      { "zh": "数字插画", "en": "digital illustration" },
+      { "zh": "矢量图形", "en": "vector graphics" },
+      { "zh": "油画风格", "en": "oil painting style" },
+      { "zh": "水彩风格", "en": "watercolor style" },
+      { "zh": "素描风格", "en": "sketch, pencil drawing" },
+      { "zh": "3D渲染", "en": "3D render" },
+      { "zh": "摄影风格", "en": "photography, photorealistic" },
+      { "zh": "水墨风格", "en": "ink painting, Chinese ink" },
+      { "zh": "版画风格", "en": "woodcut, linocut" },
+      { "zh": "拼贴风格", "en": "collage style" },
+      { "zh": "像素艺术", "en": "pixel art" }
+    ],
+    "recommendations": {
+      "illustration": ["数字插画", "水彩风格", "油画风格", "矢量图形"],
+      "children-illustration": ["水彩风格", "数字插画", "拼贴风格"],
+      "concept-art": ["数字插画", "油画风格", "3D渲染"]
+    }
+  },
+
+  "colorTone": {
+    "name": "色调风格",
+    "nameEn": "Color Tone",
+    "options": [
+      { "zh": "高对比度", "en": "high contrast" },
+      { "zh": "低对比度", "en": "low contrast, muted" },
+      { "zh": "高饱和度", "en": "vibrant, saturated" },
+      { "zh": "低饱和度", "en": "desaturated, pastel" },
+      { "zh": "复古色调", "en": "retro, vintage" },
+      { "zh": "电影色调", "en": "cinematic color grading" },
+      { "zh": "黑白色调", "en": "black and white, monochrome" },
+      { "zh": "暖色调", "en": "warm tones" },
+      { "zh": "冷色调", "en": "cool tones" },
+      { "zh": "梦幻色调", "en": "dreamy, ethereal" },
+      { "zh": "霓虹色调", "en": "neon colors" },
+      { "zh": "自然色调", "en": "natural colors" },
+      { "zh": "金属质感", "en": "metallic tones" }
+    ],
+    "recommendations": {
+      "poster": ["高对比度", "高饱和度", "霓虹色调"],
+      "brand": ["低饱和度", "自然色调", "暖色调"],
+      "illustration": ["梦幻色调", "复古色调", "暖色调"],
+      "ui": ["低对比度", "自然色调", "冷色调"]
+    }
+  },
+
+  "quality": {
+    "name": "输出精度",
+    "nameEn": "Quality",
+    "options": [
+      { "zh": "高清", "en": "high definition, HD" },
+      { "zh": "超高清", "en": "ultra HD, 4K" },
+      { "zh": "8K分辨率", "en": "8K resolution" },
+      { "zh": "高细节", "en": "highly detailed" },
+      { "zh": "超写实", "en": "hyper realistic" },
+      { "zh": "精细渲染", "en": "fine rendering" },
+      { "zh": "清晰锐利", "en": "sharp, crisp" },
+      { "zh": "专业品质", "en": "professional quality" }
+    ]
+  },
+
+  "environment": {
+    "name": "环境/场景",
+    "nameEn": "Environment",
+    "options": [
+      { "zh": "白色背景", "en": "white background, plain background" },
+      { "zh": "渐变背景", "en": "gradient background" },
+      { "zh": "自然场景", "en": "natural environment" },
+      { "zh": "城市场景", "en": "urban environment, cityscape" },
+      { "zh": "室内场景", "en": "indoor, interior" },
+      { "zh": "奇幻世界", "en": "fantasy world" },
+      { "zh": "科幻场景", "en": "sci-fi environment" },
+      { "zh": "赛博朋克", "en": "cyberpunk" },
+      { "zh": "废墟场景", "en": "ruins, post-apocalyptic" },
+      { "zh": "水下场景", "en": "underwater" },
+      { "zh": "太空场景", "en": "outer space" },
+      { "zh": "魔幻森林", "en": "magical forest" }
+    ],
+    "recommendations": {
+      "concept-art": ["奇幻世界", "科幻场景", "赛博朋克", "废墟场景"],
+      "character": ["白色背景", "渐变背景", "自然场景"],
+      "illustration": ["自然场景", "城市场景", "室内场景"]
+    }
+  },
+
+  "material": {
+    "name": "材质",
+    "nameEn": "Material",
+    "options": [
+      { "zh": "玻璃材质", "en": "glass" },
+      { "zh": "金属材质", "en": "metallic" },
+      { "zh": "木质材质", "en": "wood grain" },
+      { "zh": "大理石", "en": "marble" },
+      { "zh": "塑料材质", "en": "plastic" },
+      { "zh": "织物纹理", "en": "fabric texture" },
+      { "zh": "皮革材质", "en": "leather" },
+      { "zh": "磨砂质感", "en": "matte, frosted" },
+      { "zh": "光泽质感", "en": "glossy, shiny" },
+      { "zh": "透明材质", "en": "transparent" },
+      { "zh": "碳纤维", "en": "carbon fiber" },
+      { "zh": "陶瓷材质", "en": "ceramic" }
+    ],
+    "recommendations": {
+      "product": ["金属材质", "玻璃材质", "塑料材质", "皮革材质"],
+      "packaging": ["纸质", "塑料材质", "玻璃材质", "金属材质"],
+      "icon": ["玻璃材质", "磨砂质感", "光泽质感"]
+    }
+  },
+
+  "designForm": {
+    "name": "设计形式",
+    "nameEn": "Design Form",
+    "options": [
+      { "zh": "扁平化设计", "en": "flat design" },
+      { "zh": "2.5D/伪3D", "en": "2.5D, isometric" },
+      { "zh": "3D立体", "en": "3D design" },
+      { "zh": "极简主义", "en": "minimalist" },
+      { "zh": "渐变设计", "en": "gradient design" },
+      { "zh": "线条艺术", "en": "line art" },
+      { "zh": "几何风格", "en": "geometric style" },
+      { "zh": "有机形态", "en": "organic shapes" },
+      { "zh": "拟物风格", "en": "skeuomorphic" },
+      { "zh": "新拟态", "en": "neumorphism" },
+      { "zh": "玻璃拟态", "en": "glassmorphism" }
+    ],
+    "recommendations": {
+      "logo": ["极简主义", "扁平化设计", "线条艺术", "几何风格"],
+      "icon": ["扁平化设计", "线条艺术", "渐变设计", "玻璃拟态"],
+      "ui": ["扁平化设计", "新拟态", "玻璃拟态", "极简主义"]
+    }
+  },
+
+  "creativeApproach": {
+    "name": "创意方向",
+    "nameEn": "Creative Approach",
+    "description": "用于Logo等需要创意突破的设计",
+    "options": [
+      { "zh": "负空间设计", "en": "negative space design" },
+      { "zh": "双关/隐喻", "en": "double meaning, visual pun" },
+      { "zh": "字母变形", "en": "letter transformation" },
+      { "zh": "图形融合", "en": "shape fusion" },
+      { "zh": "象征符号", "en": "symbolic, iconic" },
+      { "zh": "抽象表达", "en": "abstract representation" },
+      { "zh": "故事叙事", "en": "storytelling" },
+      { "zh": "动态暗示", "en": "implied motion" }
+    ]
+  },
+
+  "characterStyle": {
+    "name": "角色风格",
+    "nameEn": "Character Style",
+    "options": [
+      { "zh": "写实风格", "en": "realistic" },
+      { "zh": "卡通风格", "en": "cartoon" },
+      { "zh": "Q版/Chibi", "en": "chibi, super deformed" },
+      { "zh": "动漫风格", "en": "anime style" },
+      { "zh": "美漫风格", "en": "comic book style" },
+      { "zh": "皮克斯风格", "en": "Pixar style" },
+      { "zh": "吉卜力风格", "en": "Ghibli style" },
+      { "zh": "迪士尼风格", "en": "Disney style" },
+      { "zh": "手办风格", "en": "figurine style" },
+      { "zh": "像素风格", "en": "pixel art" }
+    ]
+  },
+
+  "eraStyle": {
+    "name": "时代风格",
+    "nameEn": "Era Style",
+    "options": [
+      { "zh": "古典主义", "en": "classical" },
+      { "zh": "文艺复兴", "en": "Renaissance" },
+      { "zh": "维多利亚", "en": "Victorian" },
+      { "zh": "装饰艺术", "en": "Art Deco" },
+      { "zh": "中世纪", "en": "Medieval" },
+      { "zh": "蒸汽朋克", "en": "Steampunk" },
+      { "zh": "复古80年代", "en": "80s retro" },
+      { "zh": "Y2K千禧", "en": "Y2K aesthetic" },
+      { "zh": "现代简约", "en": "modern minimalist" },
+      { "zh": "未来主义", "en": "futuristic" }
+    ]
+  },
+
+  "chineseStyle": {
+    "name": "国风元素",
+    "nameEn": "Chinese Style",
+    "options": [
+      { "zh": "水墨风", "en": "Chinese ink style" },
+      { "zh": "国潮风", "en": "Chinese trendy, Guochao" },
+      { "zh": "敦煌风", "en": "Dunhuang style" },
+      { "zh": "宫廷风", "en": "Chinese royal style" },
+      { "zh": "汉服元素", "en": "Hanfu elements" },
+      { "zh": "青花瓷风", "en": "blue and white porcelain" },
+      { "zh": "仙侠风", "en": "Xianxia fantasy" },
+      { "zh": "园林意境", "en": "Chinese garden" }
+    ]
+  }
+}

@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PromptCraft - 智能提示词工作台</title>
+    <!-- Tailwind CSS & DaisyUI -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+    <!-- Chart.js for radar chart -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-base-200 min-h-screen" x-data="promptCraftApp()">
+
+    <!-- Navigation -->
+    <div class="navbar bg-base-100 shadow-lg sticky top-0 z-50">
+        <div class="navbar-start">
+            <a class="btn btn-ghost text-xl font-bold text-primary">
+                <span class="text-2xl">🎨</span> PromptCraft
+            </a>
+        </div>
+        <div class="navbar-center">
+            <div class="tabs tabs-boxed bg-base-200">
+                <a class="tab tab-lg" :class="{'tab-active': activeTab === 'design'}" @click="activeTab = 'design'">
+                    🎯 设计助手
+                </a>
+                <a class="tab tab-lg" :class="{'tab-active': activeTab === 'skills'}" @click="activeTab = 'skills'; loadSkills()">
+                    🧠 专业技能
+                </a>
+            </div>
+        </div>
+        <div class="navbar-end gap-1">
+            <!-- 历史记录下拉菜单 -->
+            <div class="dropdown dropdown-end" @click.away="historyDropdownOpen = false">
+                <button class="btn btn-ghost btn-circle" @click="historyDropdownOpen = !historyDropdownOpen; if(historyDropdownOpen) loadHistory()" title="历史记录">
+                    📜
+                    <span x-show="historyCount > 0" class="badge badge-sm badge-primary absolute -top-1 -right-1" x-text="historyCount > 99 ? '99+' : historyCount"></span>
+                </button>
+                <div class="dropdown-content z-50 mt-2 shadow-xl bg-base-100 rounded-box w-80" x-show="historyDropdownOpen" x-transition>
+                    <div class="p-3 border-b border-base-200">
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold">📜 历史记录</span>
+                            <button class="btn btn-ghost btn-xs text-error" @click="clearHistory" x-show="historyRecords.length > 0">🗑️ 清空</button>
+                        </div>
+                    </div>
+                    <ul class="menu menu-compact p-2 max-h-80 overflow-y-auto">
+                        <template x-if="historyRecords.length === 0">
+                            <li class="text-center py-4 opacity-50">
+                                <span class="pointer-events-none">暂无历史记录</span>
+                            </li>
+                        </template>
+                        <template x-for="record in historyRecords.slice(0, 10)" :key="record.id">
+                            <li>
+                                <a class="flex justify-between items-center gap-2 py-2" @click="loadHistoryRecord(record); historyDropdownOpen = false">
+                                    <div class="flex items-center gap-2 flex-1 min-w-0">
+                                        <span x-text="getCategoryIcon(record.subcategory)"></span>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm font-medium truncate" x-text="record.input?.brandName || record.input?.description || '未命名'"></p>
+                                            <p class="text-xs opacity-50" x-text="formatTime(record.timestamp)"></p>
+                                        </div>
+                                        <span x-show="record.isFavorited" class="text-yellow-500 text-xs">⭐</span>
+                                    </div>
+                                    <button class="btn btn-ghost btn-xs" @click.stop="copyToClipboard(record.output?.prompt)" title="复制">📋</button>
+                                </a>
+                            </li>
+                        </template>
+                    </ul>
+                    <div class="p-2 border-t border-base-200 text-center" x-show="historyCount > 10">
+                        <button class="btn btn-ghost btn-sm btn-block" @click="showHistoryModal = true; historyDropdownOpen = false">
+                            查看全部 (<span x-text="historyCount"></span>) →
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 收藏下拉菜单 -->
+            <div class="dropdown dropdown-end" @click.away="favoritesDropdownOpen = false">
+                <button class="btn btn-ghost btn-circle" @click="favoritesDropdownOpen = !favoritesDropdownOpen; if(favoritesDropdownOpen) loadFavorites()" title="我的收藏">
+                    ⭐
+                    <span x-show="favoritesCount > 0" class="badge badge-sm badge-secondary absolute -top-1 -right-1" x-text="favoritesCount > 99 ? '99+' : favoritesCount"></span>
+                </button>
+                <div class="dropdown-content z-50 mt-2 shadow-xl bg-base-100 rounded-box w-80" x-show="favoritesDropdownOpen" x-transition>
+                    <div class="p-3 border-b border-base-200">
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold">⭐ 我的收藏</span>
+                            <span class="text-xs opacity-50" x-text="favoritesCount + ' 个'"></span>
+                        </div>
+                    </div>
+                    <ul class="menu menu-compact p-2 max-h-80 overflow-y-auto">
+                        <template x-if="favoriteItems.length === 0">
+                            <li class="text-center py-4 opacity-50">
+                                <span class="pointer-events-none">暂无收藏</span>
+                            </li>
+                        </template>
+                        <template x-for="item in favoriteItems.slice(0, 10)" :key="item.id">
+                            <li>
+                                <a class="flex justify-between items-center gap-2 py-2" @click="useFavoriteAsReference(item); favoritesDropdownOpen = false">
+                                    <div class="flex items-center gap-2 flex-1 min-w-0">
+                                        <span x-text="getCategoryIcon(item.subcategory)"></span>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm font-medium truncate" x-text="item.name"></p>
+                                            <div class="flex items-center gap-1">
+                                                <span class="text-yellow-400 text-xs" x-text="'★'.repeat(item.rating)"></span>
+                                                <span class="text-xs opacity-50" x-text="item.tags?.slice(0,2).join(' · ')"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-ghost btn-xs" @click.stop="copyToClipboard(item.prompt)" title="复制">📋</button>
+                                </a>
+                            </li>
+                        </template>
+                    </ul>
+                    <div class="p-2 border-t border-base-200 text-center" x-show="favoritesCount > 10">
+                        <button class="btn btn-ghost btn-sm btn-block" @click="showFavoritesModal = true; favoritesDropdownOpen = false">
+                            管理收藏 (<span x-text="favoritesCount"></span>) →
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-ghost btn-circle" @click="toggleTheme">
+                <span x-show="theme === 'light'">🌙</span>
+                <span x-show="theme === 'dark'">☀️</span>
+            </button>
+            <button class="btn btn-ghost btn-circle" @click="showSettings = true">⚙️</button>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 py-8 max-w-7xl">
+
+        <!-- ========================== -->
+        <!-- Tab 1: 设计助手 -->
+        <!-- ========================== -->
+        <div x-show="activeTab === 'design'" x-transition:enter="transition ease-out duration-300">
+            
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold text-primary mb-2">🎨 专业设计提示词助手</h1>
+                <p class="text-lg opacity-75">选择设计类型，输入您的想法，AI 为您生成专业的绘图提示词</p>
+            </div>
+
+            <!-- Design Templates Grid -->
+            <div class="mb-8" x-show="!selectedDesignPreset">
+                <h2 class="text-2xl font-bold mb-4">选择设计类型</h2>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                    <template x-for="preset in designPresets" :key="preset.id">
+                        <div class="card bg-base-100 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer hover:scale-105 border-2 border-transparent hover:border-primary"
+                             @click="selectDesignPreset(preset)">
+                            <div class="card-body items-center text-center p-4">
+                                <span class="text-4xl mb-2" x-text="preset.icon"></span>
+                                <h3 class="card-title text-sm" x-text="preset.name"></h3>
+                                <p class="text-xs opacity-60 line-clamp-2" x-text="preset.description"></p>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Selected Design Form -->
+            <div x-show="selectedDesignPreset" x-transition class="space-y-6">
+                
+                <div class="flex items-center gap-4 mb-6">
+                    <button class="btn btn-ghost btn-circle" @click="clearDesignPreset" title="返回选择设计类型" aria-label="返回">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+                    <div class="flex items-center gap-3">
+                        <span class="text-4xl" x-text="selectedDesignPreset?.icon"></span>
+                        <div>
+                            <h2 class="text-2xl font-bold" x-text="selectedDesignPreset?.name"></h2>
+                            <p class="text-sm opacity-60" x-text="selectedDesignPreset?.description"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    
+                    <!-- Left: Input Form -->
+                    <div class="card bg-base-100 shadow-xl">
+                        <div class="card-body">
+                            <h3 class="card-title text-lg mb-4">📝 填写设计信息</h3>
+                            
+                            <div class="space-y-4">
+                                <template x-for="variable in selectedDesignPreset?.template?.variables || []" :key="variable.name">
+                                    <div class="form-control">
+                                        <label class="label">
+                                            <span class="label-text font-medium">
+                                                <span x-text="variable.description"></span>
+                                                <span x-show="variable.required" class="text-error">*</span>
+                                            </span>
+                                        </label>
+                                        
+                                        <template x-if="variable.type === 'string'">
+                                            <input type="text" class="input input-bordered w-full" 
+                                                   :placeholder="variable.description"
+                                                   x-model="designVariables[variable.name]">
+                                        </template>
+                                        
+                                        <template x-if="variable.type === 'enum'">
+                                            <select class="select select-bordered w-full" x-model="designVariables[variable.name]">
+                                                <option value="">请选择...</option>
+                                                <template x-for="option in variable.options" :key="option">
+                                                    <option :value="option" x-text="option"></option>
+                                                </template>
+                                            </select>
+                                        </template>
+                                    </div>
+                                </template>
+                            </div>
+
+                            <div class="form-control mt-4">
+                                <label class="label">
+                                    <span class="label-text font-medium">💡 补充说明（可选）</span>
+                                </label>
+                                <textarea class="textarea textarea-bordered w-full" rows="2"
+                                          placeholder="任何额外的设计要求或灵感描述..."
+                                          x-model="designAdditionalInput"></textarea>
+                            </div>
+
+                            <!-- 🔥 Phase 10: 风格参考选择器 (Few-shot Learning) -->
+                            <div class="form-control mt-4">
+                                <label class="label">
+                                    <span class="label-text font-medium">💡 风格参考（可选）</span>
+                                    <span class="label-text-alt opacity-50">选择收藏的提示词作为风格参考</span>
+                                </label>
+                                
+                                <!-- 有收藏可选时 -->
+                                <div x-show="availableReferences.length > 0">
+                                    <!-- 未选择时显示选择器 -->
+                                    <div x-show="!selectedReference">
+                                        <select class="select select-bordered w-full" @change="selectReferenceById($event.target.value)" title="选择风格参考">
+                                            <option value="">从收藏中选择参考风格...</option>
+                                            <template x-for="fav in availableReferences" :key="fav.id">
+                                                <option :value="fav.id" x-text="fav.name + ' ' + '★'.repeat(fav.rating || 0)"></option>
+                                            </template>
+                                        </select>
+                                        <p class="text-xs opacity-50 mt-1">
+                                            📚 已找到 <span x-text="availableReferences.length"></span> 个同类型收藏可作为参考
+                                        </p>
+                                    </div>
+                                    
+                                    <!-- 已选择时显示卡片 -->
+                                    <div x-show="selectedReference" class="flex items-center gap-2 p-3 bg-primary/10 rounded-lg border border-primary/30">
+                                        <span class="text-xl" x-text="getCategoryIcon(selectedReference?.subcategory)"></span>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="font-medium text-sm truncate" x-text="selectedReference?.name"></p>
+                                            <p class="text-xs opacity-60">
+                                                <span class="text-yellow-500" x-text="'★'.repeat(selectedReference?.rating || 0)"></span>
+                                                <span x-text="selectedReference?.tags?.slice(0,3).join(' · ')"></span>
+                                            </p>
+                                        </div>
+                                        <button type="button" class="btn btn-ghost btn-xs btn-circle" @click="clearReference()" title="移除参考">✕</button>
+                                    </div>
+                                    
+                                    <p class="text-xs text-success mt-1" x-show="selectedReference">
+                                        ✨ AI 将学习此风格生成相似的提示词
+                                    </p>
+                                </div>
+                                
+                                <!-- 没有收藏时的提示 -->
+                                <div x-show="availableReferences.length === 0" class="text-sm opacity-60 p-3 bg-base-200 rounded-lg">
+                                    <p>📭 暂无同类型的收藏</p>
+                                    <p class="text-xs mt-1">生成满意的提示词后，点击「⭐ 收藏」可在下次作为参考</p>
+                                </div>
+                            </div>
+
+                            <div class="card-actions justify-end mt-6">
+                                <button class="btn btn-primary btn-lg gap-2" 
+                                        @click="generateDesignPrompt" 
+                                        :disabled="designLoading">
+                                    <span x-show="designLoading" class="loading loading-spinner"></span>
+                                    <span x-show="!designLoading">✨</span>
+                                    <span x-text="designLoading ? '生成中...' : '生成专业提示词'"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Output Panel -->
+                    <div class="card bg-base-100 shadow-xl">
+                        <div class="card-body">
+                            <h3 class="card-title text-lg mb-4">🎨 生成结果</h3>
+                            
+                            <div x-show="!designResult" class="flex flex-col items-center justify-center py-12 opacity-50">
+                                <span class="text-6xl mb-4">🖼️</span>
+                                <p>填写左侧信息后点击生成</p>
+                            </div>
+
+                            <div x-show="designResult" class="space-y-4">
+                                <!-- 最终图像提示词 -->
+                                <div class="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg p-4 border-2 border-primary">
+                                    <div class="flex justify-between items-center mb-3">
+                                        <div class="flex items-center gap-2">
+                                            <span class="badge badge-lg badge-primary">✨ 最终图像提示词</span>
+                                            <span class="text-xs opacity-75">（可直接用于 Midjourney/DALL-E/SD）</span>
+                                        </div>
+                                        <button class="btn btn-sm btn-primary" @click="copyToClipboard(designResult?.finalPrompt)">
+                                            📋 复制
+                                        </button>
+                                    </div>
+                                    <div class="prose prose-sm max-w-none whitespace-pre-wrap bg-base-100 p-3 rounded" 
+                                         x-text="designResult?.finalPrompt"></div>
+                                </div>
+
+                                <!-- 结构化提示词（可折叠） -->
+                                <details class="collapse collapse-arrow bg-base-200">
+                                    <summary class="collapse-title text-sm font-medium">
+                                        📋 查看结构化提示词（中文版，用于理解）
+                                    </summary>
+                                    <div class="collapse-content">
+                                        <div class="prose prose-sm max-w-none whitespace-pre-wrap p-3" 
+                                             x-text="designResult?.structuredPrompt"></div>
+                                    </div>
+                                </details>
+
+                                <!-- 🧠 显示匹配的专业技能 -->
+                                <div x-show="designResult?.matchedSkills?.length > 0" class="mt-4">
+                                    <h4 class="font-medium mb-2">🧠 应用的专业技能</h4>
+                                    <div class="flex flex-wrap gap-2">
+                                        <template x-for="skillName in designResult?.matchedSkills || []" :key="skillName">
+                                            <span class="badge badge-secondary badge-lg gap-1" x-text="skillName">
+                                            </span>
+                                        </template>
+                                    </div>
+                                    <p class="text-xs text-base-content/60 mt-1">
+                                        ✨ 根据您的输入自动匹配了相关专业技能，提供更专业的设计指导
+                                    </p>
+                                </div>
+
+                                <div x-show="designResult?.keywords?.length > 0" class="mt-4">
+                                    <h4 class="font-medium mb-2">🏷️ 推荐关键词</h4>
+                                    <div class="flex flex-wrap gap-2">
+                                        <template x-for="keyword in designResult?.keywords || []" :key="keyword">
+                                            <span class="badge badge-outline cursor-pointer hover:badge-primary" 
+                                                  @click="copyToClipboard(keyword)"
+                                                  x-text="keyword"></span>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <div x-show="designResult?.tips?.length > 0" class="alert alert-info">
+                                    <div>
+                                        <h4 class="font-bold mb-1">💡 输出建议</h4>
+                                        <ul class="text-sm space-y-1">
+                                            <template x-for="tip in designResult?.tips || []" :key="tip">
+                                                <li x-text="tip"></li>
+                                            </template>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <div class="flex gap-2 mt-6">
+                                    <button class="btn btn-outline flex-1" @click="copyToClipboard(designResult?.finalPrompt)">
+                                        📋 复制提示词
+                                    </button>
+                                    <button class="btn btn-secondary flex-1" @click="openFavoriteModal()" 
+                                            :class="{'btn-disabled': currentHistoryRecord?.isFavorited}">
+                                        <span x-show="!currentHistoryRecord?.isFavorited">⭐ 收藏</span>
+                                        <span x-show="currentHistoryRecord?.isFavorited">✅ 已收藏</span>
+                                    </button>
+                                    <button class="btn btn-primary flex-1" @click="regenerateDesignPrompt">
+                                        🔄 重新生成
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div x-show="designPresets.length === 0 && !selectedDesignPreset" class="text-center py-12">
+                <span class="loading loading-spinner loading-lg text-primary"></span>
+                <p class="mt-4 opacity-75">加载设计模板中...</p>
+            </div>
+        </div>
+
+        <!-- ========================== -->
+        <!-- Tab 2: Skills 专业技能 -->
+        <!-- ========================== -->
+        <div x-show="activeTab === 'skills'" x-transition:enter="transition ease-out duration-300">
+            
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold text-primary mb-2">🧠 专业技能库</h1>
+                <p class="text-lg opacity-75">AI Agent Skills - 为设计任务提供专业知识支持</p>
+            </div>
+
+            <!-- Skills Stats -->
+            <div class="stats shadow mb-6 w-full">
+                <div class="stat">
+                    <div class="stat-figure text-primary">
+                        <span class="text-3xl">🧠</span>
+                    </div>
+                    <div class="stat-title">总技能数</div>
+                    <div class="stat-value text-primary" x-text="skills.length"></div>
+                </div>
+                <div class="stat">
+                    <div class="stat-figure text-success">
+                        <span class="text-3xl">✅</span>
+                    </div>
+                    <div class="stat-title">已启用</div>
+                    <div class="stat-value text-success" x-text="skills.filter(s => s.enabled).length"></div>
+                </div>
+                <div class="stat">
+                    <div class="stat-figure text-secondary">
+                        <span class="text-3xl">🏷️</span>
+                    </div>
+                    <div class="stat-title">触发词总数</div>
+                    <div class="stat-value text-secondary" x-text="skills.reduce((sum, s) => sum + (s.triggers?.length || 0), 0)"></div>
+                </div>
+            </div>
+
+            <!-- Actions Bar -->
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex gap-2">
+                    <button class="btn btn-primary btn-sm gap-2" @click="showCreateSkillModal = true">
+                        <span>➕</span> 创建新 Skill
+                    </button>
+                    <label class="btn btn-outline btn-sm gap-2">
+                        <span>📥</span> 导入 JSON
+                        <input type="file" class="hidden" accept=".json" @change="importSkillFromFile($event)" />
+                    </label>
+                    <button class="btn btn-outline btn-sm gap-2" @click="rescanSkills" :disabled="skillsLoading">
+                        <span x-show="!skillsLoading">🔄</span>
+                        <span x-show="skillsLoading" class="loading loading-spinner loading-xs"></span>
+                        重新扫描
+                    </button>
+                </div>
+                <div class="form-control">
+                    <input type="text" placeholder="🔍 搜索技能..." class="input input-bordered input-sm w-64"
+                           x-model="skillSearch" />
+                </div>
+            </div>
+
+            <!-- Skills Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <template x-for="skill in filteredSkills" :key="skill.id">
+                    <div class="card bg-base-100 shadow-lg hover:shadow-xl transition-all duration-300"
+                         :class="{'border-2 border-success': skill.enabled, 'opacity-60': !skill.enabled}">
+                        <div class="card-body p-5">
+                            <!-- Header -->
+                            <div class="flex justify-between items-start">
+                                <div class="flex items-center gap-3">
+                                    <div class="avatar placeholder">
+                                        <div class="bg-primary text-primary-content rounded-full w-12">
+                                            <span class="text-xl">🧠</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h3 class="card-title text-base" x-text="skill.name"></h3>
+                                        <p class="text-xs opacity-50" x-text="'v' + skill.version"></p>
+                                    </div>
+                                </div>
+                                <input type="checkbox" class="toggle toggle-success toggle-sm" 
+                                       :checked="skill.enabled"
+                                       @change="toggleSkill(skill.id, $event.target.checked)" />
+                            </div>
+
+                            <!-- Description -->
+                            <p class="text-sm opacity-75 mt-2 line-clamp-2" x-text="skill.description"></p>
+
+                            <!-- Triggers -->
+                            <div class="mt-3">
+                                <p class="text-xs font-medium mb-1 opacity-60">🎯 触发词：</p>
+                                <div class="flex flex-wrap gap-1">
+                                    <template x-for="trigger in skill.triggers?.slice(0, 4)" :key="trigger">
+                                        <span class="badge badge-outline badge-xs" x-text="trigger"></span>
+                                    </template>
+                                    <span x-show="skill.triggers?.length > 4" class="badge badge-ghost badge-xs"
+                                          x-text="'+' + (skill.triggers.length - 4)"></span>
+                                </div>
+                            </div>
+
+                            <!-- Tags -->
+                            <div class="mt-2">
+                                <div class="flex flex-wrap gap-1">
+                                    <template x-for="tag in skill.tags" :key="tag">
+                                        <span class="badge badge-primary badge-xs" x-text="tag"></span>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="card-actions justify-end mt-4">
+                                <button class="btn btn-ghost btn-xs" @click="viewSkillDetail(skill.id)">
+                                    👁️ 查看
+                                </button>
+                                <button class="btn btn-ghost btn-xs" @click="editSkill(skill.id)">
+                                    ✏️ 编辑
+                                </button>
+                                <button class="btn btn-ghost btn-xs" @click="exportSkill(skill.id)">
+                                    📤 导出
+                                </button>
+                                <button class="btn btn-ghost btn-xs text-error" @click="confirmDeleteSkill(skill)">
+                                    🗑️ 删除
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <!-- Empty State -->
+            <div class="text-center py-12" x-show="filteredSkills.length === 0 && !skillsLoading">
+                <div class="text-6xl mb-4">🧠</div>
+                <p class="text-lg opacity-75 mb-4">还没有任何专业技能</p>
+                <button class="btn btn-primary" @click="showCreateSkillModal = true">
+                    ➕ 创建第一个 Skill
+                </button>
+            </div>
+
+            <!-- Loading State -->
+            <div class="flex justify-center py-12" x-show="skillsLoading">
+                <span class="loading loading-spinner loading-lg text-primary"></span>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ========================== -->
+    <!-- Preset Detail Modal -->
+    <!-- ========================== -->
+    <dialog class="modal" :class="{ 'modal-open': selectedPreset }">
+        <div class="modal-box max-w-3xl">
+            <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" @click="selectedPreset = null">✕</button>
+            
+            <template x-if="selectedPreset">
+                <div>
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="text-4xl" x-text="selectedPreset.icon || '📝'"></span>
+                        <div>
+                            <h3 class="font-bold text-2xl" x-text="selectedPreset.name"></h3>
+                            <p class="opacity-75" x-text="selectedPreset.description"></p>
+                        </div>
+                    </div>
+
+                    <!-- Tags -->
+                    <div class="flex flex-wrap gap-1 mb-4">
+                        <template x-for="tag in selectedPreset.tags" :key="tag">
+                            <span class="badge badge-primary badge-sm" x-text="tag"></span>
+                        </template>
+                    </div>
+
+                    <!-- Template Preview -->
+                    <div class="bg-base-200 p-4 rounded-lg mb-4" x-show="selectedPreset.template">
+                        <h4 class="font-medium mb-2">模板结构预览</h4>
+                        <div class="text-sm space-y-2">
+                            <p x-show="selectedPreset.template?.role"><strong>角色：</strong><span x-text="selectedPreset.template?.role"></span></p>
+                            <p x-show="selectedPreset.template?.context"><strong>上下文：</strong><span x-text="selectedPreset.template?.context"></span></p>
+                            <p x-show="selectedPreset.template?.task"><strong>任务：</strong><span x-text="selectedPreset.template?.task"></span></p>
+                            <div x-show="selectedPreset.template?.constraints?.length > 0">
+                                <strong>约束条件：</strong>
+                                <ul class="list-disc list-inside ml-2">
+                                    <template x-for="c in selectedPreset.template?.constraints || []" :key="c">
+                                        <li x-text="c"></li>
+                                    </template>
+                                </ul>
+                            </div>
+                            <p x-show="selectedPreset.template?.output"><strong>输出格式：</strong><span x-text="selectedPreset.template?.output"></span></p>
+                        </div>
+                    </div>
+
+                    <!-- Variables Form -->
+                    <div x-show="selectedPreset.template?.variables?.length > 0" class="mb-4">
+                        <h4 class="font-medium mb-3">填写变量</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <template x-for="v in selectedPreset.template.variables" :key="v.name">
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text" x-text="v.name"></span>
+                                        <span class="label-text-alt text-error" x-show="v.required">必填</span>
+                                    </label>
+                                    <template x-if="v.type === 'enum'">
+                                        <select class="select select-bordered select-sm" x-model="presetVariables[v.name]">
+                                            <option value="">请选择</option>
+                                            <template x-for="opt in v.options" :key="opt">
+                                                <option :value="opt" x-text="opt"></option>
+                                            </template>
+                                        </select>
+                                    </template>
+                                    <template x-if="v.type === 'boolean'">
+                                        <input type="checkbox" class="toggle toggle-primary" x-model="presetVariables[v.name]">
+                                    </template>
+                                    <template x-if="v.type === 'number'">
+                                        <input type="number" class="input input-bordered input-sm" x-model="presetVariables[v.name]" :placeholder="v.defaultValue || ''">
+                                    </template>
+                                    <template x-if="v.type === 'text'">
+                                        <textarea class="textarea textarea-bordered textarea-sm" x-model="presetVariables[v.name]" :placeholder="v.description || ''" rows="3"></textarea>
+                                    </template>
+                                    <template x-if="!v.type || v.type === 'string'">
+                                        <input type="text" class="input input-bordered input-sm" x-model="presetVariables[v.name]" :placeholder="v.defaultValue || v.description || ''">
+                                    </template>
+                                    <label class="label" x-show="v.description">
+                                        <span class="label-text-alt" x-text="v.description"></span>
+                                    </label>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Generated Result -->
+                    <div x-show="presetResult" class="bg-success/10 p-4 rounded-lg mb-4">
+                        <h4 class="font-medium mb-2 text-success">生成结果</h4>
+                        <p class="text-sm whitespace-pre-wrap" x-text="presetResult"></p>
+                    </div>
+
+                    <div class="modal-action">
+                        <button class="btn btn-outline" @click="selectedPreset = null">关闭</button>
+                        <button class="btn btn-primary" @click="applyPreset">✨ 应用模板</button>
+                        <button class="btn btn-success" x-show="presetResult" @click="copyToClipboard(presetResult)">📋 复制结果</button>
+                    </div>
+                </div>
+            </template>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button type="button" @click="selectedPreset = null">close</button>
+        </form>
+    </dialog>
+
+    <!-- ========================== -->
+    <!-- Skill Detail Modal -->
+    <!-- ========================== -->
+    <dialog class="modal" :class="{ 'modal-open': selectedSkill }">
+        <div class="modal-box max-w-4xl max-h-[90vh]">
+            <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" @click="selectedSkill = null">✕</button>
+            
+            <template x-if="selectedSkill">
+                <div>
+                    <!-- Header -->
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="avatar placeholder">
+                            <div class="bg-primary text-primary-content rounded-full w-16">
+                                <span class="text-3xl">🧠</span>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-2xl" x-text="selectedSkill.meta?.name"></h3>
+                            <p class="opacity-75" x-text="selectedSkill.meta?.description"></p>
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="badge badge-outline badge-sm" x-text="'v' + selectedSkill.meta?.version"></span>
+                                <span class="badge badge-ghost badge-sm" x-text="'by ' + selectedSkill.meta?.author"></span>
+                                <span class="badge" :class="selectedSkill.meta?.enabled ? 'badge-success' : 'badge-warning'"
+                                      x-text="selectedSkill.meta?.enabled ? '已启用' : '已禁用'"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Triggers -->
+                    <div class="mb-4">
+                        <h4 class="font-medium mb-2">🎯 触发词</h4>
+                        <div class="flex flex-wrap gap-2">
+                            <template x-for="trigger in selectedSkill.meta?.triggers" :key="trigger">
+                                <span class="badge badge-primary" x-text="trigger"></span>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Tags -->
+                    <div class="mb-4">
+                        <h4 class="font-medium mb-2">🏷️ 标签</h4>
+                        <div class="flex flex-wrap gap-2">
+                            <template x-for="tag in selectedSkill.meta?.tags" :key="tag">
+                                <span class="badge badge-secondary" x-text="tag"></span>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Instructions (Skill Content) -->
+                    <div class="mb-4">
+                        <h4 class="font-medium mb-2">📋 Skill 指令内容</h4>
+                        <div class="bg-base-200 rounded-lg p-4 max-h-80 overflow-y-auto">
+                            <div class="prose prose-sm max-w-none" x-html="markdownToHtml(selectedSkill.instructions)"></div>
+                        </div>
+                    </div>
+
+                    <!-- References & Assets -->
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <h4 class="font-medium mb-2">📚 参考文档</h4>
+                            <div class="bg-base-200 rounded-lg p-3 min-h-16">
+                                <template x-if="selectedSkill.references?.length > 0">
+                                    <ul class="text-sm space-y-1">
+                                        <template x-for="ref in selectedSkill.references" :key="ref">
+                                            <li class="flex items-center gap-2">
+                                                <span>📄</span>
+                                                <span x-text="ref"></span>
+                                            </li>
+                                        </template>
+                                    </ul>
+                                </template>
+                                <p x-show="!selectedSkill.references?.length" class="text-sm opacity-50">暂无参考文档</p>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-medium mb-2">📦 资源文件</h4>
+                            <div class="bg-base-200 rounded-lg p-3 min-h-16">
+                                <template x-if="selectedSkill.assets?.length > 0">
+                                    <ul class="text-sm space-y-1">
+                                        <template x-for="asset in selectedSkill.assets" :key="asset">
+                                            <li class="flex items-center gap-2">
+                                                <span>📁</span>
+                                                <span x-text="asset"></span>
+                                            </li>
+                                        </template>
+                                    </ul>
+                                </template>
+                                <p x-show="!selectedSkill.assets?.length" class="text-sm opacity-50">暂无资源文件</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-action">
+                        <button class="btn btn-outline" @click="selectedSkill = null">关闭</button>
+                        <button class="btn btn-primary" @click="toggleSkill(selectedSkill.meta?.id, !selectedSkill.meta?.enabled); selectedSkill = null"
+                                x-text="selectedSkill.meta?.enabled ? '禁用此 Skill' : '启用此 Skill'"></button>
+                    </div>
+                </div>
+            </template>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button type="button" @click="selectedSkill = null">close</button>
+        </form>
+    </dialog>
+
+    <!-- ========================== -->
+    <!-- Create Skill Modal -->
+    <!-- ========================== -->
+    <dialog class="modal" :class="{ 'modal-open': showCreateSkillModal }">
+        <div class="modal-box max-w-3xl">
+            <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" @click="showCreateSkillModal = false">✕</button>
+            <h3 class="font-bold text-lg mb-4">➕ 创建新 Skill</h3>
+            
+            <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="form-control">
+                        <label class="label"><span class="label-text">Skill ID <span class="text-error">*</span></span></label>
+                        <input type="text" class="input input-bordered" 
+                               x-model="newSkill.id" 
+                               placeholder="my-skill-name"
+                               pattern="[a-z0-9-]+"
+                               @input="newSkill.id = newSkill.id.toLowerCase().replace(/[^a-z0-9-]/g, '-')" />
+                        <label class="label"><span class="label-text-alt">只能使用小写字母、数字和连字符</span></label>
+                    </div>
+                    <div class="form-control">
+                        <label class="label"><span class="label-text">名称 <span class="text-error">*</span></span></label>
+                        <input type="text" class="input input-bordered" 
+                               x-model="newSkill.name" 
+                               placeholder="我的专业技能" />
+                    </div>
+                </div>
+
+                <div class="form-control">
+                    <label class="label"><span class="label-text">描述</span></label>
+                    <input type="text" class="input input-bordered" 
+                           x-model="newSkill.description" 
+                           placeholder="简短描述这个 Skill 的功能..." />
+                </div>
+
+                <div class="form-control">
+                    <label class="label"><span class="label-text">触发词（逗号分隔）</span></label>
+                    <input type="text" class="input input-bordered" 
+                           x-model="newSkill.triggersText" 
+                           placeholder="关键词1, 关键词2, 关键词3" />
+                    <label class="label"><span class="label-text-alt">当用户输入包含这些词时会自动匹配此 Skill</span></label>
+                </div>
+
+                <div class="form-control">
+                    <label class="label"><span class="label-text">标签（逗号分隔）</span></label>
+                    <input type="text" class="input input-bordered" 
+                           x-model="newSkill.tagsText" 
+                           placeholder="设计, 品牌, 专业" />
+                </div>
+
+                <div class="form-control">
+                    <label class="label"><span class="label-text">Skill 指令内容（Markdown）</span></label>
+                    <textarea class="textarea textarea-bordered h-48 font-mono text-sm" 
+                              x-model="newSkill.instructions" 
+                              placeholder="# 技能名称
+
+## 角色定位
+你是一位...
+
+## 工作流程
+1. 首先...
+2. 然后...
+
+## 输出格式
+..."></textarea>
+                </div>
+            </div>
+
+            <div class="modal-action">
+                <button class="btn btn-outline" @click="showCreateSkillModal = false">取消</button>
+                <button class="btn btn-primary" @click="createSkill" :disabled="!newSkill.id || !newSkill.name">
+                    ✨ 创建 Skill
+                </button>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button type="button" @click="showCreateSkillModal = false">close</button>
+        </form>
+    </dialog>
+
+    <!-- ========================== -->
+    <!-- Edit Skill Modal -->
+    <!-- ========================== -->
+    <dialog class="modal" :class="{ 'modal-open': editingSkill }">
+        <div class="modal-box max-w-3xl max-h-[90vh]">
+            <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" @click="editingSkill = null">✕</button>
+            <h3 class="font-bold text-lg mb-4">✏️ 编辑 Skill</h3>
+            
+            <template x-if="editingSkill">
+                <div class="space-y-4">
+                    <div class="alert alert-info text-sm">
+                        <span>📌 Skill ID: <strong x-text="editingSkill.id"></strong>（不可修改）</span>
+                    </div>
+
+                    <div class="form-control">
+                        <label class="label"><span class="label-text">名称 <span class="text-error">*</span></span></label>
+                        <input type="text" class="input input-bordered" x-model="editingSkill.name" />
+                    </div>
+
+                    <div class="form-control">
+                        <label class="label"><span class="label-text">描述</span></label>
+                        <input type="text" class="input input-bordered" x-model="editingSkill.description" />
+                    </div>
+
+                    <div class="form-control">
+                        <label class="label"><span class="label-text">触发词（逗号分隔）</span></label>
+                        <input type="text" class="input input-bordered" x-model="editingSkill.triggersText" />
+                    </div>
+
+                    <div class="form-control">
+                        <label class="label"><span class="label-text">标签（逗号分隔）</span></label>
+                        <input type="text" class="input input-bordered" x-model="editingSkill.tagsText" />
+                    </div>
+
+                    <div class="form-control">
+                        <label class="label"><span class="label-text">Skill 指令内容（Markdown）</span></label>
+                        <textarea class="textarea textarea-bordered h-64 font-mono text-sm" 
+                                  x-model="editingSkill.instructions"></textarea>
+                    </div>
+                </div>
+            </template>
+
+            <div class="modal-action">
+                <button class="btn btn-outline" @click="editingSkill = null">取消</button>
+                <button class="btn btn-primary" @click="saveSkillEdit" :disabled="!editingSkill?.name">
+                    💾 保存修改
+                </button>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button type="button" @click="editingSkill = null">close</button>
+        </form>
+    </dialog>
+
+    <!-- ========================== -->
+    <!-- Delete Skill Confirm Modal -->
+    <!-- ========================== -->
+    <dialog class="modal" :class="{ 'modal-open': skillToDelete }">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg text-error">⚠️ 确认删除</h3>
+            <p class="py-4">
+                确定要删除 Skill "<span class="font-bold" x-text="skillToDelete?.name"></span>" 吗？
+                <br><br>
+                <span class="text-warning">此操作不可撤销，相关的 SKILL.md 文件和目录都将被删除。</span>
+            </p>
+            <div class="modal-action">
+                <button class="btn btn-outline" @click="skillToDelete = null">取消</button>
+                <button class="btn btn-error" @click="deleteSkill(skillToDelete?.id)">🗑️ 确认删除</button>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button type="button" @click="skillToDelete = null">close</button>
+        </form>
+    </dialog>
+
+    <!-- ========================== -->
+    <!-- Settings Modal -->
+    <!-- ========================== -->
+    <dialog class="modal" :class="{ 'modal-open': showSettings }">
+        <div class="modal-box max-w-lg">
+            <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" @click="showSettings = false">✕</button>
+            <h3 class="font-bold text-lg mb-4">⚙️ API 设置</h3>
+            
+            <!-- 服务商选择 -->
+            <div class="form-control mb-4">
+                <label class="label"><span class="label-text font-medium">选择服务商</span></label>
+                <div class="grid grid-cols-3 gap-2">
+                    <template x-for="(preset, key) in apiProviders" :key="key">
+                        <button type="button" 
+                                class="btn btn-sm"
+                                :class="settings.provider === key ? 'btn-primary' : 'btn-outline'"
+                                @click="selectProvider(key)">
+                            <span x-text="preset.icon"></span>
+                            <span x-text="preset.name" class="text-xs"></span>
+                        </button>
+                    </template>
+                </div>
+            </div>
+
+            <!-- 当前服务商提示 -->
+            <div class="alert alert-info text-sm mb-4" x-show="apiProviders[settings.provider]">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <div>
+                    <span x-text="apiProviders[settings.provider]?.description"></span>
+                    <a x-show="apiProviders[settings.provider]?.signupUrl" 
+                       :href="apiProviders[settings.provider]?.signupUrl" 
+                       target="_blank" 
+                       class="link link-primary ml-1">获取 API Key →</a>
+                </div>
+            </div>
+
+            <!-- API 配置表单 -->
+            <div class="space-y-3">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">API 地址</span>
+                        <span class="label-text-alt text-base-content/50">OpenAI 兼容格式</span>
+                    </label>
+                    <input type="text" class="input input-bordered w-full" 
+                           x-model="settings.baseUrl" 
+                           placeholder="http://localhost:11434/v1" />
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">API 密钥</span>
+                        <span class="label-text-alt text-base-content/50" x-show="!apiProviders[settings.provider]?.requiresKey">本地服务可留空</span>
+                    </label>
+                    <input type="password" class="input input-bordered w-full" 
+                           x-model="settings.apiKey" 
+                           placeholder="sk-..." />
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">选择模型</span>
+                        <button type="button" class="btn btn-xs btn-ghost gap-1" @click="refreshModels" :disabled="modelsLoading">
+                            <span x-show="!modelsLoading">🔄</span>
+                            <span x-show="modelsLoading" class="loading loading-spinner loading-xs"></span>
+                            <span x-text="modelsLoading ? '加载中...' : '刷新列表'"></span>
+                        </button>
+                    </label>
+                    <div class="flex gap-2">
+                        <select class="select select-bordered flex-1" x-model="settings.model" x-show="availableModels.length > 0">
+                            <option value="" disabled>请选择模型</option>
+                            <template x-for="model in availableModels" :key="model.id">
+                                <option :value="model.id" x-text="model.name"></option>
+                            </template>
+                        </select>
+                        <input type="text" class="input input-bordered flex-1" 
+                               x-model="settings.model" 
+                               x-show="availableModels.length === 0"
+                               placeholder="输入模型名称或点击刷新" />
+                    </div>
+                    <p class="text-xs text-base-content/50 mt-1" x-show="availableModels.length === 0">
+                        💡 点击刷新按钮自动获取可用模型，或手动输入模型名称
+                    </p>
+                </div>
+            </div>
+
+            <div class="modal-action">
+                <button class="btn btn-outline" @click="showSettings = false">取消</button>
+                <button class="btn btn-primary" @click="saveSettings">💾 保存设置</button>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button type="button" @click="showSettings = false">close</button>
+        </form>
+    </dialog>
+
+    <!-- ========================== -->
+    <!-- Add Favorite Modal -->
+    <!-- ========================== -->
+    <dialog class="modal" :class="{ 'modal-open': showFavoriteModal }">
+        <div class="modal-box max-w-md">
+            <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" @click="showFavoriteModal = false">✕</button>
+            <h3 class="font-bold text-lg mb-4">⭐ 收藏提示词</h3>
+            
+            <div class="space-y-4">
+                <!-- 名称 -->
+                <div class="form-control">
+                    <label class="label"><span class="label-text font-medium">收藏名称</span></label>
+                    <input type="text" class="input input-bordered w-full" 
+                           x-model="favoriteForm.name" 
+                           placeholder="给这个提示词起个名字" />
+                </div>
+
+                <!-- 分类显示 -->
+                <div class="flex gap-4">
+                    <div class="form-control flex-1">
+                        <label class="label"><span class="label-text">分类</span></label>
+                        <input type="text" class="input input-bordered input-sm w-full" 
+                               :value="getCategoryName(favoriteForm.category)" readonly />
+                    </div>
+                    <div class="form-control flex-1">
+                        <label class="label"><span class="label-text">类型</span></label>
+                        <input type="text" class="input input-bordered input-sm w-full" 
+                               :value="getSubcategoryName(favoriteForm.subcategory)" readonly />
+                    </div>
+                </div>
+
+                <!-- 标签 -->
+                <div class="form-control">
+                    <label class="label"><span class="label-text font-medium">标签</span></label>
+                    <div class="flex flex-wrap gap-2 mb-2">
+                        <template x-for="(tag, index) in favoriteForm.tags" :key="index">
+                            <span class="badge badge-primary gap-1">
+                                <span x-text="tag"></span>
+                                <button type="button" class="text-xs" @click="favoriteForm.tags.splice(index, 1)">✕</button>
+                            </span>
+                        </template>
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="text" class="input input-bordered input-sm flex-1" 
+                               x-model="newTag" 
+                               @keydown.enter.prevent="addTag"
+                               placeholder="输入标签后按回车" />
+                        <button type="button" class="btn btn-sm btn-outline" @click="addTag">添加</button>
+                    </div>
+                </div>
+
+                <!-- 备注 -->
+                <div class="form-control">
+                    <label class="label"><span class="label-text font-medium">备注</span></label>
+                    <textarea class="textarea textarea-bordered" 
+                              x-model="favoriteForm.notes" 
+                              placeholder="添加备注（可选）"
+                              rows="2"></textarea>
+                </div>
+
+                <!-- 评分 -->
+                <div class="form-control">
+                    <label class="label"><span class="label-text font-medium">评分</span></label>
+                    <div class="rating rating-lg">
+                        <template x-for="i in 5" :key="i">
+                            <input type="radio" 
+                                   :name="'rating-' + favoriteForm.historyId" 
+                                   class="mask mask-star-2 bg-yellow-400"
+                                   :checked="favoriteForm.rating === i"
+                                   @click="favoriteForm.rating = i" />
+                        </template>
+                    </div>
+                </div>
+
+                <!-- 提示词预览 -->
+                <div class="form-control">
+                    <label class="label"><span class="label-text font-medium">提示词预览</span></label>
+                    <div class="bg-base-200 p-3 rounded-lg text-sm max-h-32 overflow-y-auto">
+                        <p x-text="favoriteForm.prompt?.substring(0, 200) + (favoriteForm.prompt?.length > 200 ? '...' : '')"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-action">
+                <button class="btn btn-outline" @click="showFavoriteModal = false">取消</button>
+                <button class="btn btn-primary" @click="saveFavorite" :disabled="!favoriteForm.name">
+                    ⭐ 保存收藏
+                </button>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button type="button" @click="showFavoriteModal = false">close</button>
+        </form>
+    </dialog>
+
+    <!-- Toast -->
+    <div class="toast toast-end z-50" x-show="toast.show" x-transition>
+        <div class="alert" :class="{'alert-success': toast.type === 'success', 'alert-error': toast.type === 'error', 'alert-info': toast.type === 'info'}">
+            <span x-text="toast.message"></span>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

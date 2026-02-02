@@ -1,0 +1,75 @@
+{
+  "logo_design_example": {
+    "style": "professional",
+    "composition": ["symmetrical", "Centered"],
+    "cameraAngle": ["Front view", "closeup view"],
+    "lighting": ["clean background trending", "front lighting"],
+    "colorScheme": ["minimalist", "high contrast"],
+    "subject": "科技公司Logo，简洁的几何图形设计",
+    "details": "现代感强，易识别，可缩放",
+    "promptText": "professional style, symmetrical and centered composition, front view closeup, clean background trending with front lighting, minimalist high contrast color scheme, tech company logo with clean geometric design, modern feel, easily recognizable, scalable, vector graphics, high quality"
+  },
+  
+  "poster_design_example": {
+    "style": "creative",
+    "composition": ["Contrasting", "S-shaped"],
+    "cameraAngle": ["ultrawide shot", "Long Shot"],
+    "lighting": ["mood lighting", "Crepuscular Ray"],
+    "colorScheme": ["Bold and bright", "Pop art"],
+    "subject": "音乐节海报，充满活力的演出现场",
+    "details": [
+      "动态文字排版",
+      "鲜艳色彩对比",
+      "节奏感强的视觉元素",
+      "吸引眼球的设计"
+    ],
+    "promptText": "creative style, contrasting S-shaped composition, ultrawide long shot, mood lighting with crepuscular ray, bold and bright pop art color scheme, music festival poster with energetic concert scene, dynamic typography, vibrant color contrast, rhythmic visual elements, eye-catching design, high detail, poster design"
+  },
+
+  "character_design_example": {
+    "style": "artistic",
+    "composition": ["Golden ratio", "Proportional"],
+    "cameraAngle": ["Full Length Shot", "third-person perspective"],
+    "lighting": ["Rim light", "Dramatic light"],
+    "colorScheme": ["Fantasy", "Dramatic"],
+    "subject": "奇幻风格的精灵战士角色设计",
+    "details": [
+      "精细的服装细节",
+      "独特的武器设计",
+      "富有表现力的姿态",
+      "奇幻世界观背景"
+    ],
+    "promptText": "artistic style, golden ratio proportional composition, full length shot third-person perspective, rim light with dramatic lighting, fantasy dramatic color scheme, fantasy elf warrior character design, detailed costume design, unique weapon design, expressive pose, fantasy worldview background, character sheet, high detail, concept art"
+  },
+
+  "advertisement_example": {
+    "style": "modern",
+    "composition": ["rule of thirds", "Asymmetrical"],
+    "cameraAngle": ["closeup view", "high angle view"],
+    "lighting": ["Studio light", "Bright"],
+    "colorScheme": "luxury golden tones",
+    "subject": "高端化妆品广告，展示产品质感",
+    "details": [
+      "产品特写镜头",
+      "奢华质感表现",
+      "专业摄影效果",
+      "品牌调性体现"
+    ],
+    "promptText": "modern style, rule of thirds asymmetrical composition, closeup high angle view, studio light bright lighting, luxury golden tones color scheme, high-end cosmetics advertisement showcasing product texture, product close-up shot, luxurious texture representation, professional photography effect, brand identity, commercial photography, 8K resolution"
+  },
+
+  "creative_illustration_example": {
+    "style": "playful",
+    "composition": ["mandala", "symmetrical"],
+    "cameraAngle": ["Top view", "isometric view"],
+    "lighting": ["Color light", "Volumetric light"],
+    "colorScheme": [
+      "Colorful color matching",
+      "Primary colors",
+      "Dreamy"
+    ],
+    "subject": "儿童绘本插画，可爱的动物角色在魔法森林中冒险",
+    "details": "温馨画面，丰富色彩，适合儿童阅读",
+    "promptText": "playful style, mandala symmetrical composition, top view isometric perspective, color light with volumetric lighting, colorful primary colors dreamy color scheme, children's book illustration with cute animal characters adventuring in magical forest, warm scene, rich colors, suitable for children reading, illustration, storybook art"
+  }
+}

@@ -1,0 +1,133 @@
+{
+  "version": "1.0.0",
+  "maxRecords": 100,
+  "records": [
+    {
+      "id": "h_01deea88-7eab-4ae7-8f38-8ca1d5bf13b3",
+      "timestamp": "2026-02-02T10:25:02.028Z",
+      "category": "image",
+      "subcategory": "logo-design",
+      "input": {
+        "brand_name": "Kone",
+        "industry": "光伏",
+        "logo_type": "线条Logo",
+        "style_preference": "渐变风",
+        "composition": "几何构图",
+        "design_form": "极简主义",
+        "creative_direction": "字母变形",
+        "color_preference": "",
+        "output_quality": "高清",
+        "keywords": "",
+        "additionalInput": ""
+      },
+      "output": {
+        "prompt": "# Kone 光伏品牌线条Logo设计方案\n\n## 1. 设计理念简述\n\n本方案为Kone光伏品牌设计了一个极简主义的线条Logo，采用字母变形与几何构图相结合的方式。设计通过将字母\"K\"抽象化为倾斜的光伏板几何线条，同时融入太阳光线的渐变意象，完美诠释光伏行业的科技感与能量属性。渐变风的蓝色系运用既体现了专业可信赖的品牌形象，又暗示了清洁能源的未来感。整个设计在保持极简线条美学的同时，确保了从数字界面到户外应用的全尺寸清晰识别。\n\n## 2. 英文提示词（适用于Midjourney）\n\n**Logo概念设计提示词:**\nMinimalist line logo design for photovoltaic brand \"Kone\", geometric letterform transformation of letter \"K\" inspired by solar panel angles and sun rays, elegant gradient style with blue color palette transitioning from deep navy to sky blue, clean vector lines forming a balanced composition, professional and trustworthy visual identity, high contrast for scalability, energy industry symbolism, modern and sleek aesthetic, isolated on white background, ultra-high definition rendering, sharp vector edges, --ar 1:1 --style raw\n\n**图文组合应用场景示例:**\nProfessional brand identity system showing \"Kone\" logo application, minimalist line logo with custom typography placed on business card mockup, elegant blue gradient background, geometric composition, clean negative space usage, premium matte paper texture, photorealistic product photography lighting, detailed shadows, corporate stationery design, professional presentation --ar 4:3 --style raw\n\n**辅助图形延展提示词:**\nAbstract geometric pattern derived from \"Kone\" logo lines, repeating solar ray motif in blue gradient colors, minimalist background texture for brand applications, seamless vector pattern, professional design system, photovoltaic industry visual language, scalable graphic elements, clean modern aesthetic --ar 16:9\n\n## 3. 中文提示词解释\n\n1. **主体描述**: 光伏品牌\"Kone\"的极简线条Logo设计，字母\"K\"的几何变形灵感来源于光伏板角度和太阳光线\n2. **风格/艺术家**: 渐变风、矢量线条、现代简约美学\n3. **色彩**: 蓝色调色板（从深海军蓝到天蓝色过渡）\n4. **光影**: 高对比度确保可扩展性，白色背景隔离\n5. **构图**: 平衡的几何构图，受太阳能行业象征意义启发\n6. **细节/质量词**: 超高清渲染、锐利的矢量边缘、专业可信赖的视觉识别\n\n## 4. 推荐的参数设置\n\n### Midjourney参数建议:\n```\n--ar 1:1 --style raw --stylize 500 --chaos 20\n```\n\n### 关键参数说明:\n- **--ar 1:1**: Logo标准比例，确保设计在方形框架内完美呈现\n- **--style raw**: 减少MJ过度艺术化处理，获得更精确的线条控制\n- **--stylize 500**: 中等风格化，平衡创意与精准度\n- **--chaos 20**: 适当引入随机性，探索更多几何变体可能\n\n### 迭代建议:\n1. 首轮生成使用基础提示词获取核心概念\n2. 选择最佳方向后，添加`--seed [编号]`锁定风格\n3. 通过`--no organic, painterly, sketch`排除非线条元素\n4. 使用`--weird 0`保持设计的商业适用性\n\n### 适配其他平台的调整建议:\n- **DALL-E 3**: 可省略参数，直接使用详细描述\n- **Stable Diffusion**: 添加负面提示词`bad quality, blurry, complex patterns`\n- **矢量转换**: 生成后建议使用`--sref`结合原始Logo图片进行风格统一\n\n---\n\n## 设计系统延伸建议\n\n基于此Logo核心概念，可构建完整品牌视觉系统：\n\n1. **色彩体系**: \n   - 主色: 渐变蓝 (#0A2463 → #3A86FF)\n   - 辅色: 太阳能橙 (#FF6B35) 作为强调色\n   - 中性色: 专业灰系 (#2D3748 → #E2E8F0)\n\n2. **版式规范**:\n   - 字体搭配: 无衬线字体 (如Inter或SF Pro) 体现科技感\n   - 网格系统: 基于Logo几何角度建立对齐系统\n\n3. **应用预览**:\n   - 建议生成4-6张应用场景图展示Logo在不同媒介的表现\n   - 重点关注最小尺寸(favicon 16×16px)的识别度测试\n\n此设计既满足了用户所有指定要求（线条Logo、渐变风、几何构图、字母变形、高清质量），又通过专业的色彩心理学应用和行业特性融合，创造了具有独特识别度的光伏品牌视觉符号。",
+        "matchedSkills": [
+          "品牌战略顾问",
+          "Logo 评审专家",
+          "色彩理论大师"
+        ]
+      },
+      "isFavorited": false
+    },
+    {
+      "id": "h_558b24b0-cc81-49f6-b50b-ae84c2f9d31a",
+      "timestamp": "2026-01-31T14:56:53.990Z",
+      "category": "image",
+      "subcategory": "logo-design",
+      "input": {
+        "brand_name": "SKY FIR",
+        "industry": "星际航天",
+        "logo_type": "纯图形Logo",
+        "style_preference": "现代",
+        "color_preference": "蓝色系",
+        "keywords": "",
+        "additionalInput": ""
+      },
+      "output": {
+        "prompt": "# SKY FIR 品牌视觉设计提案\n\n## 1. 设计理念简述\n\n基于「SKY FIR」作为星际航天企业的品牌定位，本Logo设计理念围绕**探索、专业、未来**三大核心价值展开。\n\n- **图形概念**: 将“天空”(SKY)的广阔与“火焰/动力”(FIR)的能量结合，通过简洁的几何图形融合“上升轨迹”与“能量核心”的意象。采用抽象的**宇宙飞船尾迹**或**星门能量环**作为视觉基础，体现航天科技的精准与无限可能。\n- **现代性表达**: 运用精确的几何线条和负空间，构建具有科技感和速度感的图形。整体形态平衡稳定，传递专业可信赖感。\n- **色彩策略**: 以**深空蓝**为主色调，象征宇宙的深邃与科技的理性；搭配**能量蓝渐变**，表现动力与突破。确保单色版本（深灰/黑）仍保持清晰结构。\n- **记忆点设计**: 通过不对称但平衡的负空间切割，形成独特视觉焦点，增强符号的识别性与记忆度。\n\n## 2. 英文提示词 (Midjourney)\n\n**提示词版本A (抽象星轨概念):**\n`symbol logo for aerospace brand \"SKY FIR\", pictorial mark, iconic logo, no text, graphic only -- a minimalist geometric design of an abstract spacecraft trail or stargate energy ring, combining upward trajectory with core energy, dynamic negative space, precise sharp lines, modern tech aesthetic, deep space blue gradient with electric blue accents, metallic sheen, clean vector style, scalable, memorable logomark --ar 1:1 --style raw --v 6.0`\n\n**提示词版本B (融合火焰与轨道):**\n`pictorial mark, symbol logo, iconic branding for interstellar aerospace company, no typography -- an elegant fusion of stylized flame and orbital path, geometric abstraction, balanced asymmetry, sharp intelligent edges, negative space creates hidden star shape, conveys propulsion and cosmic exploration, professional blue color palette: navy blue base with cyan highlights, glossy finish, ultra clean vector art, timeless design --ar 1:1 --s 250 --style raw`\n\n**提示词版本C (极简能量核心):**\n`logomark, graphic symbol, iconic emblem, no letters, for space technology brand -- a minimalist core energy device with radiating beams, geometric precision, concentric rings with breakouts suggesting thrust, clever use of negative space implies motion and innovation, cool blue tones: steel blue primary with bright azure accents, smooth gradients, professional modern style, highly scalable vector design --ar 1:1 --v 6.0`\n\n## 3. 中文提示词解释\n\n**版本A解释**: \n为航空航天品牌“SKY FIR”设计的符号标志，纯图形标识，无文字——一个抽象宇宙飞船尾迹或星门能量环的极简几何设计，结合上升轨迹与核心能量概念，动态负空间，精确锐利的线条，现代科技美学，深空蓝渐变配电子蓝点缀，金属光泽，干净矢量风格，可缩放，令人难忘的标志图形。\n\n**版本B解释**:\n象形标志，符号标志，星际航天公司的标志性品牌标识，无文字排版——风格化火焰与轨道路径的优雅融合，几何抽象，平衡的不对称，锐利智能边缘，负空间创造隐藏星形，传达推进力与宇宙探索，专业蓝色调色板：藏青底色配青色高光，光泽表面，超净矢量艺术，永恒设计。\n\n**版本C解释**:\n标志图形，图形符号，标志性徽章，无字母，适用于太空科技品牌——一个极简的能量核心装置带辐射光束，几何精度，同心圆带突破暗示推力，巧妙运用负空间暗示运动与创新，冷蓝色调：钢蓝主色配明亮天青点缀，平滑渐变，专业现代风格，高度可缩放的矢量设计。\n\n## 4. 推荐的参数设置\n\n- **宽高比**: `--ar 1:1` (标准Logo比例)\n- **风格化参数**: `--s 250` (平衡创意与遵循提示)\n- **版本**: `--v 6.0` 或 `--style raw` (获得更精确的几何图形和矢量风格)\n- **质量**: `--q 2` (需要更高细节时使用)\n- **排除项**: 可添加 `--no text, words, typography` 确保无文字元素\n- **种子参考**: 生成满意结果后使用 `--seed xxxx` 进行变体探索\n\n---\n\n**设计验证要点**:\n1. 缩小至24×24像素仍可辨认基本形态\n2. 单色反转(白底黑/黑底白)测试通过\n3. 与SpaceX、Blue Origin等现有航天Logo有明显差异化\n4. 图形隐含“S”或“F”形态但不显刻意\n5. 符合现代航天企业专业、前瞻的品牌气质",
+        "matchedSkills": [
+          "品牌战略顾问",
+          "Logo 评审专家",
+          "色彩理论大师"
+        ]
+      },
+      "isFavorited": true,
+      "favoriteId": "f_ae14916d-c920-4505-9a19-3d07b83cc2f4"
+    },
+    {
+      "id": "h_e84ad7ad-0c67-4443-85c4-3cbd624b6afa",
+      "timestamp": "2026-01-31T14:39:50.959Z",
+      "category": "image",
+      "subcategory": "logo-design",
+      "input": {
+        "brand_name": "TK-on",
+        "industry": "星际公司",
+        "logo_type": "图文组合Logo",
+        "style_preference": "现代",
+        "color_preference": "传统色调",
+        "keywords": "",
+        "additionalInput": ""
+      },
+      "output": {
+        "prompt": "# TK-on 品牌Logo设计方案\n\n## 1. 设计理念简述\n\nTK-on作为星际公司，需要在现代与传统之间找到平衡。我建议采用\"轨道融合\"概念：将代表星际航行的几何轨道元素与传统字母形式结合，形成既具未来感又显稳重的视觉符号。图形部分将\"T\"和\"K\"抽象化为交错的轨道环，象征连接与探索；文字部分使用现代但不过分前卫的无衬线字体，确保专业度。传统色调将体现在深蓝与金色的搭配上——深蓝代表宇宙的深邃与可信赖，金色象征价值与探索精神。\n\n## 2. 英文提示词（适用于Midjourney）\n\n**完整提示词：**\nProfessional combination mark logo design for \"TK-on\" interstellar company, featuring an elegant geometric orbital ring system that subtly incorporates the letters T and K, modern sans-serif typography in balanced arrangement with icon, traditional color palette of deep navy blue (#0A2463) with gold metallic accents (#D4AF37), clean vector style, perfect symmetry, scalable design, corporate identity system, flat design with subtle depth, professional business branding, interstellar technology aesthetic, --ar 1:1 --style professional --v 6.0\n\n**备选提示词（不同角度）：**\nMinimalist emblem logo for space technology brand \"TK-on\", abstract celestial orbit symbol merging with typography, monoline design, dark blue and silver gray color scheme, ultra-clean lines, negative space utilization, modern corporate identity, timeless design, vector illustration, professional branding package --ar 1:1 --style minimal\n\nModern combination logo \"TK-on\", interconnected planetary rings forming brand initials, balanced text-icon composition, professional interstellar corporation identity, traditional yet futuristic color palette: deep space blue, metallic bronze, and star white, clean vector artwork, scalable for all media, professional business application --ar 1:1 --style modern\n\n## 3. 中文提示词解释\n\n核心设计要素解析：\n- **主体结构**：\"TK-on\"图文组合标志，几何轨道环系统巧妙融合T和K字母形态\n- **风格定位**：现代专业风格，矢量简洁设计，适合企业身份系统\n- **色彩方案**：传统色调组合 - 深海军蓝(#0A2463)为主色，金属金色(#D4AF37)为强调色\n- **行业特性**：星际科技美学，体现太空探索与专业技术的结合\n- **技术规格**：可缩放设计，完美对称，平面设计带有微妙深度感\n- **品牌调性**：专业商业品牌，企业级视觉识别系统\n\n## 4. 推荐的参数设置\n\n**Midjourney 优化参数：**\n```\n--ar 1:1 --style professional --v 6.0 --stylize 500\n```\n\n**关键参数说明：**\n- `--ar 1:1`：正方形比例，最适合Logo展示\n- `--style professional`：启用专业风格优化，适合企业设计\n- `--v 6.0`：使用最新版本，获得最佳矢量风格渲染\n- `--stylize 500`：中等风格化，平衡创意与品牌规范要求\n\n**迭代建议：**\n1. 首轮生成后，挑选对称性最好、线条最清晰的版本\n2. 使用`--weird`参数进行轻微变体探索（值建议0.2-0.5）\n3. 如需调整颜色，可添加`--c`参数微调色彩鲜艳度\n4. 最终确定设计后，使用`--tile`参数测试图案重复效果\n\n**适配性验证提示：**\n生成后请检查：\n- 缩小至16×16像素时是否仍可识别\n- 单色（黑白）版本是否保持完整性\n- 文字与图形的视觉平衡是否合适\n- 在不同背景色（深/浅）下的对比度\n\n---\n\n## 设计思考深度解析\n\n作为品牌视觉设计总监，我为TK-on制定了三条设计原则：\n\n### 1. 星际行业解读\n传统色调并不意味着保守。深蓝象征宇宙的无限可能，金色代表探索的价值回报。轨道环设计既暗示行星轨迹（行业关联），又形成字母融合（品牌识别）。\n\n### 2. 图文平衡策略\n图形与文字采用4:6面积比，视觉重心略微偏上，创造向上的动势。文字\"TK-on\"中，\"on\"略小但保持清晰，暗示\"启动、在线\"的科技含义。\n\n### 3. 多场景适配方案\n- **大尺寸应用**：展现轨道纹理和金色渐变细节\n- **小尺寸应用**：简化内部细节，强化外轮廓识别\n- **单色版本**：使用不同灰度层次维持空间感\n- **动态应用**：轨道环可设计轻微旋转动画，象征持续探索\n\n这个设计方案确保TK-on在保持星际公司专业形象的同时，通过传统色调建立可信赖感，通过现代设计保持时代相关性。",
+        "matchedSkills": [
+          "品牌战略顾问",
+          "Logo 评审专家",
+          "色彩理论大师"
+        ]
+      },
+      "isFavorited": true,
+      "favoriteId": "f_341b85c4-02f4-4f36-9f66-13fe8adc2b1c"
+    },
+    {
+      "id": "h_2687613d-ee9c-4712-a2cb-eb215dd3e316",
+      "timestamp": "2026-01-31T14:13:41.414Z",
+      "category": "image",
+      "subcategory": "logo-design",
+      "input": {
+        "brand_name": "PrCf",
+        "industry": "航天",
+        "logo_type": "图文组合Logo",
+        "style_preference": "现代",
+        "color_preference": "蓝色渐变系",
+        "keywords": "",
+        "additionalInput": ""
+      },
+      "output": {
+        "prompt": "【设计理念简述】  \n作为PrCf的品牌视觉系统设计师，我将航天行业的专业感与现代美学结合，打造一个图文融合度高、多场景适配的标志。图形部分提取“航天轨道”、“精密结构”或“无限探索”的抽象几何元素，与品牌名称“PrCf”形成视觉互补。蓝色渐变不仅传递科技与信任感，同时确保在黑白模式下保持清晰的负空间识别度。整体设计强调简洁、可延展性，满足从数字界面到实体物料的全场景应用。\n\n---\n\n**英文提示词 (For Midjourney):**  \nLogo design for aerospace brand \"PrCf\", combination mark logo with abstract geometric icon symbolizing orbit, precision, and exploration, integrated with clean modern typography, blue to blue gradient color scheme, minimalist and professional style, balanced negative space, scalable vector design, suitable for digital and print applications, --ar 1:1 --style modern --v 6.0\n\n---\n\n**中文提示词解释:**  \n航天品牌“PrCf”的图文组合标志设计，包含象征轨道、精密与探索的抽象几何图标，与简洁现代字标融合，采用蓝色到蓝色的渐变色彩，极简且专业的风格，均衡的负空间，可缩放矢量设计，适用于数字与印刷场景。\n\n---\n\n**推荐的参数设置:**  \n- **宽高比:** `--ar 1:1` (标准Logo比例)  \n- **风格:** `--style modern` (强化现代感)  \n- **版本:** `--v 6.0` (Midjourney最新版本，细节更佳)  \n- **可选细化:** 如需更高控制度，可添加 `--stylize 500` 增强艺术化表现，或 `--no realistic` 避免过于写实。  \n\n---\n\n**设计要点备注:**  \n1. **图形概念:** 建议尝试“环绕轨道线”、“精密齿轮片段”或“抽象飞行轨迹”等几何变体，与“PrCf”字母结构呼应。  \n2. **色彩梯度:** 从深空蓝(#0A2463)渐变至科技蓝(#3E92CC)，可增加微妙的金属光泽质感 (`metallic sheen`)。  \n3. **字体处理:** 字标建议使用无衬线字体，字形可稍作定制（如“P”与“f”的末笔形成动态呼应）。  \n4. **延展测试:** 生成后务必检查单色版本、小尺寸缩略图（如16×16像素）下的识别度。",
+        "matchedSkills": [
+          "品牌战略顾问",
+          "Logo 评审专家",
+          "色彩理论大师"
+        ]
+      },
+      "isFavorited": false
+    },
+    {
+      "id": "h_782b4539-bec0-4fd6-9680-93083d67c10a",
+      "timestamp": "2026-01-31T13:00:02.271Z",
+      "category": "image",
+      "subcategory": "logo-design",
+      "input": {
+        "brand_name": "Kone",
+        "industry": "科技",
+        "logo_type": "抽象符号Logo",
+        "style_preference": "现代",
+        "color_preference": "黑金",
+        "keywords": "",
+        "additionalInput": ""
+      },
+      "output": {
+        "prompt": "# 「Kone」抽象符号Logo设计提案\n\n## 1. 设计理念简述\n\n基于品牌战略分析，「Kone」作为科技企业，其Logo需要同时体现专业可靠与创新活力。我们设计了以“动态连接”为核心理念的抽象符号：\n\n**概念阐述**：\nLogo主体由三个相互连接的几何模块构成，象征数据的流动、系统的整合与技术的协作。金色线条在黑色基底上形成聚焦路径，代表在复杂科技环境中开辟清晰道路的能力。整体造型既稳固又富有动感，符合现代科技美学。\n\n**视觉策略**：\n- **几何抽象**：采用精确的几何形态，避免具象联想，强化专业感\n- **黑金对比**：黑色代表专业与稳定，金色象征品质与突破\n- **负空间运用**：利用留白形成隐含的“K”字形态，增强品牌关联\n- **可扩展设计**：极端简化形态，确保从16px favicon到大型广告牌均保持识别度\n\n## 2. 英文提示词（适用于Midjourney）\n\n```\nAbstract logo design for technology brand \"Kone\", geometric abstract symbol composed of three interconnected angular modules, dynamic gold lines flowing through solid black geometric shapes, modern minimalist style, negative space forms subtle \"K\" letterform, professional technology aesthetic, black and gold color palette with metallic gold accents, clean vector illustration, precise geometric construction, balanced composition, scalable design, symmetrical yet dynamic, conceptual symbol representing connectivity and innovation, tech company logo, corporate identity, --ar 1:1 --style raw --v 6.0\n```\n\n## 3. 中文提示词解释\n\n这是针对Midjourney等AI图像生成工具优化的专业提示词结构：\n\n- **主体描述**：科技品牌“Kone”的抽象Logo设计，由三个相互连接的棱角模块组成的几何抽象符号\n- **视觉特征**：动态的金色线条穿过坚实的黑色几何形状，现代极简风格\n- **隐藏细节**：负空间形成微妙的“K”字母形态\n- **风格调性**：专业科技美学，黑金配色搭配金属金色点缀\n- **技术规格**：干净矢量插画，精确几何构造，平衡构图\n- **品牌理念**：代表连接与创新的概念符号，科技公司Logo，企业形象\n- **质量参数**：1:1比例，原始风格，版本6.0\n\n## 4. 推荐的参数设置\n\n### Midjourney 优化参数：\n```\n--ar 1:1 --style raw --v 6.0 --s 750 --chaos 30\n```\n- `--ar 1:1`：正方形比例，最适合Logo展示\n- `--style raw`：减少Midjourney默认的艺术化渲染，获得更干净的几何图形\n- `--v 6.0`：使用最新版本，几何精度更高\n- `--s 750`：中等风格化，平衡创意与控制\n- `--chaos 30`：引入适当随机性，探索更多变体\n\n### DALL-E 3 提示词调整建议：\n移除参数标记，将描述整合为自然语言：\n\"A highly geometric abstract logo for tech company Kone, featuring three interconnected black modules with flowing gold lines, forming a subtle K in negative space, minimalist modern design, black and gold color scheme, vector style\"\n\n### Stable Diffusion 关键词权重：\n```\n(abstract logo:1.3), (geometric symbol:1.2), (Kone technology:1.1), black and gold, (interconnected modules:1.2), (modern minimalist:1.1), (negative space K:1.3), vector, professional, (tech company:1.1), symmetrical, dynamic, 4k, high detail\nNegative prompt: realistic, photorealistic, detailed background, complex patterns, handwritten, organic shapes, gradients\n```\n\n## 5. 设计变体建议\n\n如需探索不同方向，可尝试以下变体：\n\n**变体A - 更简约**：\n```\nMinimalist abstract mark for Kone, single continuous gold line forming geometric K shape within black square, ultra-simple, modern tech logo, monoline design\n```\n\n**变体B - 更动态**：\n```\nDynamic abstract logo for Kone technology, golden energy flow connecting three black nodes, sense of movement and data transfer, futuristic tech symbol\n```\n\n**变体C - 更稳重**：\n```\nCorporate abstract emblem for Kone, stacked geometric forms in black with gold accent lines, solid and trustworthy appearance, professional technology identity\n```\n\n所有设计均需确保满足：\n1. 单色版本仍保持完整识别度\n2. 最小应用尺寸不低于16×16像素\n3. 与主要科技品牌Logo有明显区分\n4. 传达专业、创新、可靠的品牌特质",
+        "matchedSkills": [
+          "品牌战略顾问",
+          "Logo 评审专家",
+          "色彩理论大师"
+        ]
+      },
+      "isFavorited": true,
+      "favoriteId": "f_c68b53d0-1338-4e46-8718-09690ccad728"
+    }
+  ]
+}
