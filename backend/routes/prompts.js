@@ -5,6 +5,7 @@ const { VariableParser, VariableTypes, variable } = require('../utils/variablePa
 const { getCategoryService } = require('../services/categoryService');
 const { getPresetService } = require('../services/presetService');
 const { getImproverService } = require('../services/improverService');
+const { promptCompressor, CompressionLevel } = require('../services/promptCompressorService');
 const { 
   ImagePromptBuilder, 
   imageBuilder, 
@@ -1770,6 +1771,165 @@ router.get('/image/resources', (req, res) => {
     res.status(500).json({
       success: false,
       error: { code: 'RESOURCES_ERROR', message: error.message }
+    });
+  }
+});
+
+// ==================== 提示词压缩 API ====================
+
+/**
+ * 压缩提示词
+ * POST /api/prompts/compress
+ * 
+ * @body {string} systemPrompt - 系统提示词
+ * @body {string} structuredPrompt - 结构化提示词
+ * @body {string} skillsContext - Skills 上下文
+ * @body {number} level - 压缩等级 (0=完整, 1=精简, 2=超轻量)
+ * @body {Array} userMustInclude - 用户必须包含的信息
+ */
+router.post('/compress', (req, res) => {
+  try {
+    const {
+      systemPrompt = '',
+      structuredPrompt = '',
+      skillsContext = '',
+      level = CompressionLevel.LITE,
+      userMustInclude = []
+    } = req.body;
+
+    const result = promptCompressor.compress({
+      systemPrompt,
+      structuredPrompt,
+      skillsContext,
+      level,
+      userMustInclude
+    });
+
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    console.error('Compress error:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'COMPRESS_ERROR', message: error.message }
+    });
+  }
+});
+
+/**
+ * 估算 Token 数量
+ * POST /api/prompts/estimate-tokens
+ * 
+ * @body {string} text - 要估算的文本
+ * @body {string[]} texts - 多个文本数组
+ */
+router.post('/estimate-tokens', (req, res) => {
+  try {
+    const { text, texts } = req.body;
+
+    if (texts && Array.isArray(texts)) {
+      // 批量估算
+      const results = texts.map(t => ({
+        text: t.substring(0, 50) + (t.length > 50 ? '...' : ''),
+        tokens: promptCompressor.estimateTokens(t)
+      }));
+      const total = results.reduce((sum, r) => sum + r.tokens, 0);
+
+      res.json({
+        success: true,
+        data: {
+          results,
+          total
+        }
+      });
+    } else if (text) {
+      // 单个估算
+      const tokens = promptCompressor.estimateTokens(text);
+      res.json({
+        success: true,
+        data: {
+          tokens,
+          length: text.length
+        }
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        error: { code: 'MISSING_TEXT', message: '缺少文本参数' }
+      });
+    }
+  } catch (error) {
+    console.error('Estimate tokens error:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'ESTIMATE_ERROR', message: error.message }
+    });
+  }
+});
+
+/**
+ * 获取压缩等级信息
+ * GET /api/prompts/compression-levels
+ */
+router.get('/compression-levels', (req, res) => {
+  try {
+    const levels = [
+      { level: CompressionLevel.FULL, ...promptCompressor.getLevelInfo(CompressionLevel.FULL) },
+      { level: CompressionLevel.LITE, ...promptCompressor.getLevelInfo(CompressionLevel.LITE) },
+      { level: CompressionLevel.ULTRA, ...promptCompressor.getLevelInfo(CompressionLevel.ULTRA) }
+    ];
+
+    res.json({
+      success: true,
+      data: levels
+    });
+  } catch (error) {
+    console.error('Get compression levels error:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'LEVELS_ERROR', message: error.message }
+    });
+  }
+});
+
+/**
+ * 推荐压缩等级
+ * POST /api/prompts/recommend-compression
+ * 
+ * @body {number} estimatedTokens - 估算的 token 数
+ * @body {number} targetLimit - 目标限制 (默认 2048)
+ */
+router.post('/recommend-compression', (req, res) => {
+  try {
+    const { estimatedTokens, targetLimit = 2048 } = req.body;
+
+    if (!estimatedTokens || typeof estimatedTokens !== 'number') {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_TOKENS', message: '请提供有效的 token 数量' }
+      });
+    }
+
+    const recommendedLevel = promptCompressor.recommendCompressionLevel(estimatedTokens, targetLimit);
+    const levelInfo = promptCompressor.getLevelInfo(recommendedLevel);
+
+    res.json({
+      success: true,
+      data: {
+        recommendedLevel,
+        levelInfo,
+        estimatedTokens,
+        targetLimit,
+        needsCompression: estimatedTokens > targetLimit * 0.8
+      }
+    });
+  } catch (error) {
+    console.error('Recommend compression error:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'RECOMMEND_ERROR', message: error.message }
     });
   }
 });

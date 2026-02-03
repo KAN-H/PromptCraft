@@ -71,11 +71,24 @@ function promptCraftApp() {
     toast: { show: false, message: '', type: 'info' },
 
     // 🔥 Phase 9: 新的统一设置结构
+    // 🔥 Phase 11: 添加压缩设置
     settings: {
       provider: 'local',
       baseUrl: 'http://localhost:11434/v1',
       apiKey: '',
-      model: ''
+      model: '',
+      // 压缩设置
+      enableCompression: false,
+      compressionLevel: 1,  // 1=精简, 2=超轻量
+      showTokenEstimate: true
+    },
+
+    // Token 估算相关
+    tokenEstimate: {
+      original: 0,
+      compressed: 0,
+      saved: 0,
+      ratio: 0
     },
     
     // 服务商预设 (引用全局常量)
@@ -643,6 +656,7 @@ function promptCraftApp() {
 
       this.designLoading = true;
       this.designResult = null;
+      this.tokenEstimate = { original: 0, compressed: 0, saved: 0, ratio: 0 };
 
       try {
         // 🧠 Step 1: 匹配相关 Skills
@@ -689,14 +703,14 @@ function promptCraftApp() {
           throw new Error(applyData.error?.message || '生成失败');
         }
 
-        const structuredPrompt = applyData.data.content; // 这是结构化的中文提示词（给AI看的）
+        let structuredPrompt = applyData.data.content; // 这是结构化的中文提示词（给AI看的）
         let baseSystemPrompt = applyData.data.system_prompt;
 
         // 🔥 Phase 9: 检查是否已配置 API（baseUrl 和 model 必须存在）
         if (this.settings.baseUrl && this.settings.model) {
           try {
             // 🔥 动态构建系统提示词 - 根据用户输入调整
-            const dynamicSystemPrompt = this._buildDynamicSystemPrompt(
+            let dynamicSystemPrompt = this._buildDynamicSystemPrompt(
               baseSystemPrompt, 
               structuredPrompt, 
               this.designVariables,
@@ -705,13 +719,36 @@ function promptCraftApp() {
               this.selectedReference  // 📌 Phase 10: 传入收藏参考
             );
 
+            // 🔥 Phase 11: 如果启用压缩，进行压缩处理
+            let compressionApplied = false;
+            if (this.settings.enableCompression) {
+              const compressionResult = await this._applyCompression(
+                dynamicSystemPrompt,
+                structuredPrompt,
+                skillsContext,
+                this.settings.compressionLevel
+              );
+              
+              if (compressionResult) {
+                dynamicSystemPrompt = compressionResult.systemPrompt;
+                structuredPrompt = compressionResult.structuredPrompt;
+                skillsContext = compressionResult.skillsContext;
+                this.tokenEstimate = compressionResult.stats;
+                compressionApplied = true;
+                
+                console.log('[Compression] 压缩完成:', compressionResult.stats);
+              }
+            }
+
             const finalPrompt = await this._callAIForOptimization(structuredPrompt, dynamicSystemPrompt);
             this.designResult = {
               finalPrompt: finalPrompt, // 最终的图像提示词（英文）
               structuredPrompt: structuredPrompt, // 结构化提示词（中文）
               keywords: applyData.data.keywords || [],
               tips: applyData.data.outputTips || [],
-              matchedSkills: matchedSkillNames  // 🧠 显示匹配的 Skills
+              matchedSkills: matchedSkillNames,  // 🧠 显示匹配的 Skills
+              compressionApplied,  // 🔥 Phase 11: 显示是否应用了压缩
+              tokenEstimate: this.tokenEstimate
             };
             
             // 🔥 Phase 10: 自动保存到历史记录
@@ -722,7 +759,14 @@ function promptCraftApp() {
               { prompt: finalPrompt, matchedSkills: matchedSkillNames }
             );
             
-            this.showToast('专业提示词生成成功！' + (matchedSkillNames.length > 0 ? ` (应用了 ${matchedSkillNames.length} 个专业技能)` : ''), 'success');
+            let successMsg = '专业提示词生成成功！';
+            if (matchedSkillNames.length > 0) {
+              successMsg += ` (应用了 ${matchedSkillNames.length} 个专业技能)`;
+            }
+            if (compressionApplied) {
+              successMsg += ` [已压缩 ${this.tokenEstimate.ratio}%]`;
+            }
+            this.showToast(successMsg, 'success');
           } catch (aiError) {
             console.error('AI optimization error:', aiError);
             // AI 调用失败，使用结构化提示词作为备选
@@ -1209,6 +1253,63 @@ ${referencePrompt.prompt}
       }
 
       return keyInfo;
+    },
+
+    /**
+     * 🔥 Phase 11: 应用提示词压缩
+     * @param {string} systemPrompt - 系统提示词
+     * @param {string} structuredPrompt - 结构化提示词
+     * @param {string} skillsContext - Skills 上下文
+     * @param {number} level - 压缩等级 (1=精简, 2=超轻量)
+     * @returns {Object|null} - 压缩结果
+     */
+    async _applyCompression(systemPrompt, structuredPrompt, skillsContext, level) {
+      try {
+        // 提取用户必须包含的关键信息（压缩时也要保留）
+        const userMustInclude = this._extractUserKeyInfo(this.designVariables, this.designAdditionalInput);
+        
+        const response = await fetch(`${API_BASE}/compress`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            systemPrompt,
+            structuredPrompt,
+            skillsContext,
+            level,
+            userMustInclude
+          })
+        });
+
+        const data = await response.json();
+        
+        if (data.success && data.data) {
+          return data.data;
+        }
+        
+        console.warn('[Compression] 压缩失败:', data.error);
+        return null;
+      } catch (error) {
+        console.error('[Compression] 压缩请求失败:', error);
+        return null;
+      }
+    },
+
+    /**
+     * 🔥 Phase 11: 估算当前提示词的 Token 数
+     */
+    async _estimateTokens(text) {
+      try {
+        const response = await fetch(`${API_BASE}/estimate-tokens`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text })
+        });
+        const data = await response.json();
+        return data.success ? data.data.tokens : 0;
+      } catch (error) {
+        console.error('[TokenEstimate] 估算失败:', error);
+        return 0;
+      }
     },
 
     async _callAIForOptimization(userPrompt, systemPrompt) {

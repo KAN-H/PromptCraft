@@ -268,7 +268,25 @@
                                 </div>
                             </div>
 
-                            <div class="card-actions justify-end mt-6">
+                            <div class="card-actions justify-between items-center mt-6">
+                                <!-- 🔥 Phase 11: 压缩快捷开关 -->
+                                <div class="flex items-center gap-2">
+                                    <label class="label cursor-pointer gap-2 p-0">
+                                        <input type="checkbox" class="toggle toggle-sm toggle-primary" 
+                                               x-model="settings.enableCompression" 
+                                               @change="localStorage.setItem('promptcraft_settings', JSON.stringify(settings))" />
+                                        <span class="label-text text-sm">
+                                            <span x-show="!settings.enableCompression">⚡ 压缩</span>
+                                            <span x-show="settings.enableCompression" class="text-primary font-medium">
+                                                ⚡ 已开启 (<span x-text="settings.compressionLevel == 1 ? '精简' : '超轻量'"></span>)
+                                            </span>
+                                        </span>
+                                    </label>
+                                    <div class="tooltip tooltip-top" data-tip="为 token 限制小的模型（如 2K）压缩提示词">
+                                        <button class="btn btn-ghost btn-xs btn-circle">?</button>
+                                    </div>
+                                </div>
+                                
                                 <button class="btn btn-primary btn-lg gap-2" 
                                         @click="generateDesignPrompt" 
                                         :disabled="designLoading">
@@ -316,6 +334,24 @@
                                              x-text="designResult?.structuredPrompt"></div>
                                     </div>
                                 </details>
+
+                                <!-- 🔥 Phase 11: 压缩状态和 Token 统计 -->
+                                <div x-show="designResult?.compressionApplied && settings.showTokenEstimate" 
+                                     class="alert alert-success shadow-sm py-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-5 w-5" fill="none" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <div class="flex-1">
+                                        <span class="font-medium">⚡ 提示词已压缩</span>
+                                        <span class="text-sm ml-2">
+                                            <span x-text="designResult?.tokenEstimate?.originalTokens || 0"></span> → 
+                                            <span x-text="designResult?.tokenEstimate?.compressedTokens || 0"></span> tokens
+                                            <span class="badge badge-sm badge-success ml-1">
+                                                -<span x-text="designResult?.tokenEstimate?.ratio || 0"></span>%
+                                            </span>
+                                        </span>
+                                    </div>
+                                </div>
 
                                 <!-- 🧠 显示匹配的专业技能 -->
                                 <div x-show="designResult?.matchedSkills?.length > 0" class="mt-4">
@@ -961,6 +997,44 @@
                     <p class="text-xs text-base-content/50 mt-1" x-show="availableModels.length === 0">
                         💡 点击刷新按钮自动获取可用模型，或手动输入模型名称
                     </p>
+                </div>
+
+                <!-- 🔥 超轻量模型优化设置 -->
+                <div class="divider text-xs opacity-60">⚡ 小模型优化</div>
+                
+                <div class="form-control">
+                    <label class="label cursor-pointer justify-start gap-3">
+                        <input type="checkbox" class="toggle toggle-primary toggle-sm" x-model="settings.enableCompression" />
+                        <div>
+                            <span class="label-text font-medium">启用提示词压缩</span>
+                            <p class="text-xs text-base-content/50">适用于 token 限制较小的模型（如 2K）</p>
+                        </div>
+                    </label>
+                </div>
+
+                <div class="form-control" x-show="settings.enableCompression" x-transition>
+                    <label class="label">
+                        <span class="label-text">压缩等级</span>
+                        <span class="badge badge-sm" :class="{
+                            'badge-info': settings.compressionLevel == 1,
+                            'badge-warning': settings.compressionLevel == 2
+                        }" x-text="settings.compressionLevel == 1 ? '~4K tokens' : '~1.5K tokens'"></span>
+                    </label>
+                    <select class="select select-bordered select-sm w-full" x-model.number="settings.compressionLevel">
+                        <option value="1">📄 精简模式 - 移除示例，保留核心指令</option>
+                        <option value="2">⚡ 超轻量模式 - 极度精简，适合 2K 限制</option>
+                    </select>
+                    <div class="alert alert-warning mt-2 py-2" x-show="settings.compressionLevel == 2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-5 w-5" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                        <span class="text-xs">超轻量模式会移除大部分专业指导，可能影响输出质量</span>
+                    </div>
+                </div>
+
+                <div class="form-control" x-show="settings.enableCompression" x-transition>
+                    <label class="label cursor-pointer justify-start gap-3">
+                        <input type="checkbox" class="checkbox checkbox-sm checkbox-primary" x-model="settings.showTokenEstimate" />
+                        <span class="label-text text-sm">在生成时显示 Token 估算</span>
+                    </label>
                 </div>
             </div>
 
