@@ -46,13 +46,19 @@ app.listen(PORT, async () => {
   console.log(`📱 访问地址: ${url}`);
   console.log(`🔧 API地址: ${url}/api`);
 
-  // 在生产环境（非开发模式）下自动打开浏览器
-  if (process.env.NODE_ENV !== 'development') {
+  // 只在生产环境（npm start）下自动打开浏览器
+  // 开发环境（npm run dev / nodemon）不自动打开，避免重启循环
+  const isDevMode = process.argv.some(arg => arg.includes('nodemon')) || 
+                    process.env.npm_lifecycle_event === 'dev';
+  
+  if (!isDevMode) {
     try {
       await open(url);
       console.log('🌐 已自动打开浏览器');
     } catch (err) {
       console.error('❌ 无法自动打开浏览器:', err);
     }
+  } else {
+    console.log('🔄 开发模式：跳过自动打开浏览器');
   }
 });

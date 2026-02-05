@@ -461,7 +461,7 @@ ${compressedBlocks.join('\n---\n')}
         originalTokens,
         compressedTokens,
         savedTokens: originalTokens - compressedTokens,
-        compressionRatio: originalTokens > 0 
+        ratio: originalTokens > 0 
           ? Math.round((1 - compressedTokens / originalTokens) * 100) 
           : 0
       }
