@@ -66,8 +66,11 @@ class PromptGenerator {
       return this.generateLegacy(input);
     }
     
-    // If input has 'input' property, use legacy template-based generation
-    if (input.input && !input.subject && !input.modifier && !input.style && !input.negative) {
+    // Check if this is a legacy template request (has 'input' property but not comma-separated generation properties)
+    const hasLegacyInputProperty = 'input' in input;
+    const hasCommaSeparatedProperties = 'subject' in input || 'modifier' in input || 'style' in input || 'negative' in input;
+    
+    if (hasLegacyInputProperty && !hasCommaSeparatedProperties) {
       return this.generateLegacy(input.input);
     }
 
@@ -93,7 +96,13 @@ class PromptGenerator {
     return parts.join(', ');
   }
 
-  // Legacy: Template-based generation
+  /**
+   * Legacy template-based generation method
+   * @param {string} content - The input content to generate prompts for
+   * @returns {Array<Object>} Array of generated prompt objects with professional, creative, and simple styles
+   * @description This method uses the old template-based approach to generate three different
+   * style variations of prompts. It's maintained for backward compatibility with existing code.
+   */
   generateLegacy(content) {
     if (!content) throw new Error('Input content is required');
 
