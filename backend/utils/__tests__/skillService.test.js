@@ -4,18 +4,30 @@
  * @version 1.0.0
  */
 
-const skillService = require('../services/skillService');
+const skillService = require('../../services/skillService');
 const fs = require('fs').promises;
 const path = require('path');
 
 // 测试用 Skill ID
 const TEST_SKILL_ID = 'test-skill-unit-test';
 
+// 需要测试的内置 Skills
+const BUILT_IN_SKILLS = ['logo-critique-expert', 'color-theory-master', 'brand-strategy-advisor'];
+
 describe('SkillService', () => {
   
   beforeAll(async () => {
     // 初始化服务
     await skillService.initialize();
+    
+    // 启用测试需要的 Skills
+    for (const skillId of BUILT_IN_SKILLS) {
+      try {
+        await skillService.setSkillEnabled(skillId, true);
+      } catch (e) {
+        // 忽略错误
+      }
+    }
   });
 
   afterAll(async () => {
@@ -24,6 +36,15 @@ describe('SkillService', () => {
       await skillService.deleteSkill(TEST_SKILL_ID);
     } catch (e) {
       // 忽略删除失败
+    }
+    
+    // 恢复 Skills 为禁用状态
+    for (const skillId of BUILT_IN_SKILLS) {
+      try {
+        await skillService.setSkillEnabled(skillId, false);
+      } catch (e) {
+        // 忽略错误
+      }
     }
   });
 
