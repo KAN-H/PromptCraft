@@ -6,6 +6,13 @@ const llmService = require('../services/llmService');
 class PromptGenerator {
   constructor() {
     this.loadTemplates();
+    // Initialize modules for comma-separated generation
+    this.modules = [
+      { key: 'subject', getValue: (input) => input.subject || '', priority: 1 },
+      { key: 'modifier', getValue: (input) => input.modifier || '', priority: 2 },
+      { key: 'style', getValue: (input) => input.style || '', priority: 3 },
+      { key: 'negative', getValue: (input) => input.negative || '', priority: 4 }
+    ];
   }
 
   loadTemplates() {
@@ -31,9 +38,72 @@ class PromptGenerator {
     }
   }
 
-  // Legacy: Template-based generation
+  /**
+   * Register a new module for comma-separated generation
+   * @param {Object} module - Module configuration with key, getValue, and optional priority
+   */
+  registerModule(module) {
+    // Validate module
+    if (!module || !module.key || typeof module.getValue !== 'function') {
+      return; // Ignore invalid modules
+    }
+    
+    // Set default priority if not specified
+    const priority = module.priority !== undefined ? module.priority : Infinity;
+    
+    // Add module to the list
+    this.modules.push({
+      key: module.key,
+      getValue: module.getValue,
+      priority: priority
+    });
+  }
+
+  // Simple comma-separated generation (for tests and simple use cases)
   generate(input = {}) {
-    const content = typeof input === 'string' ? input : (input.subject || input.input || '');
+    // If input is a string, use legacy template-based generation
+    if (typeof input === 'string') {
+      return this.generateLegacy(input);
+    }
+    
+    // Check if this is a legacy template request (has 'input' property but not comma-separated generation properties)
+    const hasLegacyInputProperty = 'input' in input;
+    const hasCommaSeparatedProperties = 'subject' in input || 'modifier' in input || 'style' in input || 'negative' in input;
+    
+    if (hasLegacyInputProperty && !hasCommaSeparatedProperties) {
+      return this.generateLegacy(input.input);
+    }
+
+    // Otherwise, use simple comma-separated generation
+    // Sort modules by priority
+    const sortedModules = [...this.modules].sort((a, b) => a.priority - b.priority);
+    
+    // Generate parts from modules
+    const parts = [];
+    for (const module of sortedModules) {
+      try {
+        const value = module.getValue(input);
+        // Only include non-empty string values
+        if (typeof value === 'string' && value.trim()) {
+          parts.push(value.trim());
+        }
+      } catch (error) {
+        // Ignore errors from getValue
+      }
+    }
+    
+    // Join with comma and space
+    return parts.join(', ');
+  }
+
+  /**
+   * Legacy template-based generation method
+   * @param {string} content - The input content to generate prompts for
+   * @returns {Array<Object>} Array of generated prompt objects with professional, creative, and simple styles
+   * @description This method uses the old template-based approach to generate three different
+   * style variations of prompts. It's maintained for backward compatibility with existing code.
+   */
+  generateLegacy(content) {
     if (!content) throw new Error('Input content is required');
 
     const professionalTemplates = this.templates.filter(t => t.style === 'professional');
@@ -64,7 +134,7 @@ class PromptGenerator {
     const scenario = this.expertPrompts.find(p => p.id === scenarioId);
     if (!scenario) {
         // Fallback to basic generation if scenario not found
-        return this.generate(input); 
+        return this.generateLegacy(input); 
     }
 
     try {
