@@ -18,6 +18,7 @@ app.use('/api/prompts', require('./routes/prompts'));
 app.use('/api/skills', require('./routes/skills'));
 app.use('/api/history', require('./routes/history'));
 app.use('/api/favorites', require('./routes/favorites'));
+app.use('/api/prompts/dynamic-design', require('./routes/dynamicDesign'));
 
 // 健康检查
 app.get('/health', (req, res) => {

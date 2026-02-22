@@ -3,6 +3,379 @@
   "maxRecords": 100,
   "records": [
     {
+      "id": "h_8a85560d-474f-41a1-81e9-11e99ad3b032",
+      "timestamp": "2026-02-22T01:55:39.113Z",
+      "category": "image",
+      "subcategory": "promo-poster",
+      "input": {
+        "event_name": "开业大酬宾",
+        "discount_info": "满200减50",
+        "product_type": "女装",
+        "poster_type": "主图直通车",
+        "style": "高端简约",
+        "main_color": "红色",
+        "composition": "中心构图",
+        "visual_element": "产品实拍",
+        "additionalInput": ""
+      },
+      "output": {
+        "prompt": "\"High-end,简约 design, red primary color, center-focused composition, product snapshot, vibrant accents, dynamic mood, emotional elements, vibrant accents, high-quality materials, dynamic mood, bright accents, vibrant accents, high-quality materials, vibrant accents, dynamic mood, emotional elements, vibrant accents, dynamic mood, emotional elements, vibrant accents, dynamic mood, emotional elements, vibrant accents, dynamic mood, emotional elements, vibrant accents, dynamic mood, emotional elements\"",
+        "matchedSkills": []
+      },
+      "isFavorited": false
+    },
+    {
+      "id": "h_ae264c00-e982-4968-bccc-3b30356a6a0d",
+      "timestamp": "2026-02-10T15:24:22.047Z",
+      "category": "image",
+      "subcategory": "logo-design",
+      "input": {
+        "brand_name": "PrCf",
+        "industry": "",
+        "logo_type": "图文组合Logo",
+        "style_preference": "几何风",
+        "composition": "对称构图",
+        "design_form": "几何风格",
+        "creative_direction": "字母变形",
+        "color_preference": "",
+        "output_quality": "高清",
+        "keywords": "",
+        "additionalInput": ""
+      },
+      "output": {
+        "prompt": "prcf geometric design, blue color, symmetric composition, letter deformation, high quality, text image combination logo.",
+        "matchedSkills": []
+      },
+      "isFavorited": false
+    },
+    {
+      "id": "h_65e28b86-9c0d-46f1-a915-9bd96f097e53",
+      "timestamp": "2026-02-10T14:44:11.141Z",
+      "category": "image",
+      "subcategory": "logo-design",
+      "input": {
+        "brand_name": "PrCf",
+        "industry": "",
+        "logo_type": "纯文字Logo",
+        "style_preference": "极简",
+        "composition": "黄金分割",
+        "design_form": "线条艺术",
+        "creative_direction": "字母变形",
+        "color_preference": "金渐变",
+        "output_quality": "高清",
+        "keywords": "",
+        "additionalInput": ""
+      },
+      "output": {
+        "prompt": "prcf pure text wordmark with minimalist design, golden gradient color scheme, golden proportion composition, line art form, letter transformation creative direction, high quality output.",
+        "matchedSkills": []
+      },
+      "isFavorited": false
+    },
+    {
+      "id": "h_cc0a4f80-e6a2-4ac7-886b-287bc6f4d709",
+      "timestamp": "2026-02-10T14:37:30.714Z",
+      "category": "image",
+      "subcategory": "logo-design",
+      "input": {
+        "brand_name": "PrCf",
+        "industry": "",
+        "logo_type": "抽象符号Logo",
+        "style_preference": "极简",
+        "composition": "对称构图",
+        "design_form": "极简主义",
+        "creative_direction": "抽象表达",
+        "color_preference": "渐变",
+        "output_quality": "高清",
+        "keywords": "",
+        "additionalInput": ""
+      },
+      "output": {
+        "prompt": "prcfl logo abstract geometric symbol, minimalist style, gradient color palette, symmetric composition, minimalist design form, abstract expression, gradient color, high quality output.",
+        "matchedSkills": []
+      },
+      "isFavorited": false
+    },
+    {
+      "id": "h_e595f505-406b-47ef-aed5-3dd6a96a6041",
+      "timestamp": "2026-02-10T12:15:34.995Z",
+      "category": "image",
+      "subcategory": "logo-design",
+      "input": {
+        "brand_name": "PrCf",
+        "industry": "科技",
+        "logo_type": "图文组合Logo",
+        "style_preference": "极简",
+        "composition": "居中构图",
+        "design_form": "几何风格",
+        "creative_direction": "象征符号",
+        "color_preference": "",
+        "output_quality": "高清",
+        "keywords": "",
+        "additionalInput": ""
+      },
+      "output": {
+        "prompt": "## 1) 设计理念简述\n\n**PrCf 图文组合Logo设计概念**\n\n图形符号：采用抽象化的\"数据节点连接\"概念，以两个精密的几何圆点通过优雅的曲线轨迹相连，形成\"P\"字母的负空间轮廓。圆点象征精准（Precision）与连接（Connection），曲线轨迹暗喻数据流动与科技演进。\n\n文字处理：\"PrCf\"采用定制化的几何无衬线字体，字母间距经过精密计算，\"r\"与\"C\"的转角处理与图形符号的弧度形成视觉呼应。\n\n组合逻辑：图形与文字保持黄金比例关系，可水平锁定（lockup）或垂直堆叠，确保在16×16px至 billboard 尺寸间均保持清晰识别。蓝色系选用科技靛蓝（#2563EB）至深空蓝（#1E3A5F）的渐变，传递专业可信的品牌气质。\n\n---\n\n## 2) 英文提示词（Midjourney）\n\n```\nCombination mark logo for tech brand \"PrCf\", minimalist geometric emblem featuring two precise circular nodes connected by elegant curved trajectory forming negative space letter \"P\", integrated with custom geometric sans-serif typography, professional tech blue color palette ranging from cobalt to deep navy, centered composition with perfect visual balance, vector-based clean lines, scalable design for digital and print applications, symbolizing precision and data connectivity, flat design with subtle depth, high contrast for monochrome adaptability, memorable and distinctive brand identity, 4K resolution, crisp edges, professional brand guidelines quality --ar 1:1 --style raw --v 6\n```\n\n---\n\n## 3) 中文提示词解释\n\n| 模块 | 说明 |\n|:---|:---|\n| **Combination mark logo** | 图文组合Logo类型，强调图形与文字的锁定关系 |\n| **Two precise circular nodes** | 双圆点核心符号，代表精准与连接 |\n| **Curved trajectory / negative space \"P\"** | 曲线轨迹形成\"P\"字母负空间，暗喻品牌首字母 |\n| **Geometric sans-serif typography** | 几何无衬线字体，确保科技感与可读性 |\n| **Cobalt to deep navy gradient** | 钴蓝至深海军蓝渐变，专业可信的蓝色系 |\n| **Centered composition** | 居中构图，视觉稳定平衡 |\n| **Scalable / monochrome adaptability** | 强调多尺寸适配与黑白稿有效性 |\n\n---\n\n## 4) 推荐的参数设置\n\n| 参数 | 设置 | 说明 |\n|:---|:---|:---|\n| `--ar 1:1` | 正方形画幅 | Logo标准比例，便于各场景延展 |\n| `--style raw` | 原始风格 | 减少Midjourney默认美化，保持设计纯粹性 |\n| `--v 6` | 版本6 | 最新版本，矢量感与文字渲染更精准 |\n| `--no photorealistic, 3d render, texture, shadow` | 排除项 | 避免写实效果，确保扁平化极简风格 |\n\n**建议生成流程：** 首次生成4张 → 选择最优进行Vary (Subtle)微调 → 使用Upscale放大最终稿",
+        "matchedSkills": []
+      },
+      "isFavorited": false
+    },
+    {
+      "id": "h_1976671d-a61f-4036-b661-e00e6df74e53",
+      "timestamp": "2026-02-05T13:00:05.201Z",
+      "category": "image",
+      "subcategory": "ad-creative",
+      "input": {
+        "product_name": "羊脂肥皂",
+        "target_audience": "30-35",
+        "selling_point": "纯天然手工皂",
+        "ad_format": "动态创意",
+        "platform": "B站",
+        "ad_goal": "引流获客",
+        "creative_style": "悬念吸引",
+        "visual_tone": "趣味幽默",
+        "additionalInput": ""
+      },
+      "output": {
+        "prompt": "A hyper-realistic sheep made entirely of creamy white soap bubbles and suds, floating in mid-air with a confused \"what's happening?\" expression, surrounded by mysterious steam clouds that partially obscure a vintage wooden soap mold in the background, dramatic rim lighting creating suspense, cinematic 3-second hook composition with motion blur suggesting something is about to burst or transform, desaturated color palette with creamy ivory and soft grays punctuated by warm amber accent light, shallow depth of field focusing on the sheep's puzzled eyes, Bilibili-style dynamic creative format with vertical 9:16 aspect ratio, playful yet professional aesthetic targeting 30-35 age demographic, subtle Chinese minimalist packaging visible through the mist with \"100% natural handmade\" embossed texture, motion graphics energy suggesting reveal is imminent, clean commercial photography meets whimsical surrealism, high-end skincare advertisement quality with humor-driven clickbait tension --ar 9:16 --style raw --s 750",
+        "matchedSkills": []
+      },
+      "isFavorited": false
+    },
+    {
+      "id": "h_db7040d3-424d-4625-a667-97925e8a9baa",
+      "timestamp": "2026-02-03T14:50:05.382Z",
+      "category": "image",
+      "subcategory": "children-illustration",
+      "input": {
+        "story_scene": "小马奇幻之旅",
+        "target_age": "3-6岁",
+        "illustration_type": "识字卡片",
+        "art_style": "毛绒质感",
+        "medium": "毛毡质感",
+        "main_character": "小马、小女孩、小兔",
+        "color_mood": "明亮活力",
+        "mood": "神秘奇幻",
+        "educational_element": "",
+        "additionalInput": ""
+      },
+      "output": {
+        "prompt": "story_scene: small_mart_in_a_forest_with_mysterious_stars, target_age: 3-6, illustration_type: alphabet_card, color_mood: warm_eyed, mood: magical_fantasy, main_character: little_bear, little_sheep, little_marry, medium: cotton_bead, art_style: plush_metal, style: dali_lion.",
+        "matchedSkills": []
+      },
+      "isFavorited": false
+    },
+    {
+      "id": "h_0189714a-9318-407d-a052-3c63f71b3b39",
+      "timestamp": "2026-02-03T14:29:08.927Z",
+      "category": "image",
+      "subcategory": "ad-creative",
+      "input": {
+        "product_name": "你的AI私教",
+        "target_audience": "",
+        "selling_point": "贴身打造，完美契合",
+        "ad_format": "开屏广告",
+        "platform": "小红书",
+        "ad_goal": "品牌曝光",
+        "creative_style": "利益驱动",
+        "visual_tone": "专业可信",
+        "additionalInput": ""
+      },
+      "output": {
+        "prompt": "I'll create a comprehensive splash ad creative strategy for \"你的AI私教\" on Xiaohongshu, following the 3-second rule for brand exposure with benefit-driven appeal.\n\n---\n\n## 1) 创意策略 (Creative Strategy)\n\n### 核心洞察\nXiaohongshu users are **visual-first, authenticity-seeking, and solution-oriented**. They scroll rapidly but pause for content that feels personalized and aspirational yet achievable.\n\n### 3-Second Conversion Chain\n| 时间 | 目标 | 执行策略 |\n|:---|:---|:---|\n| 0.0-0.5s | **ATTENTION** | Bold typography + human element breaks pattern |\n| 0.5-2.0s | **UNDERSTANDING** | \"Perfect fit\" visual metaphor = instant comprehension |\n| 2.0-3.0s | **ACTION** | CTA appears with urgency trigger |\n\n### Benefit-Driven Hook\n**Personal transformation without the guesswork** — the AI eliminates trial-and-error, delivering exactly what your body needs. The \"贴身打造，完美契合\" promise becomes tangible through visual proof: before/after energy states, not bodies (avoiding platform sensitivity).\n\n---\n\n## 2) 文案建议 (Copy Recommendations)\n\n### 主视觉文案 (Hero Text)\n```\n[Line 1] 你的AI私教\n[Line 2] 贴身打造 · 完美契合\n[Line 3] 3分钟测出你的专属方案 →\n```\n\n### 副文案 (Supporting Copy)\n| 位置 | 文案 | 功能 |\n|:---|:---|:---|\n| Top badge | 「小红书专属」 | Platform-native trust signal |\n| Center proof | 10万+人已解锁理想状态 | Social proof (soft, non-aggressive) |\n| CTA button | 立即测一测 | Low-commitment action, curiosity-driven |\n\n### 文案调性\n- **Professional yet warm**: Expert credibility without coldness\n- **Inclusive**: \"理想状态\" replaces specific body goals (platform-safe)\n- **Action-oriented**: \"测一测\" feels like discovery, not sales\n\n---\n\n## 3) 视觉AI提示词 (Visual AI Prompt)\n\n```\nA premium fitness splash advertisement for \"Your AI Personal Trainer\" mobile app, featuring a confident young Asian woman in sleek athletic wear standing in a sophisticated minimalist studio space, her silhouette subtly overlaid with glowing blue holographic body scan lines illustrating precise AI measurement technology, deep navy blue and cool gray color palette with electric cyan accent highlights, dramatic side lighting creating professional photography atmosphere, large bold sans-serif Chinese typography \"你的AI私教\" prominently displayed with tagline \"贴身打造，完美契合\" beneath, clean geometric UI elements suggesting data visualization and personalization, subtle gradient mesh background transitioning from charcoal to midnight blue, high-end sportswear fashion editorial aesthetic, 9:16 vertical composition optimized for mobile fullscreen, cinematic depth of field with sharp focus on subject's determined expression, seamless blend of human warmth and technological precision, subtle particle effects suggesting digital intelligence, professional color grading with controlled contrast, ultra-detailed 8K render, Octane render quality, Behance-style commercial photography --ar 9:16 --style raw --s 250\n```\n\n**Alternative dynamic version for video:**\n```\nCinematic vertical motion design for Xiaohongshu splash ad, opening with abstract flowing fabric morphing into perfect-fit athletic wear on diverse body types, quick cut to Asian female athlete performing effortless movement while subtle cyan data streams trace her form, text animation reveals \"你的AI私教\" with kinetic typography, split-second glitch transitions suggesting AI processing, resolves to confident portrait with holographic body scan overlay, deep navy and slate gray environment with precise cyan accent lighting, professional sports photography meets futuristic interface design, 3-second narrative arc from problem (ill-fitting) to solution (AI-personalized), motion graphics UI showing real-time adaptation, film grain texture for premium feel, 60fps smooth motion, designed for silent autoplay --ar 9:16 --motion 3 --s 200\n```\n\n---\n\n## 4) 投放建议 (Media Buying Recommendations)\n\n### 定向策略\n| 维度 | 设置 | 理由 |\n|:---|:---|:---|\n| 核心人群 | 22-35岁女性，一二线城市 | Highest fitness/wellness intent on platform |\n| 兴趣标签 | 健身、瑜伽、减脂、穿搭、自我管理 | Contextual relevance for AI trainer need |\n| 行为定向 | 近期搜索过健身计划/私教/体态矫正 | Active purchase consideration window |\n| 排除人群 | 已安装用户、近7天曝光用户 | Frequency control, avoid fatigue |\n\n### 出价与时段\n- **优选时段**: 7-9AM (晨练决策高峰), 21-23PM (睡前规划场景)\n- **出价策略**: oCPM-品牌曝光目标，首日测试预算￥5,000\n- **频次控制**: 同一用户3次/7天，防止反感\n\n### A/B测试矩阵\n| 变量 | 版本A | 版本B |\n|:---|:---|:---|\n| **视觉主体** | 女性单人 | 男女双人(包容性) |\n| **色彩主导** | 深蓝科技风 | 暖灰高级风 |\n| **CTA文案** | 立即测一测 | 看看你的专属方案 |\n| **利益点强调** | 省时间 | 更精准 |\n\n### 平台合规要点\n- ✅ 避免直接身材对比图（平台限流）\n- ✅ \"AI私教\"不暗示医疗诊断\n- ✅ 数据承诺需有来源标注（素材角标小字）\n- ✅ 真人素材需肖像授权文件备查\n\n### 效果追踪\n- **核心指标**: 3秒播放率 >65%, 点击率 >8%, 品牌搜索指数提升\n- **归因窗口**: 曝光后7天内自然搜索\"你的AI私教\"\n- **优化节奏**: 每24小时迭代，淘汰CTR<6%的素材\n\n---\n\n**交付规格**: 1080×1920px静态图 + 6秒视频版本（前3秒无声可理解），PSD源文件分层便于本地化调整。",
+        "matchedSkills": [
+          "品牌战略顾问",
+          "Logo 评审专家",
+          "色彩理论大师"
+        ]
+      },
+      "isFavorited": false
+    },
+    {
+      "id": "h_46c529f4-6e5d-40df-b164-4c9431efde8e",
+      "timestamp": "2026-02-03T14:26:53.005Z",
+      "category": "image",
+      "subcategory": "ad-creative",
+      "input": {
+        "product_name": "你的AI私教",
+        "target_audience": "",
+        "selling_point": "贴身打造，完美契合",
+        "ad_format": "开屏广告",
+        "platform": "小红书",
+        "ad_goal": "品牌曝光",
+        "creative_style": "利益驱动",
+        "visual_tone": "专业可信",
+        "additionalInput": ""
+      },
+      "output": {
+        "prompt": "**图像提示词：**\n\n- 主体：产品名称：你的AI私教；核心卖点：贴身打造，完美契合  \n- 核心卖点：产品名称：你的AI私教；核心卖点：贴身打造，完美契合  \n- 广告形式：开屏广告；投放平台：小红书；广告目标：品牌曝光  \n- 创意类型：利益驱动；视觉调性：专业可信  \n- 构图：清晰的构图，突出产品名称和核心卖点，强化视觉识别感  \n- 视觉调性：专业可信，与小红书平台用户审美匹配  \n- 行动号召：明确的CTA，如购买、试用或使用产品链接，引导用户行动  \n- 颜色：专业可信的色彩搭配，适合小红书平台审美  \n- 形式：开屏广告视觉设计，符合Midjourney/DALL-E/DALL-E风格",
+        "matchedSkills": [
+          "品牌战略顾问",
+          "Logo 评审专家",
+          "色彩理论大师"
+        ]
+      },
+      "isFavorited": false
+    },
+    {
+      "id": "h_bb93535a-ef45-4edb-8cf6-0be08fd3333f",
+      "timestamp": "2026-02-03T14:22:56.513Z",
+      "category": "image",
+      "subcategory": "ad-creative",
+      "input": {
+        "product_name": "你的AI私教",
+        "target_audience": "",
+        "selling_point": "贴身打造，完美契合",
+        "ad_format": "开屏广告",
+        "platform": "小红书",
+        "ad_goal": "品牌曝光",
+        "creative_style": "利益驱动",
+        "visual_tone": "专业可信",
+        "additionalInput": ""
+      },
+      "output": {
+        "prompt": "【创意策略】\n1. **品牌定位与视觉需求**  \n   - **品牌定位**：以教育与陪伴为主角，突出品牌的核心价值（如科学性、专业性、专业可信）。  \n   - **视觉需求**：  \n     - **开屏广告**：第一眼冲击，突出品牌名称和核心价值。  \n     - **配色**：使用专业、可信的颜色系，如深蓝、灰色系，营造专业可信的氛围。  \n     - **光影效果**：柔和的光影和明暗对比，增强视觉冲击力。  \n     - **构图**：使用对角线构图，突出品牌名称，增强视觉焦点。  \n\n2. **文案建议**  \n   - **标题内容**：简洁有力，吸引用户注意力，如“AI私教：科学与陪伴的完美组合”  \n   - **副标题内容**：进一步强调品牌的核心价值，如“用科学的私教技术，解决您的学习与生活难题”  \n   - **CTA引导**：明确的引导用户行动，如“立即体验，助您高效学习”  \n\n3. **视觉AI提示词**  \n   - **设计提示词**：  \n     <Midjourney>\n     <DALL-E>\n     <Stable Diffusion>\n     <Flux>\n     <通义万相>\n     <文心一格>\n     <广告形式：开屏广告>\n     <投放平台：小红书>\n     <广告目标：品牌曝光>\n     <创意类型：利益驱动>\n     <视觉调性：专业可信，与目标人群审美匹配>\n     <行动号召：请立即体验，助您高效学习！**\n   - **灯光提示词**：  \n     <Midjourney>\n     <DALL-E>\n     <Stable Diffusion>\n     <Flux>\n     <通义万相>\n     <文心一格>\n     <广告形式：开屏广告>\n     <投放平台：小红书>\n     <广告目标：品牌曝光>\n     <创意类型：利益驱动>\n     <视觉调性：专业可信，与目标人群审美匹配>\n     <行动号召：请立即体验，助您高效学习！（灯光效果）**\n   - **构图提示词**：  \n     <Midjourney>\n     <DALL-E>\n     <Stable Diffusion>\n     <Flux>\n     <通义万相>\n     <文心一格>\n     <广告形式：开屏广告>\n     <投放平台：小红书>\n     <广告目标：品牌曝光>\n     <创意类型：利益驱动>\n     <视觉调性：专业可信，与目标人群审美匹配>\n     <构图提示：对角线构图，突出品牌名称，增强视觉焦点。**\n   - **材质提示词**：  \n     <Midjourney>\n     <DALL-E>\n     <Stable Diffusion>\n     <Flux>\n     <通义万相>\n     <文心一格>\n     <广告形式：开屏广告>\n     <投放平台：小红书>\n     <广告目标：品牌曝光>\n     <创意类型：利益驱动>\n     <视觉调性：专业可信，与目标人群审美匹配>\n     <材质提示：使用柔和的灯光和明亮的背景，营造专业可信的氛围。**\n   - **氛围提示词**：  \n     <Midjourney>\n     <DALL-E>\n     <Stable Diffusion>\n     <Flux>\n     <通义万相>\n     <文心一格>\n     <广告形式：开屏广告>\n     <投放平台：小红书>\n     <广告目标：品牌曝光>\n     <创意类型：利益驱动>\n     <视觉调性：专业可信，与目标人群审美匹配>\n     <氛围提示：使用暖色调和柔和的光效，营造专业可信的氛围。**\n\n【投放建议】\n1. **投放平台**：小红书  \n   - **内容类型**：短视频、生活类、互动类  \n   - **内容风格**：轻松、有趣、互动、专业  \n   - **算法推荐**：基于用户兴趣推荐相关短视频和生活类内容  \n2. **广告投放时间**：1-3秒  \n   - **时间分配**：1秒：吸引注意力，2秒：引导行动，3秒：完成转化  \n3. **宣传方式**：联合品牌宣传、短视频推广、生活方式内容制作  \n4. **策略执行**：持续优化广告设计，根据用户反馈调整策略",
+        "matchedSkills": [
+          "品牌战略顾问",
+          "Logo 评审专家",
+          "色彩理论大师"
+        ]
+      },
+      "isFavorited": false
+    },
+    {
+      "id": "h_9af34ccd-d35a-4eb4-88a7-a85b7e53b2e8",
+      "timestamp": "2026-02-03T14:16:03.809Z",
+      "category": "image",
+      "subcategory": "ip-character",
+      "input": {
+        "character_concept": "赤兔",
+        "ip_type": "表情包形象",
+        "art_style": "Q版Chibi",
+        "camera_angle": "多角度展示",
+        "personality": "呆萌",
+        "color_scheme": "",
+        "accessories": "",
+        "pose": "表情系列",
+        "render_style": "毛绒材质",
+        "lighting": "影棚光",
+        "additionalInput": "是关云长的坐骑\"赤兔\""
+      },
+      "output": {
+        "prompt": "【角色设定】\n**赤兔 (Chitu)**\n\n赤兔是一只来自云端糖果工坊的呆萌小兔，毛色如晚霞初染的绯红，天生拥有一对会随情绪变形的柔软长耳。它不善言辞，却用丰富的微表情传递世间最纯粹的情绪——困惑时歪头、开心时蹦跳、委屈时耳朵耷拉成八字。作为云端工坊的情绪收集员，赤兔的使命是将人类的心动瞬间封存为甜蜜记忆。它的座右铭是：\"耳朵不会说谎。\"\n\n---\n\n【外观描述】\n\n| 部位 | 设计细节 |\n|:---|:---|\n| **整体比例** | 头身比2.5:1，极致Q版，躯干圆润如糯米团子 |\n| **头部** |  oversized圆形头颅，占身体60%，脸颊微鼓带自然红晕 |\n| **耳朵** | 超长垂耳（头长1.8倍），根部厚实可多角度摆动，耳内侧渐变马卡龙粉 |\n| **面部** | 豆豆眼（高光占比40%），无鼻尖设计，三瓣嘴简化为波浪线 |\n| **身体** | 无颈设计，躯干与头部自然过渡，四肢短粗如圆柱 |\n| **尾巴** | 蓬松球状尾，直径约为头部的1/3 |\n| **配色** | 主体茜草红（#E86A56），耳内樱花粉（#FADBE0），腹部奶油白（#FFF8E7） |\n| **标志性元素** | 左耳内侧隐藏云朵胎记，情绪高涨时会\"发光\" |\n\n---\n\n【英文3D渲染提示词】\n\n```\nCharacter concept \"Chitu\", a chibi mascot IP designed for emoji/sticker commercial use, ultra-cute Q-style chibi proportions with 2.5:1 head-to-body ratio, fluffy plush material rendering, studio lighting setup, multi-angle display sheet showing expression series — happy, confused, pouting, sleepy, excited, shy — each pose capturing \"adorably silly\" personality, oversized round head with cheek blush, extra-long floppy ears with gradient inner ear coloring from macaron pink to soft cream, tiny bean eyes with 40% highlight catchlights, simplified wavy mouth line, cylindrical stubby limbs, pom-pom tail, color palette: madder red #E86A56 body, sakura pink #FADBE0 ear interiors, cream #FFF8E7 belly, soft pastel macaron color scheme overall, hyper-realistic plush fur texture with individual fiber details, subsurface scattering on ears for translucency, matte fabric finish with subtle sheen, seamless white cyclorama background, professional product photography lighting — key light 45° softbox, fill light for shadow detail, rim light for edge definition, shallow depth of field f/2.8, 8K resolution, octane render, physically based materials, collectible toy aesthetic, commercial grade presentation\n```\n\n---\n\n【材质和光照建议】\n\n| 参数 | 技术规格 |\n|:---|:---|\n| **基础材质** | 毛绒/天鹅绒混合着色器，散射值0.85，粗糙度0.9 |\n| **毛发细节** | 长度8-12mm，卷曲度15%，方向性噪声扰动 |\n| **SSS设置** | 耳部/脸颊启用次表面散射，半径2mm，颜色偏暖粉 |\n| **关键光** | 120cm柔光箱，色温5600K，强度80%，角度45°高位 |\n| **补光** | 白色反光板/柔光伞，填充系数0.3，消除死黑 |\n| **轮廓光** | 冷白色LED条，强度40%，分离主体与背景 |\n| **环境光** | 纯白墙/无缝纸，反射率90%，营造悬浮感 |\n| **后期建议** | 微反差增强，肤色偏品，阴影加青，输出sRGB色彩空间 |",
+        "matchedSkills": [
+          "NipponColors"
+        ]
+      },
+      "isFavorited": false
+    },
+    {
+      "id": "h_454c1930-e634-4677-a6a8-15684bfa129c",
+      "timestamp": "2026-02-03T13:41:48.863Z",
+      "category": "image",
+      "subcategory": "ip-character",
+      "input": {
+        "character_concept": "赤兔",
+        "ip_type": "表情包形象",
+        "art_style": "Q版Chibi",
+        "camera_angle": "多角度展示",
+        "personality": "呆萌",
+        "color_scheme": "",
+        "accessories": "",
+        "pose": "表情系列",
+        "render_style": "毛绒材质",
+        "lighting": "影棚光",
+        "additionalInput": "是关云长的坐骑\"赤兔\""
+      },
+      "output": {
+        "prompt": "character sheet of Chibi Red Hare (赤兔), fluffy plush toy mascot IP, kawaii emoji character design, multiple angle views including front, 3/4, side, and back, studio lighting with soft shadows, plush fur texture rendering, pastel macaron color palette in mint pink lavender and cream, adorable silly personality expression series with happy angry surprised sleepy and crying faces, oversized head with tiny body, round sparkling eyes, small stubby limbs, blush stickers on cheeks, 3D render style, product photography aesthetic, clean white background, highly detailed fabric texture, subsurface scattering on fur, collectible toy quality, commercial character design, vector-friendly illustration, --ar 16:9 --style raw --v 6.0",
+        "matchedSkills": [
+          "NipponColors"
+        ]
+      },
+      "isFavorited": false
+    },
+    {
+      "id": "h_baa2133f-ad20-40c1-aafc-22a5c58518f8",
+      "timestamp": "2026-02-03T13:36:41.538Z",
+      "category": "image",
+      "subcategory": "ip-character",
+      "input": {
+        "character_concept": "赤兔",
+        "ip_type": "表情包形象",
+        "art_style": "Q版Chibi",
+        "camera_angle": "多角度展示",
+        "personality": "呆萌",
+        "color_scheme": "",
+        "accessories": "",
+        "pose": "表情系列",
+        "render_style": "毛绒材质",
+        "lighting": "影棚光",
+        "additionalInput": "是关云长的坐骑\"赤兔\""
+      },
+      "output": {
+        "prompt": "**1) Character Concept**\n\n**Name:** Chitu (赤兔)\n**Role:** Sticker pack IP / Emotional expression mascot\n**Personality Core:** Endearingly slow-witted, pure-hearted innocence with unexpected comedic timing. Reacts to everyday moments with exaggerated, meme-worthy expressions that resonate with Gen Z and young millennials.\n\n**Character Backstory:** A legendary red rabbit from folklore reincarnated as a modern-day plush companion. Despite its mythical origins, Chitu has forgotten all its powers and now lives a delightfully ordinary life—getting confused by simple tasks, overreacting to minor inconveniences, and finding profound joy in snacks and naps.\n\n---\n\n**2) Visual Description**\n\n**Form:** Ultra-deformed chibi proportions—massive rounded head (60% of body), tiny stubby limbs, bean-shaped torso with no visible neck. The silhouette reads instantly as \"huggable.\"\n\n**Signature Features:**\n- **Ears:** Two oversized droopy ears with weighted tips that curl inward, expressing emotion through ear angle (perked = alert, flattened = sad, one up one down = confused)\n- **Eyes:** Enormous glossy black buttons with reflective catchlights, capable of conveying entire emotional narratives through pupil dilation and eyelid position\n- **Muzzle:** Tiny triangular pink nose with barely-there mouth that only appears during extreme expressions\n- **Tail:** Round cotton-ball pom-pom that wobbles independently\n\n**Color Application:** Pastel coral-pink base (Momo/桃 #F47983) fading to cream belly, with macaron accent colors—mint green inner ears, lavender paw pads, butter yellow tail tip\n\n**Proportions:** 2.5 heads tall, 3:2 width-to-height ratio for maximum squish factor\n\n---\n\n**3) English 3D Render Prompt**\n\n```\nChitu the legendary red rabbit, kawaii chibi character IP design, multiple angle character sheet showing 9 distinct emotional expressions: blank confusion, sleepy drowsy, excited sparkling eyes, crying waterfalls, angry puffed cheeks, heart-eyes love, shocked jaw-drop, smug side-eye, and cozy contentment, ultra-deformed proportions with massive 60% head-to-body ratio, rounded bean-shaped torso, stubby limbs, oversized weighted droopy ears with emotional articulation, glossy button eyes with dynamic catchlight reflections, tiny triangular pink nose, fluffy cotton-ball tail, plush soft-fuzzy fabric texture with visible fiber tufting and micro-pilling details, velvet-matte surface scattering, subsurface skin translucency on ear edges, pastel macaron color palette of coral-pink Momo #F47983 base with cream belly, mint green inner ears, lavender paw pads, butter yellow tail gradient, studio lighting setup with large softbox key light creating gentle wrap-around illumination, subtle rim light defining silhouette, neutral gray seamless backdrop, physically based rendering, subsurface scattering on plush material, 8K ultra-detailed, Octane render quality, product photography aesthetic suitable for merchandise and sticker production, front three-quarter and profile views included\n```\n\n---\n\n**4) Material & Lighting Specifications**\n\n**Plush Material Parameters:**\n| Property | Value | Notes |\n|----------|-------|-------|\n| Surface Type | Curly faux fur, 8-12mm pile length | Directional fiber flow follows form |\n| Specular | 0.15 roughness, velvet NDF | Soft sheen, not plastic-shiny |\n| Subsurface | 0.3 weight, 3mm scatter distance | Ears and thin areas glow slightly |\n| AO Cavity | Deepened in seams and expression creases | Adds handcrafted toy authenticity |\n\n**Lighting Rig:**\n- **Key:** Large rectangular softbox, 45° high camera-left, 2.5m diameter for ultra-soft shadows\n- **Fill:** Bounced card below camera at -2 stops, lifts eye reflections\n- **Rim:** Narrow strip light behind subject, warm 3200K vs key's 5600K for dimensional separation\n- **Accent:** Pinspot on eyes for controlled specular highlights that follow camera\n\n**Expression Technical Notes:** Each variant maintains identical base mesh with blendshape/morph target adjustments—ear rotation (±35°), eye scale (0.6x-1.3x), mouth opening (0-12mm), cheek puff displacement. Ensures manufacturing consistency for plush production pipeline.",
+        "matchedSkills": [
+          "NipponColors"
+        ]
+      },
+      "isFavorited": false
+    },
+    {
+      "id": "h_c101e540-e1dc-4eff-ba27-b573212be0cd",
+      "timestamp": "2026-02-03T13:34:29.868Z",
+      "category": "image",
+      "subcategory": "ip-character",
+      "input": {
+        "character_concept": "赤兔",
+        "ip_type": "表情包形象",
+        "art_style": "Q版Chibi",
+        "camera_angle": "多角度展示",
+        "personality": "呆萌",
+        "color_scheme": "",
+        "accessories": "",
+        "pose": "表情系列",
+        "render_style": "毛绒材质",
+        "lighting": "影棚光",
+        "additionalInput": "是关云长的坐骑\"赤兔\""
+      },
+      "output": {
+        "prompt": "**1) Character Concept**\n\n**Name:** Chitu (赤兔)\n**Role:** Sticker pack IP / Emotional expression mascot\n**Personality Core:** Endearingly slow-witted, pure-hearted innocence, unexpectedly witty in deadpan moments, creates comfort through clumsy charm\n**Backstory:** A legendary red hare reincarnated as a perpetually confused plush companion, blessed with eternal optimism despite constant mishaps\n**Target Audience:** Gen Z digital natives, plush collectors, sticker enthusiasts seeking authentic emotional connection\n\n---\n\n**2) Visual Description**\n\n**Proportions:** Extreme chibi ratio — 1:1 head-to-body, stubby limbs (30% normal length), oversized cranium housing massive emotive eyes\n\n**Signature Features:**\n- Droopy lop ears with weighted tips that drag comically, inner ear gradient from cream to soft blush\n- Eyes: Half-lidded permanent sleepy gaze with oversized glossy pupils (40% of face), starburst highlights suggesting perpetual wonder\n- Muzzle: Tiny button nose with single subtle wrinkle, permanent faint smile line\n- Body: Rounded potato silhouette with barely visible neck, stubby paws with implied toe beans\n- Tail: Compact cotton-ball puff with slightly askew tilt\n\n**Expression Range:** Blank confusion / sudden realization / content loafing / panicked flailing / proud accomplishment (minor)\n\n**Color Palette (Macaron):**\n- Primary: Sakura pink #FFB7C5 → dusted rose gradient\n- Secondary: Mochi cream #F5E6D3\n- Accents: Pistachio mint #B8E0D2, Lavender milk #E6E6FA, Peach sorbet #FFDAB9\n\n---\n\n**3) English 3D Rendering Prompt**\n\n```\nCharacter design sheet, Chibi \"Chitu\" red hare plush IP, kawaii mascot with 1:1 head-body ratio, oversized droopy lop ears with weighted tips, half-lidded sleepy eyes with starburst highlights covering 40% of face, tiny button nose with subtle wrinkle marking, permanent gentle smile, rounded potato-shaped torso with stubby 30% scale limbs, compact cotton-ball tail tilted askew, premium faux fur texture with 12mm pile length, sub-surface scattering on ear interiors and paw pads, multi-angle display: front view, three-quarter, back view, close-up facial detail, expression series showing blank confusion, sudden realization, content loafing, panicked flailing, proud accomplishment, studio lighting setup with key light at 45 degrees, fill light for shadow softness, rim light separating from background, seamless cyclorama backdrop in gradient lavender-mint, shallow depth of field f/2.8, commercial product photography aesthetic, collector's edition presentation, hyper-detailed fiber rendering, 8K resolution, octane render, subsurface skin translucency on nose and inner ears --ar 16:9 --style raw --s 250\n```\n\n---\n\n**4) Material & Lighting Specifications**\n\n| Element | Technical Approach |\n|--------|------------------|\n| **Fur Shader** | Anisotropic specular with noise-driven strand direction, dual-layer: guard hair (coarse, 5% spec) + undercoat (dense, subsurface) |\n| **Color Variation** | Per-strand hue shift ±8% for organic living quality, tip-darkening gradient on ears |\n| **Eye Material** | Solid glass hemisphere with parallax-mapped iris, caustic highlight, moisture meniscus at lid junction |\n| **Studio Key Light** | Large softbox 45° camera-left, 5600K, intensity creating soft nose shadow without losing eye sparkle |\n| **Fill Light** | Bounced ceiling panel, 4800K, -2 stops from key, preserving dimensional modeling |\n| **Rim/Kicker** | Strip light behind subject, 6500K with slight cyan gel, separating contour from background |\n| **Ambient Occlusion** | Contact darkness in ear folds, limb-body junctions, paw crevices — baked + real-time hybrid |\n\n**Material References:** Jellycat bunny tactile quality, Steiff button-eye nostalgia, Sanrio emotional clarity",
+        "matchedSkills": [
+          "NipponColors"
+        ]
+      },
+      "isFavorited": false
+    },
+    {
+      "id": "h_5e672c25-a0b2-475d-90c8-a99dfa98c0b0",
+      "timestamp": "2026-02-03T13:16:44.939Z",
+      "category": "image",
+      "subcategory": "logo-design",
+      "input": {
+        "brand_name": "PrCf",
+        "industry": "电子",
+        "logo_type": "负空间Logo",
+        "style_preference": "扁平化",
+        "composition": "自由构图",
+        "design_form": "扁平化设计",
+        "creative_direction": "负空间设计",
+        "color_preference": "渐变",
+        "output_quality": "高清",
+        "keywords": "",
+        "additionalInput": ""
+      },
+      "output": {
+        "prompt": "prcf logo design with negative space, flat design, gradient color palette, adaptable to various sizes, unique and original, electronic industry, negative space logo style, flat design form, negative space creative direction, gradient color preference, high quality output.",
+        "matchedSkills": [
+          "品牌战略顾问",
+          "Logo 评审专家",
+          "色彩理论大师"
+        ]
+      },
+      "isFavorited": false
+    },
+    {
       "id": "h_01deea88-7eab-4ae7-8f38-8ca1d5bf13b3",
       "timestamp": "2026-02-02T10:25:02.028Z",
       "category": "image",
