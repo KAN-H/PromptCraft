@@ -11,12 +11,24 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <!-- Chart.js for radar chart -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <!-- html2canvas for GIF/video export -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
-            integrity="sha512-E2V6H7QKTdeUMkCqjsDHI8DmOY336xsBmjsZcMNjAin83iSw4PStFT0g0s3iUPXElTqN3BD0ydc6ENBi7Zyz/A=="
-            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- html2canvas for GIF/video export (使用 jsdelivr 国内加速) -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <!-- html2canvas 备用 CDN（如 jsdelivr 也加载失败则尝试 unpkg） -->
+    <script>
+      if (!window.html2canvas) {
+        document.write('<scr'+'ipt src="https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js"><\/scr'+'ipt>');
+      }
+    </script>
     <!-- gif.js for animated GIF export (served locally) -->
     <script src="gif.js"></script>
+    <!-- 验证导出库加载状态 -->
+    <script>
+      window.addEventListener('DOMContentLoaded', function() {
+        if (!window.html2canvas) console.warn('[PromptCraft] html2canvas 加载失败，GIF/视频导出功能不可用');
+        if (!window.GIF) console.warn('[PromptCraft] gif.js 加载失败，GIF 导出功能不可用');
+        if (window.html2canvas && window.GIF) console.log('[PromptCraft] 导出库加载成功 ✓');
+      });
+    </script>
     <!-- Custom CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
