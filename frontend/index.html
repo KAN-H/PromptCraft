@@ -11,6 +11,12 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <!-- Chart.js for radar chart -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <!-- html2canvas for GIF/video export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
+            integrity="sha512-E2V6H7QKTdeUMkCqjsDHI8DmOY336xsBmjsZcMNjAin83iSw4PStFT0g0s3iUPXElTqN3BD0ydc6ENBi7Zyz/A=="
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- gif.js for animated GIF export (served locally) -->
+    <script src="gif.js"></script>
     <!-- Custom CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
@@ -830,6 +836,16 @@
                                 <div class="flex gap-2">
                                     <button class="btn btn-sm btn-outline" @click="exportDynamicDesign('html')">💾 导出 HTML</button>
                                     <button class="btn btn-sm btn-outline" @click="copyToClipboard(dynamicCode)">📋 复制代码</button>
+                                    <button class="btn btn-sm btn-outline" @click="exportDynamicAsGif()"
+                                            :class="{'loading': dynamicExporting}"
+                                            :disabled="dynamicExporting">
+                                        <span x-show="!dynamicExporting">🎞️ 导出 GIF</span>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline" @click="exportDynamicAsVideo()"
+                                            :class="{'loading': dynamicExporting}"
+                                            :disabled="dynamicExporting">
+                                        <span x-show="!dynamicExporting">🎥 导出视频</span>
+                                    </button>
                                 </div>
                                 <div class="flex gap-2">
                                     <!-- 迭代修改 -->

@@ -209,6 +209,7 @@ function promptCraftApp() {
     },
     dynamicAvailableModels: [],   // 独立模型列表
     dynamicModelsLoading: false,  // 模型列表加载状态
+    dynamicExporting: false,      // 导出 GIF/视频加载状态
     showDynamicConfigPanel: false, // 折叠面板显示状态
 
     // Computed: filtered skills
@@ -335,14 +336,14 @@ function promptCraftApp() {
           })
         });
         const data = await response.json();
-        if (data.success && data.data?.models) {
-          this.dynamicAvailableModels = data.data.models;
+        if (data.success && data.models) {
+          this.dynamicAvailableModels = data.models;
           if (this.dynamicAvailableModels.length > 0 && !this.dynamicConfig.model) {
             this.dynamicConfig.model = this.dynamicAvailableModels[0].id;
           }
-          this.showToast(`获取到 ${this.dynamicAvailableModels.length} 个模型`, 'success');
+          this.showToast(`获取到 ${data.count || data.models.length} 个模型`, 'success');
         } else {
-          this.showToast('获取模型列表失败', 'error');
+          this.showToast(data.error || '获取模型列表失败', 'error');
         }
       } catch (e) {
         console.error('Failed to refresh dynamic models:', e);
@@ -2037,6 +2038,169 @@ A minimalist logo design for a BBQ restaurant, featuring stylized flame and gril
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
         this.showToast('HTML 文件已下载', 'success');
+      }
+    },
+
+    /**
+     * 导出动态设计为 GIF 动图
+     * 使用 html2canvas 逐帧截图 + gif.js 编码
+     */
+    async exportDynamicAsGif() {
+      if (!this.dynamicCode) return;
+      if (this.dynamicExporting) return;
+
+      if (!window.html2canvas || !window.GIF) {
+        this.showToast('导出库尚未加载，请刷新页面后重试', 'warning');
+        return;
+      }
+
+      this.dynamicExporting = true;
+      this.showToast('正在生成 GIF，共录制 3 秒，请稍候...', 'info');
+
+      try {
+        const iframe = document.getElementById('dynamic-preview-iframe');
+        if (!iframe) throw new Error('预览区域未找到');
+
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+        const width = iframe.offsetWidth || 800;
+        const height = iframe.offsetHeight || 400;
+
+        const gif = new GIF({
+          workers: 2,
+          quality: 10,
+          width,
+          height,
+          workerScript: '/gif.worker.js'
+        });
+
+        const frameCount = 15;   // 15 帧
+        const frameDelay = 200;  // 每帧 200ms → 5fps，总时长 ~3s
+
+        for (let i = 0; i < frameCount; i++) {
+          await new Promise(r => setTimeout(r, frameDelay));
+          const canvas = await html2canvas(iframeDoc.body, {
+            width,
+            height,
+            useCORS: true,
+            allowTaint: true,
+            logging: false,
+            backgroundColor: null
+          });
+          gif.addFrame(canvas, { delay: frameDelay, copy: true });
+        }
+
+        gif.on('finished', (blob) => {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `dynamic-design-${this.dynamicParams.brandName || 'untitled'}-${Date.now()}.gif`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          this.dynamicExporting = false;
+          this.showToast('GIF 动图已下载', 'success');
+        });
+
+        gif.render();
+
+      } catch (e) {
+        console.error('GIF export failed:', e);
+        this.showToast('GIF 导出失败: ' + e.message, 'error');
+        this.dynamicExporting = false;
+      }
+    },
+
+    /**
+     * 导出动态设计为视频（WebM）
+     * 使用 html2canvas 逐帧截图 + MediaRecorder + canvas.captureStream()
+     */
+    async exportDynamicAsVideo() {
+      if (!this.dynamicCode) return;
+      if (this.dynamicExporting) return;
+
+      if (!window.html2canvas) {
+        this.showToast('导出库尚未加载，请刷新页面后重试', 'warning');
+        return;
+      }
+
+      if (!window.MediaRecorder) {
+        this.showToast('您的浏览器不支持视频录制功能', 'error');
+        return;
+      }
+
+      this.dynamicExporting = true;
+      this.showToast('正在录制视频（5 秒）...', 'info');
+
+      try {
+        const iframe = document.getElementById('dynamic-preview-iframe');
+        if (!iframe) throw new Error('预览区域未找到');
+
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+        const width = iframe.offsetWidth || 800;
+        const height = iframe.offsetHeight || 400;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+
+        const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+          ? 'video/webm;codecs=vp9'
+          : 'video/webm';
+        const stream = canvas.captureStream(10);
+        const recorder = new MediaRecorder(stream, { mimeType });
+        const chunks = [];
+
+        recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+        recorder.onstop = () => {
+          const blob = new Blob(chunks, { type: mimeType });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `dynamic-design-${this.dynamicParams.brandName || 'untitled'}-${Date.now()}.webm`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          this.dynamicExporting = false;
+          this.showToast('视频已下载', 'success');
+        };
+
+        recorder.start();
+
+        const duration = 5000;
+        const fps = 10;
+        const frameInterval = 1000 / fps;
+        let elapsed = 0;
+
+        const captureFrame = async () => {
+          if (elapsed >= duration) {
+            recorder.stop();
+            return;
+          }
+          try {
+            const captured = await html2canvas(iframeDoc.body, {
+              width,
+              height,
+              useCORS: true,
+              allowTaint: true,
+              logging: false,
+              backgroundColor: null
+            });
+            ctx.clearRect(0, 0, width, height);
+            ctx.drawImage(captured, 0, 0, width, height);
+          } catch (e) { /* 忽略单帧错误 */ }
+          elapsed += frameInterval;
+          setTimeout(captureFrame, frameInterval);
+        };
+
+        captureFrame();
+
+      } catch (e) {
+        console.error('Video export failed:', e);
+        this.showToast('视频导出失败: ' + e.message, 'error');
+        this.dynamicExporting = false;
       }
     }
   };
