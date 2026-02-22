@@ -794,7 +794,7 @@
                                      :class="{'fixed inset-0 z-50 border-none rounded-none': dynamicFullscreen}"
                                      id="dynamic-preview-container">
                                     <iframe id="dynamic-preview-iframe" 
-                                            sandbox="allow-scripts"
+                                            sandbox="allow-scripts allow-same-origin"
                                             class="w-full border-0"
                                             :class="dynamicFullscreen ? 'h-full' : 'h-[400px]'"
                                             :srcdoc="dynamicCode">
