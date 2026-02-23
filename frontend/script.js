@@ -209,7 +209,9 @@ function promptCraftApp() {
     },
     dynamicAvailableModels: [],   // 独立模型列表
     dynamicModelsLoading: false,  // 模型列表加载状态
-    dynamicExporting: false,      // 导出 GIF/视频加载状态
+    dynamicExporting: false,      // 导出 GIF/视频加载状态（通用）
+    gifExporting: false,           // GIF 导出加载状态
+    videoExporting: false,         // 视频导出加载状态
     showDynamicConfigPanel: false, // 折叠面板显示状态
 
     // Computed: filtered skills
@@ -2047,14 +2049,14 @@ A minimalist logo design for a BBQ restaurant, featuring stylized flame and gril
      */
     async exportDynamicAsGif() {
       if (!this.dynamicCode) return;
-      if (this.dynamicExporting) return;
+      if (this.gifExporting) return;
 
       if (!window.html2canvas || !window.GIF) {
         this.showToast('导出库尚未加载，请刷新页面后重试', 'warning');
         return;
       }
 
-      this.dynamicExporting = true;
+      this.gifExporting = true;
       this.showToast('正在生成 GIF，共录制 3 秒，请稍候...', 'info');
 
       try {
@@ -2084,7 +2086,17 @@ A minimalist logo design for a BBQ restaurant, featuring stylized flame and gril
             useCORS: true,
             allowTaint: true,
             logging: false,
-            backgroundColor: null
+            backgroundColor: '#ffffff',
+            foreignObjectRendering: false,
+            onclone: (clonedDoc) => {
+              // 确保克隆文档中内联样式被保留
+              const styles = iframeDoc.querySelectorAll('style');
+              styles.forEach(style => {
+                const clonedStyle = clonedDoc.createElement('style');
+                clonedStyle.textContent = style.textContent;
+                clonedDoc.head.appendChild(clonedStyle);
+              });
+            }
           });
           gif.addFrame(canvas, { delay: frameDelay, copy: true });
         }
@@ -2098,7 +2110,7 @@ A minimalist logo design for a BBQ restaurant, featuring stylized flame and gril
           a.click();
           document.body.removeChild(a);
           URL.revokeObjectURL(url);
-          this.dynamicExporting = false;
+          this.gifExporting = false;
           this.showToast('GIF 动图已下载', 'success');
         });
 
@@ -2107,7 +2119,7 @@ A minimalist logo design for a BBQ restaurant, featuring stylized flame and gril
       } catch (e) {
         console.error('GIF export failed:', e);
         this.showToast('GIF 导出失败: ' + e.message, 'error');
-        this.dynamicExporting = false;
+        this.gifExporting = false;
       }
     },
 
@@ -2117,7 +2129,7 @@ A minimalist logo design for a BBQ restaurant, featuring stylized flame and gril
      */
     async exportDynamicAsVideo() {
       if (!this.dynamicCode) return;
-      if (this.dynamicExporting) return;
+      if (this.videoExporting) return;
 
       if (!window.html2canvas) {
         this.showToast('导出库尚未加载，请刷新页面后重试', 'warning');
@@ -2129,7 +2141,7 @@ A minimalist logo design for a BBQ restaurant, featuring stylized flame and gril
         return;
       }
 
-      this.dynamicExporting = true;
+      this.videoExporting = true;
       this.showToast('正在录制视频（5 秒）...', 'info');
 
       try {
@@ -2163,7 +2175,7 @@ A minimalist logo design for a BBQ restaurant, featuring stylized flame and gril
           a.click();
           document.body.removeChild(a);
           URL.revokeObjectURL(url);
-          this.dynamicExporting = false;
+          this.videoExporting = false;
           this.showToast('视频已下载', 'success');
         };
 
@@ -2186,9 +2198,20 @@ A minimalist logo design for a BBQ restaurant, featuring stylized flame and gril
               useCORS: true,
               allowTaint: true,
               logging: false,
-              backgroundColor: null
+              backgroundColor: '#ffffff',
+              foreignObjectRendering: false,
+              onclone: (clonedDoc) => {
+                const styles = iframeDoc.querySelectorAll('style');
+                styles.forEach(style => {
+                  const clonedStyle = clonedDoc.createElement('style');
+                  clonedStyle.textContent = style.textContent;
+                  clonedDoc.head.appendChild(clonedStyle);
+                });
+              }
             });
-            ctx.clearRect(0, 0, width, height);
+            // 先填充白色背景，再绘制捕获的帧
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, width, height);
             ctx.drawImage(captured, 0, 0, width, height);
           } catch (e) { /* 忽略单帧错误 */ }
           elapsed += frameInterval;
@@ -2200,7 +2223,7 @@ A minimalist logo design for a BBQ restaurant, featuring stylized flame and gril
       } catch (e) {
         console.error('Video export failed:', e);
         this.showToast('视频导出失败: ' + e.message, 'error');
-        this.dynamicExporting = false;
+        this.videoExporting = false;
       }
     }
   };

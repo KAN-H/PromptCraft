@@ -849,14 +849,14 @@
                                     <button class="btn btn-sm btn-outline" @click="exportDynamicDesign('html')">💾 导出 HTML</button>
                                     <button class="btn btn-sm btn-outline" @click="copyToClipboard(dynamicCode)">📋 复制代码</button>
                                     <button class="btn btn-sm btn-outline" @click="exportDynamicAsGif()"
-                                            :class="{'loading': dynamicExporting}"
-                                            :disabled="dynamicExporting">
-                                        <span x-show="!dynamicExporting">🎞️ 导出 GIF</span>
+                                            :class="{'loading': gifExporting}"
+                                            :disabled="gifExporting || videoExporting">
+                                        <span x-show="!gifExporting">🎞️ 导出 GIF</span>
                                     </button>
                                     <button class="btn btn-sm btn-outline" @click="exportDynamicAsVideo()"
-                                            :class="{'loading': dynamicExporting}"
-                                            :disabled="dynamicExporting">
-                                        <span x-show="!dynamicExporting">🎥 导出视频</span>
+                                            :class="{'loading': videoExporting}"
+                                            :disabled="gifExporting || videoExporting">
+                                        <span x-show="!videoExporting">🎥 导出视频</span>
                                     </button>
                                 </div>
                                 <div class="flex gap-2">
