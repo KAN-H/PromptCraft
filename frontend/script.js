@@ -212,6 +212,7 @@ function promptCraftApp() {
     dynamicExporting: false,      // 导出 GIF/视频加载状态（通用）
     gifExporting: false,           // GIF 导出加载状态
     videoExporting: false,         // 视频导出加载状态
+    _html2canvasSource: null,      // html2canvas 源码缓存（用于 iframe 内注入）
     showDynamicConfigPanel: false, // 折叠面板显示状态
 
     // Computed: filtered skills
@@ -2044,143 +2045,256 @@ A minimalist logo design for a BBQ restaurant, featuring stylized flame and gril
     },
 
     /**
-     * 捕获 iframe 单帧画面（内部辅助方法）
-     * 修复居中/裁切问题：通过 windowWidth/windowHeight 约束视口，
-     * scrollX/scrollY 归零，scale=1 防止 HiDPI 缩放，
-     * onclone 中强制 body 尺寸匹配视口并同步内联样式
+     * 获取 html2canvas 库源码文本（用于注入 iframe 内部）
+     * 优先从本地加载，fallback CDN
      */
-    _captureIframeFrame(iframeDoc, width, height, bgColor) {
-      iframeDoc.documentElement.scrollTop = 0;
-      iframeDoc.documentElement.scrollLeft = 0;
+    async _getHtml2canvasSource() {
+      if (this._html2canvasSource) return this._html2canvasSource;
 
-      return html2canvas(iframeDoc.body, {
-        width,
-        height,
-        windowWidth: width,
-        windowHeight: height,
-        scrollX: 0,
-        scrollY: 0,
-        x: 0,
-        y: 0,
-        scale: 1,
-        useCORS: true,
-        allowTaint: true,
-        logging: false,
-        backgroundColor: bgColor,
-        foreignObjectRendering: false,
-        onclone: (clonedDoc) => {
-          // 同步 iframe 内联样式到克隆文档
-          const styles = iframeDoc.querySelectorAll('style');
-          styles.forEach(style => {
-            const clonedStyle = clonedDoc.createElement('style');
-            clonedStyle.textContent = style.textContent;
-            clonedDoc.head.appendChild(clonedStyle);
-          });
-          // 强制 body 尺寸匹配 iframe 可视区域，避免内容溢出导致偏移
-          clonedDoc.body.style.width = width + 'px';
-          clonedDoc.body.style.height = height + 'px';
-          clonedDoc.body.style.overflow = 'hidden';
-          clonedDoc.body.style.margin = '0';
-          clonedDoc.body.style.padding = '0';
-        }
-      });
+      const urls = [
+        '/lib/html2canvas.min.js',   // 本地优先
+        'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js',
+        'https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js',
+      ];
+
+      for (const url of urls) {
+        try {
+          const resp = await fetch(url, { cache: 'force-cache' });
+          if (resp.ok) {
+            this._html2canvasSource = await resp.text();
+            console.log(`[Export] html2canvas 源码已加载: ${url} (${(this._html2canvasSource.length / 1024).toFixed(0)}KB)`);
+            return this._html2canvasSource;
+          }
+        } catch { /* try next */ }
+      }
+      throw new Error('无法加载 html2canvas 库，请检查网络');
     },
 
     /**
-     * 检测 iframe 内容的实际背景色
+     * 构建可截图的 HTML：将 html2canvas + 截图函数注入到用户代码中
+     * @param {string} htmlCode - 用户的动态设计 HTML
+     * @param {string} h2cSource - html2canvas 库源码
+     * @returns {string} - 注入后的 HTML
      */
-    _detectIframeBgColor(iframe, iframeDoc) {
+    _buildCaptureHtml(htmlCode, h2cSource) {
+      const captureScript = `
+<script>
+// === html2canvas 库（内联注入） ===
+${h2cSource}
+
+// === 截图辅助函数 ===
+window._captureReady = false;
+window._captureFrameAsDataUrl = async function(bgColor) {
+  try {
+    const target = document.body;
+    const canvas = await html2canvas(target, {
+      width: target.scrollWidth || document.documentElement.clientWidth,
+      height: target.scrollHeight || document.documentElement.clientHeight,
+      backgroundColor: bgColor || '#ffffff',
+      logging: false,
+      useCORS: true,
+      scale: 1,
+      allowTaint: true,
+      removeContainer: true,
+    });
+    return canvas.toDataURL('image/png');
+  } catch (err) {
+    console.error('[CaptureFrame]', err);
+    return null;
+  }
+};
+window.addEventListener('load', function() {
+  // 标记就绪，等动画初始化完成
+  setTimeout(function() { window._captureReady = true; }, 300);
+});
+</script>`;
+
+      // 注入到 </body> 或 </html> 之前，或追加到末尾
+      if (htmlCode.includes('</body>')) {
+        return htmlCode.replace('</body>', captureScript + '\n</body>');
+      } else if (htmlCode.includes('</html>')) {
+        return htmlCode.replace('</html>', captureScript + '\n</html>');
+      } else {
+        return htmlCode + '\n' + captureScript;
+      }
+    },
+
+    /**
+     * 创建隐藏的同源 iframe 并逐帧截图
+     * 核心方案：Blob URL 创建同源 iframe → iframe 内 html2canvas 截图 → 返回 dataUrl 帧
+     *
+     * @param {object} opts - { fps, durationSec }
+     * @returns {{ frames: HTMLImageElement[], width: number, height: number, cleanup: Function }}
+     */
+    async _captureAnimationFrames(opts = {}) {
+      const { fps = 10, durationSec = 3 } = opts;
+
+      // 1. 获取 html2canvas 源码
+      const h2cSource = await this._getHtml2canvasSource();
+
+      // 2. 构建注入后的 HTML
+      const captureHtml = this._buildCaptureHtml(this.dynamicCode, h2cSource);
+
+      // 3. 用 Blob URL 创建同源隐藏 iframe
+      const previewIframe = document.getElementById('dynamic-preview-iframe');
+      const width = previewIframe?.clientWidth || 800;
+      const height = previewIframe?.clientHeight || 400;
+
+      const blob = new Blob([captureHtml], { type: 'text/html;charset=utf-8' });
+      const blobUrl = URL.createObjectURL(blob);
+
+      const captureIframe = document.createElement('iframe');
+      captureIframe.style.cssText = `position:fixed;left:-9999px;top:-9999px;width:${width}px;height:${height}px;border:none;opacity:0;pointer-events:none;`;
+      captureIframe.src = blobUrl;
+      document.body.appendChild(captureIframe);
+
+      // 4. 等待 iframe 加载 + 动画初始化
+      await new Promise((resolve) => { captureIframe.onload = resolve; });
+      // 等待 _captureReady 标志（最长 3 秒）
+      for (let i = 0; i < 30; i++) {
+        if (captureIframe.contentWindow?._captureReady) break;
+        await new Promise(r => setTimeout(r, 100));
+      }
+      // 额外等待让 CSS 动画启动
+      await new Promise(r => setTimeout(r, 500));
+
+      // 5. 自动检测 iframe 背景色
+      let bgColor = '#ffffff';
       try {
-        const computedBg = iframe.contentWindow?.getComputedStyle(iframeDoc.body)?.backgroundColor;
-        if (computedBg && computedBg !== 'rgba(0, 0, 0, 0)' && computedBg !== 'transparent') {
-          return computedBg;
+        const iframeDoc = captureIframe.contentWindow.document;
+        const bodyBg = getComputedStyle(iframeDoc.body).backgroundColor;
+        const htmlBg = getComputedStyle(iframeDoc.documentElement).backgroundColor;
+        const bg = bodyBg !== 'rgba(0, 0, 0, 0)' ? bodyBg : htmlBg;
+        if (bg && bg !== 'rgba(0, 0, 0, 0)') bgColor = bg;
+      } catch { /* 使用默认白色 */ }
+
+      // 6. 逐帧截图
+      const totalFrames = fps * durationSec;
+      const frameInterval = 1000 / fps;
+      const images = [];
+
+      for (let i = 0; i < totalFrames; i++) {
+        const dataUrl = await captureIframe.contentWindow._captureFrameAsDataUrl(bgColor);
+        if (!dataUrl) {
+          console.warn(`[Export] 第 ${i + 1} 帧截图失败，跳过`);
+          continue;
         }
-        // 尝试检测 html 元素的背景色
-        const htmlBg = iframe.contentWindow?.getComputedStyle(iframeDoc.documentElement)?.backgroundColor;
-        if (htmlBg && htmlBg !== 'rgba(0, 0, 0, 0)' && htmlBg !== 'transparent') {
-          return htmlBg;
+
+        // 将 dataUrl 转为 Image 对象（在父文档中）
+        const img = await new Promise((resolve, reject) => {
+          const image = new window.Image();
+          image.onload = () => resolve(image);
+          image.onerror = () => reject(new Error(`帧 ${i + 1} 图片加载失败`));
+          image.src = dataUrl;
+        });
+        images.push(img);
+
+        // 等待下一帧时间点
+        if (i < totalFrames - 1) {
+          await new Promise(r => setTimeout(r, frameInterval));
         }
-      } catch (e) { /* 忽略跨域错误 */ }
-      return '#ffffff';
+      }
+
+      // 清理函数
+      const cleanup = () => {
+        try {
+          document.body.removeChild(captureIframe);
+          URL.revokeObjectURL(blobUrl);
+        } catch { /* ignore */ }
+      };
+
+      if (images.length === 0) {
+        cleanup();
+        throw new Error('未能截取任何有效帧，请检查动态设计代码');
+      }
+
+      return { frames: images, width, height, cleanup };
     },
 
     /**
      * 导出动态设计为 GIF 动图
-     * 使用 html2canvas 逐帧截图 + gif.js 编码
+     * 方案：iframe 内注入 html2canvas（同文档截图）+ gif.js 编码
+     * 完美捕获 CSS 动画、渐变、transform 等
      */
     async exportDynamicAsGif() {
       if (!this.dynamicCode) return;
       if (this.gifExporting) return;
 
-      if (!window.html2canvas || !window.GIF) {
-        this.showToast('导出库尚未加载，请刷新页面后重试', 'warning');
+      if (!window.GIF) {
+        this.showToast('gif.js 库未加载，GIF 导出不可用', 'error');
         return;
       }
 
       this.gifExporting = true;
-      this.showToast('正在生成 GIF，共录制 3 秒，请稍候...', 'info');
+      this.showToast('正在截取动画帧...', 'info');
 
+      let cleanup = null;
       try {
-        const iframe = document.getElementById('dynamic-preview-iframe');
-        if (!iframe) throw new Error('预览区域未找到');
+        // 截取帧
+        const { frames, width, height, cleanup: cleanupFn } = await this._captureAnimationFrames({
+          fps: 10,
+          durationSec: 3,
+        });
+        cleanup = cleanupFn;
 
-        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-        const width = iframe.clientWidth || 800;
-        const height = iframe.clientHeight || 400;
-        const bgColor = this._detectIframeBgColor(iframe, iframeDoc);
+        this.showToast(`已截取 ${frames.length} 帧，正在编码 GIF...`, 'info');
+
+        // 用本地画布将 Image 绘制到 Canvas 再传给 gif.js
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = width;
+        tempCanvas.height = height;
+        const tempCtx = tempCanvas.getContext('2d');
 
         const gif = new GIF({
           workers: 2,
           quality: 10,
-          width,
-          height,
-          workerScript: '/gif.worker.js'
+          width: width,
+          height: height,
+          workerScript: 'gif.worker.js',
+          repeat: 0, // 无限循环
         });
 
-        const frameCount = 15;   // 15 帧
-        const frameDelay = 200;  // 每帧 200ms → 5fps，总时长 ~3s
-
-        for (let i = 0; i < frameCount; i++) {
-          await new Promise(r => setTimeout(r, frameDelay));
-          const canvas = await this._captureIframeFrame(iframeDoc, width, height, bgColor);
-          gif.addFrame(canvas, { delay: frameDelay, copy: true });
+        for (const img of frames) {
+          tempCtx.clearRect(0, 0, width, height);
+          tempCtx.drawImage(img, 0, 0, width, height);
+          gif.addFrame(tempCtx, { delay: 100, copy: true }); // 100ms = 10fps
         }
 
-        gif.on('finished', (blob) => {
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `dynamic-design-${this.dynamicParams.brandName || 'untitled'}-${Date.now()}.gif`;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-          this.gifExporting = false;
-          this.showToast('GIF 动图已下载', 'success');
+        // 等待 GIF 编码完成
+        const gifBlob = await new Promise((resolve, reject) => {
+          gif.on('finished', (blob) => resolve(blob));
+          gif.on('error', (err) => reject(new Error('GIF 编码失败: ' + err)));
+          gif.render();
         });
 
-        gif.render();
+        // 下载
+        const url = URL.createObjectURL(gifBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `dynamic-design-${this.dynamicParams.brandName || 'untitled'}-${Date.now()}.gif`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        this.showToast(`GIF 动图已下载（${frames.length} 帧，${(gifBlob.size / 1024).toFixed(0)}KB）`, 'success');
 
       } catch (e) {
         console.error('GIF export failed:', e);
         this.showToast('GIF 导出失败: ' + e.message, 'error');
+      } finally {
+        if (cleanup) cleanup();
         this.gifExporting = false;
       }
     },
 
     /**
      * 导出动态设计为视频
-     * 两阶段方案：先预捕获所有帧，再以固定帧率编码
-     * 优先使用 MP4 格式（Chrome 130+），降级为 WebM
+     * 方案：iframe 内注入 html2canvas 截帧 → Canvas 绘制 → MediaRecorder 编码
+     * 优先 MP4 格式，fallback WebM
      */
     async exportDynamicAsVideo() {
       if (!this.dynamicCode) return;
       if (this.videoExporting) return;
-
-      if (!window.html2canvas) {
-        this.showToast('导出库尚未加载，请刷新页面后重试', 'warning');
-        return;
-      }
 
       if (!window.MediaRecorder) {
         this.showToast('您的浏览器不支持视频录制功能', 'error');
@@ -2188,44 +2302,22 @@ A minimalist logo design for a BBQ restaurant, featuring stylized flame and gril
       }
 
       this.videoExporting = true;
+      this.showToast('正在截取动画帧...', 'info');
 
+      let cleanup = null;
       try {
-        const iframe = document.getElementById('dynamic-preview-iframe');
-        if (!iframe) throw new Error('预览区域未找到');
-
-        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-        const width = iframe.clientWidth || 800;
-        const height = iframe.clientHeight || 400;
-        const bgColor = this._detectIframeBgColor(iframe, iframeDoc);
-
-        // ========== 阶段1：预捕获所有帧 ==========
         const fps = 10;
-        const durationSec = 5;
-        const totalFrames = fps * durationSec;  // 50 帧
-        const captureInterval = (durationSec * 1000) / totalFrames; // 100ms
 
-        this.showToast(`正在捕获画面帧（0/${totalFrames}）...`, 'info');
+        // 截取帧
+        const { frames, width, height, cleanup: cleanupFn } = await this._captureAnimationFrames({
+          fps,
+          durationSec: 5,
+        });
+        cleanup = cleanupFn;
 
-        const frames = [];
-        for (let i = 0; i < totalFrames; i++) {
-          await new Promise(r => setTimeout(r, captureInterval));
-          try {
-            const canvas = await this._captureIframeFrame(iframeDoc, width, height, bgColor);
-            frames.push(canvas);
-          } catch (frameErr) {
-            console.warn(`Frame ${i} capture failed:`, frameErr);
-          }
-          // 每 10 帧更新一次进度
-          if ((i + 1) % 10 === 0) {
-            this.showToast(`正在捕获画面帧（${i + 1}/${totalFrames}）...`, 'info');
-          }
-        }
+        this.showToast(`已截取 ${frames.length} 帧，正在编码视频...`, 'info');
 
-        if (frames.length === 0) throw new Error('未能捕获任何画面帧');
-
-        // ========== 阶段2：以固定帧率编码视频 ==========
-        this.showToast('正在编码视频，请稍候...', 'info');
-
+        // 创建录制画布
         const recordCanvas = document.createElement('canvas');
         recordCanvas.width = width;
         recordCanvas.height = height;
@@ -2245,7 +2337,7 @@ A minimalist logo design for a BBQ restaurant, featuring stylized flame and gril
         const stream = recordCanvas.captureStream(fps);
         const recorder = new MediaRecorder(stream, {
           mimeType,
-          videoBitsPerSecond: 5_000_000  // 5 Mbps 高质量
+          videoBitsPerSecond: 5_000_000,
         });
         const chunks = [];
 
@@ -2256,28 +2348,27 @@ A minimalist logo design for a BBQ restaurant, featuring stylized flame and gril
 
           recorder.start();
 
-          // 以固定帧率逐帧绘制到录制画布
           let frameIdx = 0;
           const playbackFrame = () => {
             if (frameIdx >= frames.length) {
-              // 所有帧播放完毕，停止录制
               recorder.stop();
               return;
             }
+            ctx.clearRect(0, 0, width, height);
             ctx.drawImage(frames[frameIdx], 0, 0, width, height);
             frameIdx++;
             setTimeout(playbackFrame, 1000 / fps);
           };
 
-          // 先绘制第一帧再开始定时
+          // 绘制第一帧并启动
           ctx.drawImage(frames[0], 0, 0, width, height);
           frameIdx = 1;
           setTimeout(playbackFrame, 1000 / fps);
         });
 
-        // 生成并下载文件
-        const blob = new Blob(chunks, { type: mimeType });
-        const url = URL.createObjectURL(blob);
+        // 下载
+        const videoBlob = new Blob(chunks, { type: mimeType });
+        const url = URL.createObjectURL(videoBlob);
         const a = document.createElement('a');
         a.href = url;
         a.download = `dynamic-design-${this.dynamicParams.brandName || 'untitled'}-${Date.now()}.${fileExt}`;
@@ -2285,12 +2376,13 @@ A minimalist logo design for a BBQ restaurant, featuring stylized flame and gril
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        this.showToast(`${isMP4 ? 'MP4' : 'WebM'} 视频已下载（${frames.length} 帧）`, 'success');
+        this.showToast(`${isMP4 ? 'MP4' : 'WebM'} 视频已下载（${frames.length} 帧，${(videoBlob.size / 1024).toFixed(0)}KB）`, 'success');
 
       } catch (e) {
         console.error('Video export failed:', e);
         this.showToast('视频导出失败: ' + e.message, 'error');
       } finally {
+        if (cleanup) cleanup();
         this.videoExporting = false;
       }
     }

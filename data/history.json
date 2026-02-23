@@ -3,6 +3,118 @@
   "maxRecords": 100,
   "records": [
     {
+      "id": "h_6484a671-dd0b-4479-91f4-6b2f6eb4d600",
+      "timestamp": "2026-02-23T03:14:33.973Z",
+      "category": "image",
+      "subcategory": "promo-poster",
+      "input": {
+        "event_name": "开业大酬宾",
+        "discount_info": "满300减50",
+        "product_type": "服装",
+        "poster_type": "店铺首页Banner",
+        "style": "高端简约",
+        "main_color": "红色",
+        "composition": "",
+        "visual_element": "产品实拍",
+        "additionalInput": ""
+      },
+      "output": {
+        "prompt": "event_name: 开业大酬宾  \ndiscount_info: 满300减50  \nproduct_type: 服装  \nbanner_type: 店铺首页Banner  \ndesign_style: 高端简约  \ncolor: 红色  \ncomposition: 中心构图",
+        "matchedSkills": []
+      },
+      "isFavorited": false
+    },
+    {
+      "id": "h_9287a15f-27b3-4062-a736-30d07b6b6a18",
+      "timestamp": "2026-02-23T02:44:07.360Z",
+      "category": "image",
+      "subcategory": "promo-poster",
+      "input": {
+        "event_name": "开业大酬宾",
+        "discount_info": "满300减50",
+        "product_type": "服装",
+        "poster_type": "店铺首页Banner",
+        "style": "国潮风",
+        "main_color": "红色",
+        "composition": "中心构图",
+        "visual_element": "产品实拍",
+        "additionalInput": ""
+      },
+      "output": {
+        "prompt": "event_name: Opening Sale, discount_info: 300 off, product_type: clothing, banner_type: Store Banner, design_style: Chinese New Wave, color_scheme: Red, composition: Centered, visual_elements: product shot",
+        "matchedSkills": []
+      },
+      "isFavorited": false
+    },
+    {
+      "id": "h_ba46d16f-f54f-42e6-813d-890db75527e9",
+      "timestamp": "2026-02-23T02:30:34.256Z",
+      "category": "image",
+      "subcategory": "logo-design",
+      "input": {
+        "brand_name": "PrCf",
+        "industry": "设计",
+        "logo_type": "图文组合Logo",
+        "style_preference": "复古",
+        "composition": "对称构图",
+        "design_form": "极简主义",
+        "creative_direction": "双关隐喻",
+        "color_preference": "黑金渐变",
+        "output_quality": "高清",
+        "keywords": "",
+        "additionalInput": ""
+      },
+      "output": {
+        "prompt": "prcf logo with vintage design, black gold gradient, symmetrical composition, minimalist form, dual metaphor, black and gold color palette, high quality output",
+        "matchedSkills": []
+      },
+      "isFavorited": false
+    },
+    {
+      "id": "h_3c4c349a-bf19-42ca-b59d-7843aa872b77",
+      "timestamp": "2026-02-22T07:30:27.804Z",
+      "category": "image",
+      "subcategory": "brand-poster",
+      "input": {
+        "brand_name": "PrCf",
+        "brand_slogan": "你的想法你的设计",
+        "brand_value": "创新、自由、突破",
+        "poster_purpose": "企业文化",
+        "visual_style": "极简高端",
+        "mood": "专业、信赖",
+        "color_scheme": "品牌色",
+        "photography_style": "场景氛围",
+        "additionalInput": ""
+      },
+      "output": {
+        "prompt": "prcf brand name: your ideas your design, brand value: innovation, freedom, breakthrough, purpose: culture, style: surreal minimalist aesthetic, color: brand color, photography: scene atmosphere, mood: professional, trustworthy, whitespace: high-end, leave space for breathing.",
+        "matchedSkills": []
+      },
+      "isFavorited": false
+    },
+    {
+      "id": "h_9329a409-b1e1-47c1-892e-598f12c43ed9",
+      "timestamp": "2026-02-22T07:19:36.170Z",
+      "category": "image",
+      "subcategory": "brand-poster",
+      "input": {
+        "brand_name": "prcf",
+        "brand_slogan": "自由之境",
+        "brand_value": "自由、创新",
+        "poster_purpose": "品牌形象展示",
+        "visual_style": "艺术抽象",
+        "mood": "专业、信赖",
+        "color_scheme": "品牌色",
+        "photography_style": "场景氛围",
+        "additionalInput": ""
+      },
+      "output": {
+        "prompt": "prcf free space, art abstract, brand color, professional trust, scene atmosphere, free innovation, self-talk imagery, brand value free, visual storytelling, high-end, whitespace.",
+        "matchedSkills": []
+      },
+      "isFavorited": false
+    },
+    {
       "id": "h_8a85560d-474f-41a1-81e9-11e99ad3b032",
       "timestamp": "2026-02-22T01:55:39.113Z",
       "category": "image",
