@@ -5,8 +5,10 @@
 
 const fs = require('fs');
 const path = require('path');
-const { v4: uuidv4 } = require('uuid');
+const crypto = require('crypto');
 const historyService = require('./historyService');
+
+const uuidv4 = () => crypto.randomUUID();
 
 const FAVORITES_FILE = path.join(__dirname, '../../data/favorites.json');
 
