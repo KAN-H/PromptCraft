@@ -2044,6 +2044,67 @@ A minimalist logo design for a BBQ restaurant, featuring stylized flame and gril
     },
 
     /**
+     * 捕获 iframe 单帧画面（内部辅助方法）
+     * 修复居中/裁切问题：通过 windowWidth/windowHeight 约束视口，
+     * scrollX/scrollY 归零，scale=1 防止 HiDPI 缩放，
+     * onclone 中强制 body 尺寸匹配视口并同步内联样式
+     */
+    _captureIframeFrame(iframeDoc, width, height, bgColor) {
+      iframeDoc.documentElement.scrollTop = 0;
+      iframeDoc.documentElement.scrollLeft = 0;
+
+      return html2canvas(iframeDoc.body, {
+        width,
+        height,
+        windowWidth: width,
+        windowHeight: height,
+        scrollX: 0,
+        scrollY: 0,
+        x: 0,
+        y: 0,
+        scale: 1,
+        useCORS: true,
+        allowTaint: true,
+        logging: false,
+        backgroundColor: bgColor,
+        foreignObjectRendering: false,
+        onclone: (clonedDoc) => {
+          // 同步 iframe 内联样式到克隆文档
+          const styles = iframeDoc.querySelectorAll('style');
+          styles.forEach(style => {
+            const clonedStyle = clonedDoc.createElement('style');
+            clonedStyle.textContent = style.textContent;
+            clonedDoc.head.appendChild(clonedStyle);
+          });
+          // 强制 body 尺寸匹配 iframe 可视区域，避免内容溢出导致偏移
+          clonedDoc.body.style.width = width + 'px';
+          clonedDoc.body.style.height = height + 'px';
+          clonedDoc.body.style.overflow = 'hidden';
+          clonedDoc.body.style.margin = '0';
+          clonedDoc.body.style.padding = '0';
+        }
+      });
+    },
+
+    /**
+     * 检测 iframe 内容的实际背景色
+     */
+    _detectIframeBgColor(iframe, iframeDoc) {
+      try {
+        const computedBg = iframe.contentWindow?.getComputedStyle(iframeDoc.body)?.backgroundColor;
+        if (computedBg && computedBg !== 'rgba(0, 0, 0, 0)' && computedBg !== 'transparent') {
+          return computedBg;
+        }
+        // 尝试检测 html 元素的背景色
+        const htmlBg = iframe.contentWindow?.getComputedStyle(iframeDoc.documentElement)?.backgroundColor;
+        if (htmlBg && htmlBg !== 'rgba(0, 0, 0, 0)' && htmlBg !== 'transparent') {
+          return htmlBg;
+        }
+      } catch (e) { /* 忽略跨域错误 */ }
+      return '#ffffff';
+    },
+
+    /**
      * 导出动态设计为 GIF 动图
      * 使用 html2canvas 逐帧截图 + gif.js 编码
      */
@@ -2064,8 +2125,9 @@ A minimalist logo design for a BBQ restaurant, featuring stylized flame and gril
         if (!iframe) throw new Error('预览区域未找到');
 
         const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-        const width = iframe.offsetWidth || 800;
-        const height = iframe.offsetHeight || 400;
+        const width = iframe.clientWidth || 800;
+        const height = iframe.clientHeight || 400;
+        const bgColor = this._detectIframeBgColor(iframe, iframeDoc);
 
         const gif = new GIF({
           workers: 2,
@@ -2080,24 +2142,7 @@ A minimalist logo design for a BBQ restaurant, featuring stylized flame and gril
 
         for (let i = 0; i < frameCount; i++) {
           await new Promise(r => setTimeout(r, frameDelay));
-          const canvas = await html2canvas(iframeDoc.body, {
-            width,
-            height,
-            useCORS: true,
-            allowTaint: true,
-            logging: false,
-            backgroundColor: '#ffffff',
-            foreignObjectRendering: false,
-            onclone: (clonedDoc) => {
-              // 确保克隆文档中内联样式被保留
-              const styles = iframeDoc.querySelectorAll('style');
-              styles.forEach(style => {
-                const clonedStyle = clonedDoc.createElement('style');
-                clonedStyle.textContent = style.textContent;
-                clonedDoc.head.appendChild(clonedStyle);
-              });
-            }
-          });
+          const canvas = await this._captureIframeFrame(iframeDoc, width, height, bgColor);
           gif.addFrame(canvas, { delay: frameDelay, copy: true });
         }
 
@@ -2124,8 +2169,9 @@ A minimalist logo design for a BBQ restaurant, featuring stylized flame and gril
     },
 
     /**
-     * 导出动态设计为视频（WebM）
-     * 使用 html2canvas 逐帧截图 + MediaRecorder + canvas.captureStream()
+     * 导出动态设计为视频
+     * 两阶段方案：先预捕获所有帧，再以固定帧率编码
+     * 优先使用 MP4 格式（Chrome 130+），降级为 WebM
      */
     async exportDynamicAsVideo() {
       if (!this.dynamicCode) return;
@@ -2142,87 +2188,109 @@ A minimalist logo design for a BBQ restaurant, featuring stylized flame and gril
       }
 
       this.videoExporting = true;
-      this.showToast('正在录制视频（5 秒）...', 'info');
 
       try {
         const iframe = document.getElementById('dynamic-preview-iframe');
         if (!iframe) throw new Error('预览区域未找到');
 
         const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-        const width = iframe.offsetWidth || 800;
-        const height = iframe.offsetHeight || 400;
+        const width = iframe.clientWidth || 800;
+        const height = iframe.clientHeight || 400;
+        const bgColor = this._detectIframeBgColor(iframe, iframeDoc);
 
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
+        // ========== 阶段1：预捕获所有帧 ==========
+        const fps = 10;
+        const durationSec = 5;
+        const totalFrames = fps * durationSec;  // 50 帧
+        const captureInterval = (durationSec * 1000) / totalFrames; // 100ms
 
-        const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
-          ? 'video/webm;codecs=vp9'
-          : 'video/webm';
-        const stream = canvas.captureStream(10);
-        const recorder = new MediaRecorder(stream, { mimeType });
+        this.showToast(`正在捕获画面帧（0/${totalFrames}）...`, 'info');
+
+        const frames = [];
+        for (let i = 0; i < totalFrames; i++) {
+          await new Promise(r => setTimeout(r, captureInterval));
+          try {
+            const canvas = await this._captureIframeFrame(iframeDoc, width, height, bgColor);
+            frames.push(canvas);
+          } catch (frameErr) {
+            console.warn(`Frame ${i} capture failed:`, frameErr);
+          }
+          // 每 10 帧更新一次进度
+          if ((i + 1) % 10 === 0) {
+            this.showToast(`正在捕获画面帧（${i + 1}/${totalFrames}）...`, 'info');
+          }
+        }
+
+        if (frames.length === 0) throw new Error('未能捕获任何画面帧');
+
+        // ========== 阶段2：以固定帧率编码视频 ==========
+        this.showToast('正在编码视频，请稍候...', 'info');
+
+        const recordCanvas = document.createElement('canvas');
+        recordCanvas.width = width;
+        recordCanvas.height = height;
+        const ctx = recordCanvas.getContext('2d');
+
+        // 选择最佳 MIME 类型（优先 MP4）
+        const mimeType = [
+          'video/mp4;codecs=avc1',
+          'video/mp4',
+          'video/webm;codecs=vp9',
+          'video/webm'
+        ].find(t => MediaRecorder.isTypeSupported(t)) || 'video/webm';
+
+        const isMP4 = mimeType.startsWith('video/mp4');
+        const fileExt = isMP4 ? 'mp4' : 'webm';
+
+        const stream = recordCanvas.captureStream(fps);
+        const recorder = new MediaRecorder(stream, {
+          mimeType,
+          videoBitsPerSecond: 5_000_000  // 5 Mbps 高质量
+        });
         const chunks = [];
 
-        recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
-        recorder.onstop = () => {
-          const blob = new Blob(chunks, { type: mimeType });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `dynamic-design-${this.dynamicParams.brandName || 'untitled'}-${Date.now()}.webm`;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-          this.videoExporting = false;
-          this.showToast('视频已下载', 'success');
-        };
+        await new Promise((resolve, reject) => {
+          recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+          recorder.onerror = (e) => reject(new Error('录制错误: ' + (e.error?.message || '未知错误')));
+          recorder.onstop = () => resolve();
 
-        recorder.start();
+          recorder.start();
 
-        const duration = 5000;
-        const fps = 10;
-        const frameInterval = 1000 / fps;
-        let elapsed = 0;
+          // 以固定帧率逐帧绘制到录制画布
+          let frameIdx = 0;
+          const playbackFrame = () => {
+            if (frameIdx >= frames.length) {
+              // 所有帧播放完毕，停止录制
+              recorder.stop();
+              return;
+            }
+            ctx.drawImage(frames[frameIdx], 0, 0, width, height);
+            frameIdx++;
+            setTimeout(playbackFrame, 1000 / fps);
+          };
 
-        const captureFrame = async () => {
-          if (elapsed >= duration) {
-            recorder.stop();
-            return;
-          }
-          try {
-            const captured = await html2canvas(iframeDoc.body, {
-              width,
-              height,
-              useCORS: true,
-              allowTaint: true,
-              logging: false,
-              backgroundColor: '#ffffff',
-              foreignObjectRendering: false,
-              onclone: (clonedDoc) => {
-                const styles = iframeDoc.querySelectorAll('style');
-                styles.forEach(style => {
-                  const clonedStyle = clonedDoc.createElement('style');
-                  clonedStyle.textContent = style.textContent;
-                  clonedDoc.head.appendChild(clonedStyle);
-                });
-              }
-            });
-            // 先填充白色背景，再绘制捕获的帧
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, width, height);
-            ctx.drawImage(captured, 0, 0, width, height);
-          } catch (e) { /* 忽略单帧错误 */ }
-          elapsed += frameInterval;
-          setTimeout(captureFrame, frameInterval);
-        };
+          // 先绘制第一帧再开始定时
+          ctx.drawImage(frames[0], 0, 0, width, height);
+          frameIdx = 1;
+          setTimeout(playbackFrame, 1000 / fps);
+        });
 
-        captureFrame();
+        // 生成并下载文件
+        const blob = new Blob(chunks, { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `dynamic-design-${this.dynamicParams.brandName || 'untitled'}-${Date.now()}.${fileExt}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        this.showToast(`${isMP4 ? 'MP4' : 'WebM'} 视频已下载（${frames.length} 帧）`, 'success');
 
       } catch (e) {
         console.error('Video export failed:', e);
         this.showToast('视频导出失败: ' + e.message, 'error');
+      } finally {
         this.videoExporting = false;
       }
     }
