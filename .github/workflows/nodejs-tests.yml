@@ -28,8 +28,13 @@ jobs:
         run: npm test
 
       - name: Start server test
+        env:
+          CI: true
         run: |
           npm start &
+          SERVER_PID=$!
           sleep 3
-          curl -f http://localhost:3000 || exit 1
-          kill %1
+          curl -sf http://localhost:3000 > /dev/null || exit 1
+          echo "✅ Server responded successfully"
+          kill $SERVER_PID || true
+          wait $SERVER_PID 2>/dev/null || true

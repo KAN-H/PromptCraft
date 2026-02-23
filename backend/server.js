@@ -48,11 +48,12 @@ app.listen(PORT, async () => {
   console.log(`🔧 API地址: ${url}/api`);
 
   // 只在生产环境（npm start）下自动打开浏览器
-  // 开发环境（npm run dev / nodemon）不自动打开，避免重启循环
+  // 开发环境（npm run dev / nodemon）和 CI 环境不自动打开
   const isDevMode = process.argv.some(arg => arg.includes('nodemon')) || 
                     process.env.npm_lifecycle_event === 'dev';
+  const isCI = process.env.CI === 'true' || process.env.CI === true;
   
-  if (!isDevMode) {
+  if (!isDevMode && !isCI) {
     try {
       await open(url);
       console.log('🌐 已自动打开浏览器');
