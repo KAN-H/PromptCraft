@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node backend/server.js",
     "dev": "nodemon backend/server.js",
-    "test": "node utils/test.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
     "build": "pkg . --out-path dist --targets node18-win-x64"
   },
   "keywords": [

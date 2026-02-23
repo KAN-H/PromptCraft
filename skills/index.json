@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "description": "PromptCraft Skills 索引文件",
-  "lastUpdated": "2026-02-02",
+  "lastUpdated": "2026-02-22",
   "skills": [
     {
       "id": "brand-strategy-advisor",
@@ -25,9 +25,9 @@
         "商业"
       ],
       "author": "PromptCraft",
-      "enabled": true,
+      "enabled": false,
       "createdAt": "2026-01-29",
-      "updatedAt": "2026-02-02"
+      "updatedAt": "2026-02-22"
     },
     {
       "id": "color-theory-master",
@@ -50,9 +50,9 @@
         "视觉设计"
       ],
       "author": "PromptCraft",
-      "enabled": true,
+      "enabled": false,
       "createdAt": "2026-01-29",
-      "updatedAt": "2026-02-02"
+      "updatedAt": "2026-02-22"
     },
     {
       "id": "logo-critique-expert",
@@ -75,9 +75,9 @@
         "视觉识别"
       ],
       "author": "PromptCraft",
-      "enabled": true,
+      "enabled": false,
       "createdAt": "2026-01-29",
-      "updatedAt": "2026-02-02"
+      "updatedAt": "2026-02-22"
     },
     {
       "id": "nippon-colors",
@@ -94,9 +94,9 @@
         "配色"
       ],
       "author": "PromptCraft",
-      "enabled": true,
-      "createdAt": "2026-02-02",
-      "updatedAt": "2026-02-02"
+      "enabled": false,
+      "createdAt": "2026-02-22",
+      "updatedAt": "2026-02-22"
     }
   ]
 }

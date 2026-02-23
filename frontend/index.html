@@ -11,6 +11,12 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <!-- Chart.js for radar chart -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <!-- html2canvas for GIF/video export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
+            integrity="sha512-E2V6H7QKTdeUMkCqjsDHI8DmOY336xsBmjsZcMNjAin83iSw4PStFT0g0s3iUPXElTqN3BD0ydc6ENBi7Zyz/A=="
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- gif.js for animated GIF export (served locally) -->
+    <script src="gif.js"></script>
     <!-- Custom CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
@@ -30,6 +36,9 @@
                 </a>
                 <a class="tab tab-lg" :class="{'tab-active': activeTab === 'skills'}" @click="activeTab = 'skills'; loadSkills()">
                     🧠 专业技能
+                </a>
+                <a class="tab tab-lg" :class="{'tab-active': activeTab === 'dynamic'}" @click="activeTab = 'dynamic'">
+                    🎬 动态设计
                 </a>
             </div>
         </div>
@@ -402,6 +411,12 @@
                                         🔄 重新生成
                                     </button>
                                 </div>
+                                <!-- 🎬 动态设计按钮（仅适配角色显示） -->
+                                <div x-show="isDynamicDesignSupported()" class="mt-3">
+                                    <button class="btn btn-accent w-full" @click="sendToMotionDesign()">
+                                        🎬 生成动态设计
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -551,6 +566,305 @@
             <!-- Loading State -->
             <div class="flex justify-center py-12" x-show="skillsLoading">
                 <span class="loading loading-spinner loading-lg text-primary"></span>
+            </div>
+        </div>
+
+        <!-- ========================== -->
+        <!-- Tab 3: 🎬 动态设计 -->
+        <!-- ========================== -->
+        <div x-show="activeTab === 'dynamic'" x-transition:enter="transition ease-out duration-300">
+            <div class="max-w-7xl mx-auto px-4 py-6">
+                
+                <!-- � 动态设计独立 API 配置 (Phase 13.1) -->
+                <div class="card bg-base-200/50 shadow mb-6">
+                    <div class="card-body py-3 px-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <label class="label cursor-pointer gap-2 p-0">
+                                    <input type="checkbox" class="toggle toggle-primary toggle-sm" x-model="dynamicUseCustomConfig">
+                                    <span class="label-text font-medium text-sm">🔌 使用独立 AI 模型</span>
+                                </label>
+                                <span class="badge badge-sm" 
+                                      :class="dynamicUseCustomConfig ? 'badge-primary' : 'badge-ghost'"
+                                      x-text="dynamicUseCustomConfig 
+                                        ? '独立: ' + (dynamicConfig.model || '未配置') 
+                                        : '跟随全局: ' + (settings.model || '未配置')">
+                                </span>
+                            </div>
+                            <button x-show="dynamicUseCustomConfig" 
+                                    class="btn btn-ghost btn-xs"
+                                    @click="showDynamicConfigPanel = !showDynamicConfigPanel">
+                                <span x-text="showDynamicConfigPanel ? '▲ 收起' : '▼ 展开配置'"></span>
+                            </button>
+                        </div>
+                        <p class="text-xs opacity-50 mt-1" x-show="!dynamicUseCustomConfig">
+                            💡 动态设计需要生成代码，建议使用擅长编码的模型（如 GPT-4o、Claude、DeepSeek-Coder）
+                        </p>
+
+                        <!-- 展开的独立配置面板 -->
+                        <div x-show="dynamicUseCustomConfig && showDynamicConfigPanel" x-transition class="mt-3 pt-3 border-t border-base-300">
+                            <!-- 服务商快选 -->
+                            <div class="flex flex-wrap gap-1.5 mb-3">
+                                <template x-for="(preset, key) in apiProviders" :key="key">
+                                    <button type="button" class="btn btn-xs"
+                                            :class="dynamicConfig.provider === key ? 'btn-primary' : 'btn-outline'"
+                                            @click="selectDynamicProvider(key)">
+                                        <span x-text="preset.icon + ' ' + preset.name"></span>
+                                    </button>
+                                </template>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <div class="form-control">
+                                    <label class="label py-0.5"><span class="label-text text-xs">API 地址</span></label>
+                                    <input type="text" class="input input-bordered input-sm w-full" 
+                                           x-model="dynamicConfig.baseUrl" placeholder="http://localhost:11434/v1">
+                                </div>
+                                <div class="form-control">
+                                    <label class="label py-0.5"><span class="label-text text-xs">API 密钥</span></label>
+                                    <input type="password" class="input input-bordered input-sm w-full" 
+                                           x-model="dynamicConfig.apiKey" placeholder="sk-...（本地可留空）">
+                                </div>
+                                <div class="form-control">
+                                    <label class="label py-0.5">
+                                        <span class="label-text text-xs">模型</span>
+                                        <button type="button" class="btn btn-xs btn-ghost gap-0.5" 
+                                                @click="refreshDynamicModels()" :disabled="dynamicModelsLoading">
+                                            <span x-show="!dynamicModelsLoading">🔄</span>
+                                            <span x-show="dynamicModelsLoading" class="loading loading-spinner loading-xs"></span>
+                                            <span class="text-xs" x-text="dynamicModelsLoading ? '...' : '刷新'"></span>
+                                        </button>
+                                    </label>
+                                    <div>
+                                        <select class="select select-bordered select-sm w-full" 
+                                                x-model="dynamicConfig.model" 
+                                                x-show="dynamicAvailableModels.length > 0">
+                                            <option value="" disabled>请选择模型</option>
+                                            <template x-for="model in dynamicAvailableModels" :key="model.id">
+                                                <option :value="model.id" x-text="model.name"></option>
+                                            </template>
+                                        </select>
+                                        <input type="text" class="input input-bordered input-sm w-full" 
+                                               x-model="dynamicConfig.model" 
+                                               x-show="dynamicAvailableModels.length === 0"
+                                               placeholder="输入模型名或点击刷新">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex justify-end mt-2">
+                                <button class="btn btn-primary btn-xs" @click="saveDynamicDesignConfig()">💾 保存配置</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- �🚪 独立入口：简化输入面板（仅独立模式显示） -->
+                <div x-show="!dynamicDesignFromAssistant" class="card bg-base-100 shadow-xl mb-6">
+                    <div class="card-body">
+                        <h2 class="card-title text-lg">🎬 动态设计工作台</h2>
+                        <p class="text-sm opacity-70">输入设计信息，AI 将生成可交互的 HTML/CSS/SVG 动态效果</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                            <div class="form-control">
+                                <label class="label"><span class="label-text font-medium">设计类型</span></label>
+                                <select class="select select-bordered w-full" x-model="dynamicParams.designType">
+                                    <option value="logo-design">🎨 Logo 设计</option>
+                                    <option value="icon-design">🔷 图标设计</option>
+                                    <option value="promo-poster">📢 促销海报</option>
+                                    <option value="social-media-graphic">📱 社媒配图</option>
+                                    <option value="event-poster">🎉 活动海报</option>
+                                    <option value="ad-creative">📺 广告创意</option>
+                                </select>
+                            </div>
+                            <div class="form-control">
+                                <label class="label"><span class="label-text font-medium">品牌/标题名称</span></label>
+                                <input type="text" class="input input-bordered w-full" 
+                                       placeholder="例如: TechFlow、618大促" 
+                                       x-model="dynamicParams.brandName">
+                            </div>
+                            <div class="form-control">
+                                <label class="label"><span class="label-text font-medium">标语/口号 (可选)</span></label>
+                                <input type="text" class="input input-bordered w-full" 
+                                       placeholder="例如: Innovation Starts Here" 
+                                       x-model="dynamicParams.slogan">
+                            </div>
+                            <div class="form-control">
+                                <label class="label"><span class="label-text font-medium">设计风格</span></label>
+                                <input type="text" class="input input-bordered w-full" 
+                                       placeholder="例如: 科技感、极简、渐变" 
+                                       x-model="dynamicParams.style">
+                            </div>
+                            <div class="form-control">
+                                <label class="label"><span class="label-text font-medium">颜色方案 (可选)</span></label>
+                                <input type="text" class="input input-bordered w-full" 
+                                       placeholder="例如: #6366F1, #06B6D4 或 蓝紫渐变" 
+                                       x-model="dynamicParams.colors">
+                            </div>
+                            <div class="form-control">
+                                <label class="label"><span class="label-text font-medium">补充描述 (可选)</span></label>
+                                <input type="text" class="input input-bordered w-full" 
+                                       placeholder="任何额外的设计要求" 
+                                       x-model="dynamicParams.description">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 🔗 下游入口：来自设计助手的参数摘要 -->
+                <div x-show="dynamicDesignFromAssistant" class="alert alert-info mb-6 shadow-lg">
+                    <div class="flex items-center justify-between w-full">
+                        <div>
+                            <span class="font-bold">📋 来自设计助手</span>
+                            <span class="text-sm ml-2" x-text="dynamicAssistantSummary"></span>
+                        </div>
+                        <button class="btn btn-ghost btn-sm" @click="clearDynamicAssistantData()">✕ 清除</button>
+                    </div>
+                </div>
+
+                <!-- 🎭 动画效果配置 -->
+                <div class="card bg-base-100 shadow-xl mb-6">
+                    <div class="card-body">
+                        <h3 class="font-bold text-md">🎭 动画效果</h3>
+                        <div class="flex flex-wrap gap-2 mt-2">
+                            <template x-for="(effect, key) in dynamicAnimationEffects" :key="key">
+                                <label class="label cursor-pointer gap-2 p-2 rounded-lg border border-base-300 hover:border-primary transition-colors"
+                                       :class="{'border-primary bg-primary/10': dynamicParams.animation.effects.includes(key)}">
+                                    <input type="checkbox" class="checkbox checkbox-primary checkbox-sm" 
+                                           :value="key" 
+                                           :checked="dynamicParams.animation.effects.includes(key)"
+                                           @change="toggleAnimationEffect(key)">
+                                    <span class="label-text text-sm" x-text="effect.name"></span>
+                                </label>
+                            </template>
+                        </div>
+                        <div class="grid grid-cols-3 gap-4 mt-3">
+                            <div class="form-control">
+                                <label class="label py-1"><span class="label-text text-sm">⏱️ 时长</span></label>
+                                <select class="select select-bordered select-sm" x-model="dynamicParams.animation.duration">
+                                    <option value="0.5s">0.5s 快速</option>
+                                    <option value="1s">1s 标准</option>
+                                    <option value="2s" selected>2s 适中</option>
+                                    <option value="3s">3s 缓慢</option>
+                                    <option value="5s">5s 很慢</option>
+                                </select>
+                            </div>
+                            <div class="form-control">
+                                <label class="label py-1"><span class="label-text text-sm">🔄 缓动</span></label>
+                                <select class="select select-bordered select-sm" x-model="dynamicParams.animation.easing">
+                                    <option value="ease">Ease 默认</option>
+                                    <option value="ease-in-out">Ease In-Out</option>
+                                    <option value="linear">Linear 线性</option>
+                                    <option value="cubic-bezier(0.68, -0.55, 0.265, 1.55)">Back 回弹</option>
+                                </select>
+                            </div>
+                            <div class="form-control">
+                                <label class="label py-1"><span class="label-text text-sm">♾️ 循环</span></label>
+                                <select class="select select-bordered select-sm" x-model="dynamicParams.animation.loop">
+                                    <option value="1">1 次</option>
+                                    <option value="3">3 次</option>
+                                    <option value="infinite" selected>无限循环</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <button class="btn btn-accent w-full" 
+                                    @click="generateDynamicDesign()"
+                                    :class="{'loading': dynamicLoading}"
+                                    :disabled="dynamicLoading">
+                                <span x-show="!dynamicLoading">🎬 生成动态设计</span>
+                                <span x-show="dynamicLoading">⏳ AI 正在创作...</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 👁 预览 + 代码 区域（生成后显示） -->
+                <div x-show="dynamicCode" x-transition>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- 预览区 -->
+                        <div class="card bg-base-100 shadow-xl">
+                            <div class="card-body p-4">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h3 class="font-bold">👁 实时预览</h3>
+                                    <div class="flex gap-1">
+                                        <button class="btn btn-ghost btn-xs" @click="refreshDynamicPreview()" title="刷新预览">🔄</button>
+                                        <button class="btn btn-ghost btn-xs" @click="toggleDynamicFullscreen()" title="全屏">⛶</button>
+                                    </div>
+                                </div>
+                                <div class="border border-base-300 rounded-lg overflow-hidden bg-white" 
+                                     :class="{'fixed inset-0 z-50 border-none rounded-none': dynamicFullscreen}"
+                                     id="dynamic-preview-container">
+                                    <iframe id="dynamic-preview-iframe" 
+                                            sandbox="allow-scripts"
+                                            class="w-full border-0"
+                                            :class="dynamicFullscreen ? 'h-full' : 'h-[400px]'"
+                                            :srcdoc="dynamicCode">
+                                    </iframe>
+                                    <button x-show="dynamicFullscreen" 
+                                            class="btn btn-circle btn-ghost absolute top-4 right-4 bg-base-100/80"
+                                            @click="dynamicFullscreen = false">✕</button>
+                                </div>
+                                <!-- 安全警告 -->
+                                <div x-show="dynamicSafetyWarnings.length > 0" class="alert alert-warning mt-2 text-sm py-2">
+                                    <span>⚠️ <span x-text="dynamicSafetyWarnings.join(', ')"></span></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 代码编辑区 -->
+                        <div class="card bg-base-100 shadow-xl">
+                            <div class="card-body p-4">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h3 class="font-bold">💻 代码编辑</h3>
+                                    <button class="btn btn-ghost btn-xs" @click="applyCodeEdit()" title="应用修改">
+                                        ▶ 应用
+                                    </button>
+                                </div>
+                                <textarea class="textarea textarea-bordered w-full font-mono text-xs leading-relaxed"
+                                          style="height: 400px; resize: vertical; tab-size: 2;"
+                                          x-model="dynamicCodeEdit"
+                                          @keydown.ctrl.enter="applyCodeEdit()"
+                                          spellcheck="false"></textarea>
+                                <p class="text-xs opacity-50 mt-1">Ctrl+Enter 应用修改</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 导出工具栏 -->
+                    <div class="card bg-base-100 shadow-xl mt-6">
+                        <div class="card-body py-3">
+                            <div class="flex flex-wrap gap-2 justify-between items-center">
+                                <div class="flex gap-2">
+                                    <button class="btn btn-sm btn-outline" @click="exportDynamicDesign('html')">💾 导出 HTML</button>
+                                    <button class="btn btn-sm btn-outline" @click="copyToClipboard(dynamicCode)">📋 复制代码</button>
+                                    <button class="btn btn-sm btn-outline" @click="exportDynamicAsGif()"
+                                            :class="{'loading': dynamicExporting}"
+                                            :disabled="dynamicExporting">
+                                        <span x-show="!dynamicExporting">🎞️ 导出 GIF</span>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline" @click="exportDynamicAsVideo()"
+                                            :class="{'loading': dynamicExporting}"
+                                            :disabled="dynamicExporting">
+                                        <span x-show="!dynamicExporting">🎥 导出视频</span>
+                                    </button>
+                                </div>
+                                <div class="flex gap-2">
+                                    <!-- 迭代修改 -->
+                                    <input type="text" class="input input-bordered input-sm w-64" 
+                                           placeholder="输入修改指令，如：加大字体、改为红色" 
+                                           x-model="dynamicIterateInstruction"
+                                           @keydown.enter="iterateDynamicDesign()">
+                                    <button class="btn btn-sm btn-primary" 
+                                            @click="iterateDynamicDesign()"
+                                            :class="{'loading': dynamicIterating}"
+                                            :disabled="dynamicIterating || !dynamicIterateInstruction.trim()">
+                                        🔄 迭代修改
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
 

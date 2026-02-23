@@ -158,6 +158,60 @@ function promptCraftApp() {
       instructions: ''
     },
 
+    // 🎬 Dynamic Design Tab (Phase 13)
+    dynamicParams: {
+      designType: 'logo-design',
+      brandName: '',
+      slogan: '',
+      style: '',
+      colors: '',
+      description: '',
+      animation: {
+        effects: ['fadeIn'],
+        duration: '2s',
+        easing: 'ease-in-out',
+        loop: 'infinite'
+      }
+    },
+    dynamicCode: '',          // 生成的 HTML 代码
+    dynamicCodeEdit: '',      // 编辑区代码
+    dynamicLoading: false,
+    dynamicIterating: false,
+    dynamicIterateInstruction: '',
+    dynamicFullscreen: false,
+    dynamicSafetyWarnings: [],
+    dynamicDesignFromAssistant: false,  // 是否来自设计助手
+    dynamicAssistantSummary: '',        // 设计助手参数摘要
+    dynamicAnimationEffects: {
+      fadeIn: { name: '渐显' },
+      bounce: { name: '弹跳' },
+      rotate: { name: '旋转' },
+      strokeDraw: { name: '描边' },
+      glow: { name: '发光' },
+      pulse: { name: '脉冲' },
+      slideIn: { name: '滑入' },
+      typewriter: { name: '打字机' }
+    },
+    // 支持动态设计的角色 ID
+    DYNAMIC_DESIGN_PRESETS: [
+      'logo-design', 'icon-design', 'promo-poster',
+      'social-media-graphic', 'event-poster', 'ad-creative',
+      'brand-poster', 'business-card', 'book-cover'
+    ],
+
+    // 🎬 Phase 13.1: 动态设计独立 API 配置
+    dynamicUseCustomConfig: false,  // 是否使用独立配置
+    dynamicConfig: {
+      provider: 'local',
+      baseUrl: 'http://localhost:11434/v1',
+      apiKey: '',
+      model: ''
+    },
+    dynamicAvailableModels: [],   // 独立模型列表
+    dynamicModelsLoading: false,  // 模型列表加载状态
+    dynamicExporting: false,      // 导出 GIF/视频加载状态
+    showDynamicConfigPanel: false, // 折叠面板显示状态
+
     // Computed: filtered skills
     get filteredSkills() {
       if (!this.skillSearch) return this.skills;
@@ -173,6 +227,7 @@ function promptCraftApp() {
     init() {
       this.loadTheme();
       this.loadSettings();
+      this.loadDynamicDesignConfig();  // 🎬 加载动态设计独立配置
       this.loadDesignPresets();
       this.loadSkills();
       this.loadHistoryStats();
@@ -206,6 +261,96 @@ function promptCraftApp() {
       localStorage.setItem('promptcraft_settings', JSON.stringify(this.settings));
       this.showToast('设置已保存', 'success');
       this.showSettings = false;
+    },
+
+    // 🎬 Phase 13.1: 动态设计独立配置管理
+    loadDynamicDesignConfig() {
+      const saved = localStorage.getItem('promptcraft_dynamic_config');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          this.dynamicUseCustomConfig = parsed.enabled || false;
+          this.dynamicConfig = { ...this.dynamicConfig, ...parsed.config };
+        } catch (e) {
+          console.error('Failed to load dynamic design config:', e);
+        }
+      }
+    },
+
+    saveDynamicDesignConfig() {
+      localStorage.setItem('promptcraft_dynamic_config', JSON.stringify({
+        enabled: this.dynamicUseCustomConfig,
+        config: this.dynamicConfig
+      }));
+      this.showToast('动态设计 API 配置已保存', 'success');
+    },
+
+    /**
+     * 获取动态设计实际使用的 API 配置
+     * 如果启用了独立配置就用独立的，否则用全局的
+     */
+    getDynamicDesignApiConfig() {
+      if (this.dynamicUseCustomConfig && this.dynamicConfig.baseUrl && this.dynamicConfig.model) {
+        return {
+          baseUrl: this.dynamicConfig.baseUrl,
+          apiKey: this.dynamicConfig.apiKey,
+          model: this.dynamicConfig.model
+        };
+      }
+      return {
+        baseUrl: this.settings.baseUrl,
+        apiKey: this.settings.apiKey,
+        model: this.settings.model
+      };
+    },
+
+    /**
+     * 选择动态设计独立服务商
+     */
+    selectDynamicProvider(providerKey) {
+      const provider = this.apiProviders[providerKey];
+      if (provider) {
+        this.dynamicConfig.provider = providerKey;
+        this.dynamicConfig.baseUrl = provider.baseUrl;
+        this.dynamicConfig.model = provider.defaultModel || '';
+        this.dynamicAvailableModels = [];
+      }
+    },
+
+    /**
+     * 刷新动态设计独立模型列表
+     */
+    async refreshDynamicModels() {
+      if (!this.dynamicConfig.baseUrl) {
+        this.showToast('请先设置 API 地址', 'warning');
+        return;
+      }
+      this.dynamicModelsLoading = true;
+      try {
+        const response = await fetch(`${API_BASE}/fetch-models`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            baseUrl: this.dynamicConfig.baseUrl,
+            apiKey: this.dynamicConfig.apiKey
+          })
+        });
+        const data = await response.json();
+        if (data.success && data.models) {
+          this.dynamicAvailableModels = data.models;
+          if (this.dynamicAvailableModels.length > 0 && !this.dynamicConfig.model) {
+            this.dynamicConfig.model = this.dynamicAvailableModels[0].id;
+          }
+          this.showToast(`获取到 ${data.count || data.models.length} 个模型`, 'success');
+        } else {
+          this.showToast(data.error || '获取模型列表失败', 'error');
+        }
+      } catch (e) {
+        console.error('Failed to refresh dynamic models:', e);
+        this.showToast('获取模型列表失败: ' + e.message, 'error');
+      } finally {
+        this.dynamicModelsLoading = false;
+      }
     },
 
     // 🔥 Phase 9: 选择服务商
@@ -1686,6 +1831,377 @@ A minimalist logo design for a BBQ restaurant, featuring stylized flame and gril
       setTimeout(() => {
         this.toast.show = false;
       }, 3000);
+    },
+
+    // ==================== 🎬 动态设计方法 (Phase 13) ====================
+
+    /**
+     * 判断当前设计角色是否支持动态设计
+     */
+    isDynamicDesignSupported() {
+      if (!this.selectedDesignPreset) return false;
+      return this.DYNAMIC_DESIGN_PRESETS.includes(this.selectedDesignPreset.id);
+    },
+
+    /**
+     * 从设计助手跳转到动态设计（下游入口）
+     */
+    sendToMotionDesign() {
+      if (!this.designResult || !this.selectedDesignPreset) return;
+
+      // 传递设计参数
+      this.dynamicParams.designType = this.selectedDesignPreset.id;
+      this.dynamicParams.brandName = this.designVariables.brandName || this.designVariables.description || '';
+      this.dynamicParams.slogan = this.designVariables.slogan || '';
+      this.dynamicParams.style = this.designVariables.style || this.designVariables.designStyle || '';
+      this.dynamicParams.colors = this.designVariables.colorScheme || this.designVariables.colors || '';
+      this.dynamicParams.description = this.designAdditionalInput || '';
+
+      // 设置下游模式标记
+      this.dynamicDesignFromAssistant = true;
+      this.dynamicAssistantSummary = `${this.selectedDesignPreset.name} · ${this.dynamicParams.brandName || '未命名'} · ${this.dynamicParams.style || '默认风格'}`;
+
+      // 传递设计提示词
+      this.dynamicParams.designPrompt = this.designResult.finalPrompt || this.designResult.structuredPrompt || '';
+
+      // 切换到动态设计 Tab
+      this.activeTab = 'dynamic';
+
+      // 自动触发生成（下游模式核心体验：一键直达动态效果）
+      this.$nextTick(() => {
+        this.generateDynamicDesign();
+      });
+    },
+
+    /**
+     * 清除来自设计助手的数据，切换为独立模式
+     */
+    clearDynamicAssistantData() {
+      this.dynamicDesignFromAssistant = false;
+      this.dynamicAssistantSummary = '';
+      this.dynamicParams.designPrompt = '';
+    },
+
+    /**
+     * 切换动画效果选中状态
+     */
+    toggleAnimationEffect(effectKey) {
+      const idx = this.dynamicParams.animation.effects.indexOf(effectKey);
+      if (idx >= 0) {
+        this.dynamicParams.animation.effects.splice(idx, 1);
+      } else {
+        this.dynamicParams.animation.effects.push(effectKey);
+      }
+    },
+
+    /**
+     * 生成动态设计
+     */
+    async generateDynamicDesign() {
+      // 验证输入
+      if (!this.dynamicDesignFromAssistant && !this.dynamicParams.brandName && !this.dynamicParams.description) {
+        this.showToast('请至少输入品牌名称或设计描述', 'error');
+        return;
+      }
+
+      // 🎬 使用独立配置或全局配置
+      const apiConfig = this.getDynamicDesignApiConfig();
+      if (!apiConfig.baseUrl || !apiConfig.model) {
+        this.showToast('请先配置 AI 服务（API 地址和模型）—— 可在全局设置或动态设计独立配置中设置', 'error');
+        return;
+      }
+
+      this.dynamicLoading = true;
+      this.dynamicCode = '';
+      this.dynamicCodeEdit = '';
+      this.dynamicSafetyWarnings = [];
+
+      try {
+        const response = await fetch(`${API_BASE}/dynamic-design/generate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...this.dynamicParams,
+            config: apiConfig
+          })
+        });
+
+        const data = await response.json();
+        if (!data.success) {
+          throw new Error(data.error?.message || '生成失败');
+        }
+
+        this.dynamicCode = data.data.code;
+        this.dynamicCodeEdit = data.data.code;
+        this.dynamicSafetyWarnings = data.data.safety?.warnings || [];
+
+        this.showToast('🎬 动态设计生成成功！', 'success');
+        console.log('[DynamicDesign] 生成完成', data.data.metadata);
+
+      } catch (error) {
+        console.error('[DynamicDesign] 生成失败:', error);
+        this.showToast(`生成失败: ${error.message}`, 'error');
+      } finally {
+        this.dynamicLoading = false;
+      }
+    },
+
+    /**
+     * 应用代码编辑到预览
+     */
+    applyCodeEdit() {
+      if (this.dynamicCodeEdit.trim()) {
+        this.dynamicCode = this.dynamicCodeEdit;
+        this.showToast('代码已应用到预览', 'success');
+      }
+    },
+
+    /**
+     * 刷新预览
+     */
+    refreshDynamicPreview() {
+      const iframe = document.getElementById('dynamic-preview-iframe');
+      if (iframe && this.dynamicCode) {
+        iframe.srcdoc = '';
+        setTimeout(() => { iframe.srcdoc = this.dynamicCode; }, 50);
+        this.showToast('预览已刷新', 'info');
+      }
+    },
+
+    /**
+     * 切换全屏预览
+     */
+    toggleDynamicFullscreen() {
+      this.dynamicFullscreen = !this.dynamicFullscreen;
+    },
+
+    /**
+     * 迭代修改动态设计
+     */
+    async iterateDynamicDesign() {
+      if (!this.dynamicIterateInstruction.trim() || !this.dynamicCode) return;
+
+      // 🎬 使用独立配置或全局配置
+      const apiConfig = this.getDynamicDesignApiConfig();
+      if (!apiConfig.baseUrl || !apiConfig.model) {
+        this.showToast('请先配置 AI 服务', 'error');
+        return;
+      }
+
+      this.dynamicIterating = true;
+
+      try {
+        const response = await fetch(`${API_BASE}/dynamic-design/iterate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            currentCode: this.dynamicCode,
+            instruction: this.dynamicIterateInstruction,
+            config: apiConfig
+          })
+        });
+
+        const data = await response.json();
+        if (!data.success) {
+          throw new Error(data.error?.message || '迭代修改失败');
+        }
+
+        this.dynamicCode = data.data.code;
+        this.dynamicCodeEdit = data.data.code;
+        this.dynamicSafetyWarnings = data.data.safety?.warnings || [];
+        this.dynamicIterateInstruction = '';
+
+        this.showToast('🔄 迭代修改成功！', 'success');
+
+      } catch (error) {
+        console.error('[DynamicDesign] 迭代失败:', error);
+        this.showToast(`迭代失败: ${error.message}`, 'error');
+      } finally {
+        this.dynamicIterating = false;
+      }
+    },
+
+    /**
+     * 导出动态设计
+     */
+    exportDynamicDesign(format) {
+      if (!this.dynamicCode) return;
+
+      if (format === 'html') {
+        const blob = new Blob([this.dynamicCode], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `dynamic-design-${this.dynamicParams.brandName || 'untitled'}-${Date.now()}.html`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        this.showToast('HTML 文件已下载', 'success');
+      }
+    },
+
+    /**
+     * 导出动态设计为 GIF 动图
+     * 使用 html2canvas 逐帧截图 + gif.js 编码
+     */
+    async exportDynamicAsGif() {
+      if (!this.dynamicCode) return;
+      if (this.dynamicExporting) return;
+
+      if (!window.html2canvas || !window.GIF) {
+        this.showToast('导出库尚未加载，请刷新页面后重试', 'warning');
+        return;
+      }
+
+      this.dynamicExporting = true;
+      this.showToast('正在生成 GIF，共录制 3 秒，请稍候...', 'info');
+
+      try {
+        const iframe = document.getElementById('dynamic-preview-iframe');
+        if (!iframe) throw new Error('预览区域未找到');
+
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+        const width = iframe.offsetWidth || 800;
+        const height = iframe.offsetHeight || 400;
+
+        const gif = new GIF({
+          workers: 2,
+          quality: 10,
+          width,
+          height,
+          workerScript: '/gif.worker.js'
+        });
+
+        const frameCount = 15;   // 15 帧
+        const frameDelay = 200;  // 每帧 200ms → 5fps，总时长 ~3s
+
+        for (let i = 0; i < frameCount; i++) {
+          await new Promise(r => setTimeout(r, frameDelay));
+          const canvas = await html2canvas(iframeDoc.body, {
+            width,
+            height,
+            useCORS: true,
+            allowTaint: true,
+            logging: false,
+            backgroundColor: null
+          });
+          gif.addFrame(canvas, { delay: frameDelay, copy: true });
+        }
+
+        gif.on('finished', (blob) => {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `dynamic-design-${this.dynamicParams.brandName || 'untitled'}-${Date.now()}.gif`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          this.dynamicExporting = false;
+          this.showToast('GIF 动图已下载', 'success');
+        });
+
+        gif.render();
+
+      } catch (e) {
+        console.error('GIF export failed:', e);
+        this.showToast('GIF 导出失败: ' + e.message, 'error');
+        this.dynamicExporting = false;
+      }
+    },
+
+    /**
+     * 导出动态设计为视频（WebM）
+     * 使用 html2canvas 逐帧截图 + MediaRecorder + canvas.captureStream()
+     */
+    async exportDynamicAsVideo() {
+      if (!this.dynamicCode) return;
+      if (this.dynamicExporting) return;
+
+      if (!window.html2canvas) {
+        this.showToast('导出库尚未加载，请刷新页面后重试', 'warning');
+        return;
+      }
+
+      if (!window.MediaRecorder) {
+        this.showToast('您的浏览器不支持视频录制功能', 'error');
+        return;
+      }
+
+      this.dynamicExporting = true;
+      this.showToast('正在录制视频（5 秒）...', 'info');
+
+      try {
+        const iframe = document.getElementById('dynamic-preview-iframe');
+        if (!iframe) throw new Error('预览区域未找到');
+
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+        const width = iframe.offsetWidth || 800;
+        const height = iframe.offsetHeight || 400;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+
+        const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+          ? 'video/webm;codecs=vp9'
+          : 'video/webm';
+        const stream = canvas.captureStream(10);
+        const recorder = new MediaRecorder(stream, { mimeType });
+        const chunks = [];
+
+        recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+        recorder.onstop = () => {
+          const blob = new Blob(chunks, { type: mimeType });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `dynamic-design-${this.dynamicParams.brandName || 'untitled'}-${Date.now()}.webm`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          this.dynamicExporting = false;
+          this.showToast('视频已下载', 'success');
+        };
+
+        recorder.start();
+
+        const duration = 5000;
+        const fps = 10;
+        const frameInterval = 1000 / fps;
+        let elapsed = 0;
+
+        const captureFrame = async () => {
+          if (elapsed >= duration) {
+            recorder.stop();
+            return;
+          }
+          try {
+            const captured = await html2canvas(iframeDoc.body, {
+              width,
+              height,
+              useCORS: true,
+              allowTaint: true,
+              logging: false,
+              backgroundColor: null
+            });
+            ctx.clearRect(0, 0, width, height);
+            ctx.drawImage(captured, 0, 0, width, height);
+          } catch (e) { /* 忽略单帧错误 */ }
+          elapsed += frameInterval;
+          setTimeout(captureFrame, frameInterval);
+        };
+
+        captureFrame();
+
+      } catch (e) {
+        console.error('Video export failed:', e);
+        this.showToast('视频导出失败: ' + e.message, 'error');
+        this.dynamicExporting = false;
+      }
     }
   };
 }

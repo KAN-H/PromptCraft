@@ -1,0 +1,196 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://promptcraft.com/schemas/image-prompt.json",
+  "title": "图片类提示词Schema",
+  "description": "用于图片类提示词生成的结构化JSON Schema，支持Logo、广告、海报、创意插画、角色设计等类型",
+  "type": "object",
+  "properties": {
+    "style": {
+      "type": "string",
+      "description": "风格标签",
+      "enum": [
+        "professional",
+        "creative",
+        "simple",
+        "artistic",
+        "modern",
+        "vintage",
+        "minimalist",
+        "bold",
+        "elegant",
+        "playful"
+      ]
+    },
+    "composition": {
+      "type": "array",
+      "description": "构图方式",
+      "items": {
+        "type": "string",
+        "enum": [
+          "symmetrical",
+          "Center",
+          "rule of thirds",
+          "S-shaped",
+          "Horizontal",
+          "diagonal",
+          "Asymmetrical",
+          "Centered",
+          "Contrasting",
+          "Golden ratio",
+          "Proportional"
+        ]
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "cameraAngle": {
+      "type": "array",
+      "description": "拍摄视角",
+      "items": {
+        "type": "string",
+        "enum": [
+          "A bird's-eye view",
+          "Top view",
+          "tilt-shift",
+          "satellite view",
+          "Bottom view",
+          "extreme closeup view",
+          "up view",
+          "first-person view",
+          "isometric view",
+          "closeup view",
+          "high angle view",
+          "microscopic view",
+          "super side angle",
+          "third-person perspective",
+          "Chest Shot",
+          "Waist Shot",
+          "Knee Shot",
+          "Full Length Shot",
+          "Medium Long Shot",
+          "Long Shot",
+          "Extra Long Shot",
+          "Big Close-Up",
+          "Face Shot",
+          "mandala",
+          "ultrawide shot",
+          "extreme closeup",
+          "macroshot",
+          "profile",
+          "symmetricalbody",
+          "over the shoulder shot",
+          "loose shot",
+          "tight shot",
+          "scenery shot",
+          "bokeh",
+          "portrait",
+          "eye level",
+          "Elevation perspective"
+        ]
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "lighting": {
+      "type": "array",
+      "description": "灯光设置",
+      "items": {
+        "type": "string",
+        "enum": [
+          "beautiful lighting",
+          "soft light",
+          "Cinematic light",
+          "Volumetric light",
+          "Studio light",
+          "Raking light",
+          "Edge light",
+          "Back light",
+          "Hard light",
+          "Bright",
+          "Top light",
+          "Rim light",
+          "Morning light",
+          "Sun light",
+          "Golden hour light",
+          "Cold light",
+          "warm light",
+          "Dramatic light",
+          "Color light",
+          "Cyberpunk light",
+          "volumetric lighting",
+          "mood lighting",
+          "fluorescent lighting",
+          "Crepuscular Ray",
+          "outer space view",
+          "Dramatic lighting",
+          "bisexual lighting",
+          "Rembrandt Lighting",
+          "Split Lighting",
+          "front lighting",
+          "clean background trending",
+          "global illuminations",
+          "neon cold lighting"
+        ]
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "colorScheme": {
+      "description": "配色方案，可以是单个颜色描述或多个颜色的组合",
+      "oneOf": [
+        {
+          "type": "string",
+          "description": "单一配色描述"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "多种配色组合",
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      ]
+    },
+    "subject": {
+      "type": "string",
+      "description": "主题描述，描述图片的主要内容和对象",
+      "minLength": 1,
+      "maxLength": 500
+    },
+    "details": {
+      "description": "细节设计，可以是单个描述或多个细节要点",
+      "oneOf": [
+        {
+          "type": "string",
+          "description": "单一细节描述"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "多个细节要点",
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      ]
+    },
+    "promptText": {
+      "type": "string",
+      "description": "最终拼接的完整提示词",
+      "minLength": 1,
+      "maxLength": 2000
+    }
+  },
+  "required": [
+    "style",
+    "composition",
+    "cameraAngle", 
+    "lighting",
+    "subject",
+    "promptText"
+  ],
+  "additionalProperties": false
+}
