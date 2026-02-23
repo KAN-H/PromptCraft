@@ -3,6 +3,28 @@
   "maxRecords": 100,
   "records": [
     {
+      "id": "h_c1099884-ea2f-45ae-a9e6-68e8087393ec",
+      "timestamp": "2026-02-23T05:23:07.736Z",
+      "category": "image",
+      "subcategory": "promo-poster",
+      "input": {
+        "event_name": "618大促",
+        "discount_info": "5折起",
+        "product_type": "服装",
+        "poster_type": "社交分享图",
+        "style": "国潮风",
+        "main_color": "",
+        "composition": "中心构图",
+        "visual_element": "产品实拍",
+        "additionalInput": ""
+      },
+      "output": {
+        "prompt": "event_name: 618大促  \ndiscount_info: 5折起  \nproduct_type: 服装  \npost_type: social sharing poster  \ndesign_style: 国潮风  \ncomposition: center composition  \nvisual_elements: product real shots",
+        "matchedSkills": []
+      },
+      "isFavorited": false
+    },
+    {
       "id": "h_6484a671-dd0b-4479-91f4-6b2f6eb4d600",
       "timestamp": "2026-02-23T03:14:33.973Z",
       "category": "image",
