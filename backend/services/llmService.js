@@ -1,5 +1,3 @@
-const fetch = global.fetch || require('node-fetch');
-
 /**
  * LLM Service - 统一的 OpenAI 兼容 API 调用服务
  * 
@@ -121,6 +119,9 @@ class LLMService {
                 }
 
                 const data = await response.json();
+                if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+                    throw new Error('API 响应格式无效: 缺少 choices 字段');
+                }
                 return data.choices[0].message.content;
                 
             } catch (error) {

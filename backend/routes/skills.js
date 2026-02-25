@@ -230,7 +230,8 @@ router.patch('/:id/toggle', async (req, res) => {
  */
 router.post('/match', async (req, res) => {
   try {
-    const { input, maxResults = 3 } = req.body;
+    const { input } = req.body;
+    const maxResults = Math.min(Math.max(parseInt(req.body.maxResults, 10) || 3, 1), 10);
 
     if (!input) {
       return res.status(400).json({

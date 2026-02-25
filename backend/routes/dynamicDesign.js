@@ -174,8 +174,7 @@ router.get('/presets', (req, res) => {
   res.json({
     success: true,
     data: {
-      supported: getSupportedPresets(),
-      check: (presetId) => isPresetSupported(presetId)
+      supported: getSupportedPresets()
     }
   });
 });
