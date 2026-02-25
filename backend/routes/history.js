@@ -18,8 +18,8 @@ router.get('/', (req, res) => {
     const result = historyService.getRecords({
       category,
       subcategory,
-      limit: limit ? parseInt(limit) : undefined,
-      offset: offset ? parseInt(offset) : undefined
+      limit: limit ? parseInt(limit, 10) : undefined,
+      offset: offset ? parseInt(offset, 10) : undefined
     });
 
     res.json({
