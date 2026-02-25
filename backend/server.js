@@ -51,7 +51,7 @@ app.listen(PORT, async () => {
   // 开发环境（npm run dev / nodemon）和 CI 环境不自动打开
   const isDevMode = process.argv.some(arg => arg.includes('nodemon')) || 
                     process.env.npm_lifecycle_event === 'dev';
-  const isCI = process.env.CI === 'true' || process.env.CI === true;
+  const isCI = process.env.CI === 'true' || process.env.CI === '1';
   
   if (!isDevMode && !isCI) {
     try {

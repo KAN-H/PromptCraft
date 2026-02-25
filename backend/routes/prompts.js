@@ -1905,7 +1905,7 @@ router.post('/recommend-compression', (req, res) => {
   try {
     const { estimatedTokens, targetLimit = 2048 } = req.body;
 
-    if (!estimatedTokens || typeof estimatedTokens !== 'number') {
+    if (estimatedTokens === undefined || estimatedTokens === null || typeof estimatedTokens !== 'number' || isNaN(estimatedTokens)) {
       return res.status(400).json({
         success: false,
         error: { code: 'INVALID_TOKENS', message: '请提供有效的 token 数量' }
