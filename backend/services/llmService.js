@@ -119,10 +119,17 @@ class LLMService {
                 }
 
                 const data = await response.json();
-                if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-                    throw new Error('API 响应格式无效: 缺少 choices 字段');
+                if (!data.choices || !Array.isArray(data.choices) || data.choices.length === 0) {
+                    throw new Error('API 响应格式无效: 缺少 choices 数组或数组为空');
                 }
-                return data.choices[0].message.content;
+                const firstChoice = data.choices[0];
+                if (!firstChoice.message) {
+                    throw new Error('API 响应格式无效: 缺少 choices[0].message 字段');
+                }
+                if (typeof firstChoice.message.content !== 'string') {
+                    throw new Error('API 响应格式无效: 缺少 choices[0].message.content 字段');
+                }
+                return firstChoice.message.content;
                 
             } catch (error) {
                 lastError = error;

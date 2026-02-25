@@ -40,7 +40,7 @@ describe('LLMService', () => {
   });
 
   describe('call() - 响应格式验证', () => {
-    test('API 响应缺少 choices 字段应该抛出错误', async () => {
+    test('API 响应缺少 choices 字段应该抛出包含 choices 的错误', async () => {
       jest.spyOn(global, 'fetch').mockResolvedValue({
         ok: true,
         json: () => Promise.resolve({ result: 'no choices here' })
@@ -51,10 +51,10 @@ describe('LLMService', () => {
           baseUrl: 'http://localhost:11434/v1',
           model: 'test-model'
         })
-      ).rejects.toThrow('API 响应格式无效');
+      ).rejects.toThrow('缺少 choices 数组或数组为空');
     });
 
-    test('choices 为空数组应该抛出错误', async () => {
+    test('choices 为空数组应该抛出包含 choices 的错误', async () => {
       jest.spyOn(global, 'fetch').mockResolvedValue({
         ok: true,
         json: () => Promise.resolve({ choices: [] })
@@ -65,10 +65,10 @@ describe('LLMService', () => {
           baseUrl: 'http://localhost:11434/v1',
           model: 'test-model'
         })
-      ).rejects.toThrow('API 响应格式无效');
+      ).rejects.toThrow('缺少 choices 数组或数组为空');
     });
 
-    test('choices[0] 缺少 message 字段应该抛出错误', async () => {
+    test('choices[0] 缺少 message 字段应该抛出包含 message 的错误', async () => {
       jest.spyOn(global, 'fetch').mockResolvedValue({
         ok: true,
         json: () => Promise.resolve({ choices: [{ finish_reason: 'stop' }] })
@@ -79,7 +79,21 @@ describe('LLMService', () => {
           baseUrl: 'http://localhost:11434/v1',
           model: 'test-model'
         })
-      ).rejects.toThrow('API 响应格式无效');
+      ).rejects.toThrow('缺少 choices[0].message 字段');
+    });
+
+    test('choices[0].message.content 非字符串应该抛出包含 content 的错误', async () => {
+      jest.spyOn(global, 'fetch').mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ choices: [{ message: { content: null } }] })
+      });
+
+      await expect(
+        llmService.call('test prompt', 'system', {
+          baseUrl: 'http://localhost:11434/v1',
+          model: 'test-model'
+        })
+      ).rejects.toThrow('缺少 choices[0].message.content 字段');
     });
 
     test('正确的响应格式应该返回内容', async () => {
