@@ -3,6 +3,30 @@
   "maxRecords": 100,
   "records": [
     {
+      "id": "h_420c4e65-1488-40b7-8388-b72ea1e6f0e8",
+      "timestamp": "2026-02-25T13:20:53.923Z",
+      "category": "image",
+      "subcategory": "logo-design",
+      "input": {
+        "brand_name": "Kone",
+        "industry": "科技",
+        "logo_type": "图文组合Logo",
+        "style_preference": "国潮风",
+        "composition": "居中构图",
+        "design_form": "新拟态",
+        "creative_direction": "双关隐喻",
+        "color_preference": "",
+        "output_quality": "高清",
+        "keywords": "",
+        "additionalInput": ""
+      },
+      "output": {
+        "prompt": "kone logo with tech elements, blue color scheme, new拟态 design, dual metaphor, centered composition, high quality output.",
+        "matchedSkills": []
+      },
+      "isFavorited": false
+    },
+    {
       "id": "h_c1099884-ea2f-45ae-a9e6-68e8087393ec",
       "timestamp": "2026-02-23T05:23:07.736Z",
       "category": "image",
