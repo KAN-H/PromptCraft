@@ -6,6 +6,8 @@ const { getCategoryService } = require('../services/categoryService');
 const { getPresetService } = require('../services/presetService');
 const { getImproverService } = require('../services/improverService');
 const { promptCompressor, CompressionLevel } = require('../services/promptCompressorService');
+const { createSafetyMiddleware } = require('../services/safetyMiddleware');
+const { classifyIntent } = require('../services/intentService');
 const { 
   ImagePromptBuilder, 
   imageBuilder, 
@@ -24,6 +26,7 @@ const generator = new PromptGenerator();
 const categoryService = getCategoryService();
 const presetService = getPresetService();
 const improverService = getImproverService();
+const safetyMiddleware = createSafetyMiddleware();
 
 // 输入验证中间件
 function validateInput(req, res, next) {
@@ -188,17 +191,19 @@ router.get('/ollama-models', async (req, res) => {
 });
 
 // 生成提示词路由
-router.post('/generate', validateInput, async (req, res) => {
+router.post('/generate', validateInput, safetyMiddleware, async (req, res) => {
   try {
     const { input, scenario, config } = req.body;
     let results;
+    let intentResult;
 
     if (scenario && config) {
         // AI Mode
         results = await generator.generateAI(input, scenario, config);
     } else {
-        // Legacy Mode
-        results = generator.generate(input);
+        // 意图感知模板模式
+        intentResult = await classifyIntent(input);
+        results = generator.generateWithIntent(input, intentResult.intent);
     }
     
     res.json({
@@ -207,7 +212,8 @@ router.post('/generate', validateInput, async (req, res) => {
       meta: {
         timestamp: new Date().toISOString(),
         inputLength: input.length,
-        mode: scenario ? 'ai' : 'template'
+        mode: scenario ? 'ai' : 'template',
+        ...(intentResult && { intent: intentResult })
       }
     });
   } catch (error) {
@@ -1292,6 +1298,43 @@ router.post('/presets/:id/apply', (req, res) => {
 
 // ==================== 提示词改进 API ====================
 
+// ==================== 意图识别 API ====================
+
+/**
+ * 识别提示词意图
+ * POST /api/prompts/intent
+ *
+ * @body {string} input - 要识别意图的文本
+ * @body {Object} [options] - 可选配置
+ * @body {string} [options.intentBaseUrl] - 本地 Qwen3-0.6B 模型 URL
+ * @body {string} [options.intentModel] - 模型名称 (默认 qwen3:0.6b)
+ */
+router.post('/intent', async (req, res) => {
+  try {
+    const { input, options = {} } = req.body;
+
+    if (!input || typeof input !== 'string') {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'MISSING_INPUT', message: '缺少输入内容' }
+      });
+    }
+
+    const result = await classifyIntent(input.trim(), options);
+
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    console.error('Intent classify error:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'INTENT_ERROR', message: error.message }
+    });
+  }
+});
+
 /**
  * 分析提示词质量
  * POST /api/prompts/analyze
@@ -1374,7 +1417,7 @@ router.post('/improve', (req, res) => {
  * @body {string} [config.apiKey] - API Key (云端)
  * @body {string} [config.baseUrl] - API Base URL (云端)
  */
-router.post('/improve/ai', async (req, res) => {
+router.post('/improve/ai', safetyMiddleware, async (req, res) => {
   try {
     const { prompt, systemPrompt, config = {} } = req.body;
     

@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const llmService = require('../services/llmService');
+const { INTENTS } = require('../services/intentService');
 
 class PromptGenerator {
   constructor() {
@@ -100,6 +101,38 @@ class PromptGenerator {
           icon: p.icon,
           description: p.description
       }));
+  }
+
+  /**
+   * 意图感知生成：根据意图分类优先匹配最合适的模板风格
+   * @param {string} input - 用户输入
+   * @param {string} intent - 意图类型 (来自 intentService.INTENTS)
+   * @returns {Array} 生成结果
+   */
+  generateWithIntent(input, intent) {
+    const content = typeof input === 'string' ? input : (input.subject || input.input || '');
+    if (!content) throw new Error('Input content is required');
+
+    // 意图到优先风格的映射
+    const intentStyleMap = {
+      [INTENTS.CREATIVE]: ['creative', 'professional', 'simple'],
+      [INTENTS.CODING]: ['professional', 'simple', 'creative'],
+      [INTENTS.ANALYSIS]: ['professional', 'simple', 'creative'],
+      [INTENTS.DESIGN]: ['creative', 'professional', 'simple'],
+      [INTENTS.IMPROVEMENT]: ['professional', 'creative', 'simple'],
+      [INTENTS.TRANSLATION]: ['professional', 'simple', 'creative'],
+      [INTENTS.GENERATION]: ['professional', 'creative', 'simple'],
+      [INTENTS.OTHER]: ['professional', 'creative', 'simple']
+    };
+
+    const styleOrder = intentStyleMap[intent] || intentStyleMap[INTENTS.OTHER];
+
+    const byStyle = styleOrder.reduce((acc, style) => {
+      acc[style] = this.templates.filter(t => t.style === style);
+      return acc;
+    }, {});
+
+    return styleOrder.map(style => this.generateSingle(content, byStyle[style], style));
   }
 }
 
