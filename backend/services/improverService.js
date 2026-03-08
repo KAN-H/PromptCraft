@@ -210,16 +210,32 @@ class ImproverService {
   }
 
   /**
-   * 使用 AI 改进提示词
+   * 使用 AI 改进提示词（支持本地模型降级）
+   * 
+   * Phase 15 增强：
+   *   - 优先使用外部 API
+   *   - API 不可用时自动降级到本地模型（Qwen3-0.6B）
+   *   - 支持 fallbackToLocal 选项控制降级行为
+   *   - 本地模型调用前自动压缩提示词
+   * 
    * @param {string} prompt - 原始提示词
-   * @param {Object} config - LLM 配置
+   * @param {Object} config - LLM 配置 { baseUrl, apiKey, model }
+   * @param {string|null} customSystemPrompt - 自定义系统提示词
+   * @param {Object} aiOptions - AI 选项
+   * @param {boolean} [aiOptions.fallbackToLocal=true] - 是否允许降级到本地模型
+   * @param {boolean} [aiOptions.preferLocal=false] - 是否优先使用本地模型
    * @returns {Promise<Object>} 改进结果
    */
-  async improveWithAI(prompt, config = {}, customSystemPrompt = null) {
+  async improveWithAI(prompt, config = {}, customSystemPrompt = null, aiOptions = {}) {
     console.log('=== improveWithAI called ===');
     console.log('Config:', JSON.stringify(config, null, 2));
     console.log('Has customSystemPrompt:', !!customSystemPrompt);
     
+    const {
+      fallbackToLocal = true,
+      preferLocal = false
+    } = aiOptions;
+
     const analysis = this.analyze(prompt);
     
     // 使用自定义系统提示词或默认提示词
@@ -228,22 +244,62 @@ class ImproverService {
     
     console.log('Model:', config.model);
     console.log('BaseUrl:', config.baseUrl);
-    console.log('Using custom system prompt:', !!customSystemPrompt);
+    console.log('FallbackToLocal:', fallbackToLocal);
+    console.log('PreferLocal:', preferLocal);
+
+    // Phase 15: 如果优先使用本地模型
+    if (preferLocal && llmService.isLocalModelAvailable()) {
+      console.log('🏠 优先使用本地模型...');
+      return this._improveWithLocalModel(prompt, analysis, systemPrompt, userPrompt, customSystemPrompt);
+    }
     
     try {
-      // 🔥 Phase 9: 统一使用 llmService.call() 方法
-      const aiResponse = await llmService.call(
-        userPrompt,
-        systemPrompt,
-        {
-          baseUrl: config.baseUrl || 'http://localhost:11434/v1',
-          apiKey: config.apiKey || '',
-          model: config.model || 'llama3'
+      let aiResponse;
+      let source = 'api';
+      let fallbackUsed = false;
+      let apiError = null;
+      let modelUsed = null;
+
+      if (config.baseUrl && config.model) {
+        // 有外部 API 配置时，使用带降级的调用
+        if (fallbackToLocal) {
+          const result = await llmService.callWithFallback(
+            userPrompt,
+            systemPrompt,
+            {
+              baseUrl: config.baseUrl || 'http://localhost:11434/v1',
+              apiKey: config.apiKey || '',
+              model: config.model || 'llama3'
+            },
+            { allowLocalFallback: true }
+          );
+          aiResponse = result.text;
+          source = result.source;
+          fallbackUsed = result.fallback || false;
+          apiError = result.apiError || null;
+          modelUsed = result.model || config.model;
+        } else {
+          // 不允许降级，直接调用外部 API
+          aiResponse = await llmService.call(
+            userPrompt,
+            systemPrompt,
+            {
+              baseUrl: config.baseUrl || 'http://localhost:11434/v1',
+              apiKey: config.apiKey || '',
+              model: config.model || 'llama3'
+            }
+          );
         }
-      );
+      } else if (llmService.isLocalModelAvailable()) {
+        // 没有外部 API 配置但本地模型可用
+        console.log('🏠 未配置外部 API，使用本地模型...');
+        return this._improveWithLocalModel(prompt, analysis, systemPrompt, userPrompt, customSystemPrompt);
+      } else {
+        throw new Error('未配置 API 且本地模型不可用，无法进行 AI 改进');
+      }
 
       console.log('AI Response received, length:', aiResponse?.length);
-      console.log('AI Response preview:', aiResponse?.substring(0, 200));
+      console.log('Source:', source, 'Fallback:', fallbackUsed);
 
       // 如果使用自定义系统提示词，直接返回AI响应
       if (customSystemPrompt) {
@@ -251,7 +307,10 @@ class ImproverService {
         return {
           original: prompt,
           improved: aiResponse.trim(),
-          content: aiResponse.trim()
+          content: aiResponse.trim(),
+          source,
+          ...(modelUsed && { model: modelUsed }),
+          ...(fallbackUsed && { fallback: true, apiError })
         };
       }
 
@@ -274,13 +333,103 @@ class ImproverService {
           beforeScore: analysis.totalScore,
           afterScore: improvedAnalysis.totalScore,
           delta: improvedAnalysis.totalScore - analysis.totalScore
-        }
+        },
+        source,
+        ...(modelUsed && { model: modelUsed }),
+        ...(fallbackUsed && { fallback: true, apiError })
       };
     } catch (error) {
-      // AI 调用失败时，回退到规则改进
-      console.error('AI improvement failed, falling back to rule-based:', error.message);
-      throw error; // 抛出错误让前端处理
+      // Phase 15: 最后一道防线 — 尝试本地模型（如果还没试过）
+      if (fallbackToLocal && llmService.isLocalModelAvailable()) {
+        console.warn('⚠️ API 调用失败，尝试本地模型作为最后降级:', error.message);
+        try {
+          return this._improveWithLocalModel(prompt, analysis, systemPrompt, userPrompt, customSystemPrompt);
+        } catch (localError) {
+          console.error('❌ 本地模型也失败:', localError.message);
+        }
+      }
+      
+      // AI 调用失败时，抛出错误让调用方处理
+      console.error('AI improvement failed:', error.message);
+      throw error;
     }
+  }
+
+  /**
+   * 直接使用本地模型改进提示词
+   * 
+   * Phase 15 新增方法 — 不经过外部 API，直接使用 Qwen3-0.6B
+   * 
+   * @param {string} prompt - 原始提示词
+   * @param {Object} [localOptions] - 本地模型选项
+   * @param {number} [localOptions.maxTokens=512] - 最大生成 token 数
+   * @param {number} [localOptions.temperature=0.7] - 温度参数
+   * @returns {Promise<Object>} 改进结果
+   */
+  async improveLocal(prompt, localOptions = {}) {
+    if (!llmService.isLocalModelAvailable()) {
+      throw new Error('本地模型不可用：请先下载并加载 Qwen3-0.6B 模型');
+    }
+
+    const analysis = this.analyze(prompt);
+    const systemPrompt = this._getImproverSystemPrompt();
+    const userPrompt = this._getImproverUserPrompt(prompt, analysis);
+
+    return this._improveWithLocalModel(prompt, analysis, systemPrompt, userPrompt, null, localOptions);
+  }
+
+  /**
+   * 内部方法：使用本地模型执行改进
+   * @private
+   */
+  async _improveWithLocalModel(prompt, analysis, systemPrompt, userPrompt, customSystemPrompt, localOptions = {}) {
+    const { maxTokens = 512, temperature = 0.7 } = localOptions;
+
+    console.log('🏠 使用本地模型改进提示词...');
+    
+    const localResult = await llmService.callLocalModel(userPrompt, systemPrompt, {
+      maxTokens,
+      temperature,
+      compress: true
+    });
+
+    const aiResponse = localResult.text;
+    console.log('本地模型响应, length:', aiResponse?.length);
+
+    // 如果使用自定义系统提示词，直接返回
+    if (customSystemPrompt) {
+      return {
+        original: prompt,
+        improved: aiResponse.trim(),
+        content: aiResponse.trim(),
+        source: 'local',
+        model: 'qwen3-0.6b',
+        ...(localResult.compression && { compression: localResult.compression })
+      };
+    }
+
+    // 默认流程：解析响应
+    const improved = this._parseAIResponse(aiResponse);
+    const improvedAnalysis = this.analyze(improved.text);
+
+    return {
+      original: prompt,
+      improved: improved.text,
+      content: improved.text,
+      analysis: {
+        before: analysis,
+        after: improvedAnalysis
+      },
+      aiExplanation: improved.explanation,
+      improvement: {
+        beforeScore: analysis.totalScore,
+        afterScore: improvedAnalysis.totalScore,
+        delta: improvedAnalysis.totalScore - analysis.totalScore
+      },
+      source: 'local',
+      model: 'qwen3-0.6b',
+      ...(localResult.compression && { compression: localResult.compression })
+    };
   }
 
   /**

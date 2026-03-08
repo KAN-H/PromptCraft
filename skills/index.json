@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
-  "description": "PromptCraft Skills 索引文件",
-  "lastUpdated": "2026-02-25",
+  "description": "PromptAtelier Skills 索引文件",
+  "lastUpdated": "2026-03-08",
   "skills": [
     {
       "id": "brand-strategy-advisor",
@@ -24,10 +24,10 @@
         "定位",
         "商业"
       ],
-      "author": "PromptCraft",
+      "author": "PromptAtelier",
       "enabled": false,
       "createdAt": "2026-01-29",
-      "updatedAt": "2026-02-25"
+      "updatedAt": "2026-03-08"
     },
     {
       "id": "color-theory-master",
@@ -49,10 +49,10 @@
         "设计基础",
         "视觉设计"
       ],
-      "author": "PromptCraft",
+      "author": "PromptAtelier",
       "enabled": false,
       "createdAt": "2026-01-29",
-      "updatedAt": "2026-02-25"
+      "updatedAt": "2026-03-08"
     },
     {
       "id": "logo-critique-expert",
@@ -74,10 +74,10 @@
         "品牌",
         "视觉识别"
       ],
-      "author": "PromptCraft",
+      "author": "PromptAtelier",
       "enabled": false,
       "createdAt": "2026-01-29",
-      "updatedAt": "2026-02-25"
+      "updatedAt": "2026-03-08"
     },
     {
       "id": "nippon-colors",
@@ -93,10 +93,10 @@
         "和风",
         "配色"
       ],
-      "author": "PromptCraft",
-      "enabled": false,
-      "createdAt": "2026-02-25",
-      "updatedAt": "2026-02-25"
+      "author": "PromptAtelier",
+      "enabled": true,
+      "createdAt": "2026-03-08",
+      "updatedAt": "2026-03-08"
     }
   ]
 }

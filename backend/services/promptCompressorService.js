@@ -5,7 +5,7 @@
  * 通过多层次压缩策略，在保持核心语义的同时大幅减少 token 消耗
  * 
  * @version 1.0.0
- * @author PromptCraft Team
+ * @author PromptAtelier Team
  */
 
 /**

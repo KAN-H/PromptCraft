@@ -57,7 +57,7 @@ flowchart TD
 ```json
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://promptcraft.com/schemas/video-prompt.json",
+  "$id": "https://prompt-atelier.com/schemas/video-prompt.json",
   "title": "视频分镜脚本提示词Schema",
   "description": "用于视频分镜脚本提示词生成的结构化JSON Schema，支持各种镜头类型和运镜方式",
   "type": "object",

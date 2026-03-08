@@ -1,11 +1,11 @@
 /**
- * PromptCraft Skill Service
+ * PromptAtelier Skill Service
  * 
  * 遵循 Claude Agent Skills 标准实现
  * 参考: https://www.anthropic.com/engineering/claude-agent-skills
  * 
  * @version 1.0.0
- * @author PromptCraft Team
+ * @author PromptAtelier Team
  */
 
 const fs = require('fs').promises;
@@ -81,7 +81,7 @@ class SkillService {
       // 文件不存在，创建默认索引
       this.indexCache = {
         version: '1.0.0',
-        description: 'PromptCraft Skills 索引文件',
+        description: 'PromptAtelier Skills 索引文件',
         lastUpdated: new Date().toISOString().split('T')[0],
         skills: []
       };
@@ -173,7 +173,7 @@ class SkillService {
         version: meta.version || '1.0.0',
         triggers: meta.triggers || [],
         tags: meta.tags || [],
-        author: meta.author || 'PromptCraft',
+        author: meta.author || 'PromptAtelier',
         enabled: true,
         createdAt: meta.created || new Date().toISOString().split('T')[0],
         updatedAt: new Date().toISOString().split('T')[0]

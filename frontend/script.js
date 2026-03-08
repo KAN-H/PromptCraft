@@ -1,9 +1,11 @@
 /**
- * PromptCraft - 专业设计提示词工作台
- * @version 4.2.0 - Phase 9 API 统一化
+ * PromptAtelier - 专业设计提示词工作台
+ * @version 5.0.0 - Phase 16 前端集成
  */
 
 const API_BASE = '/api/prompts';
+const MODEL_API = '/api/models';
+const SAFETY_API = '/api/safety';
 
 // 🔥 Phase 9: 服务商预设配置
 const API_PROVIDERS = {
@@ -62,7 +64,7 @@ const API_PROVIDERS = {
   }
 };
 
-function promptCraftApp() {
+function promptAtelierApp() {
   return {
     activeTab: 'design',
     theme: 'light',
@@ -215,6 +217,35 @@ function promptCraftApp() {
     _html2canvasSource: null,      // html2canvas 源码缓存（用于 iframe 内注入）
     showDynamicConfigPanel: false, // 折叠面板显示状态
 
+    // ==================== Phase 16: AI 管理面板 ====================
+    // 🤖 本地模型管理
+    localModels: {
+      models: {},          // 模型状态 { generation: {...}, classification: {...} }
+      runtime: {},         // 运行时状态
+      memory: {}           // 内存使用
+    },
+    localModelsLoading: false,
+    modelDownloading: null,     // 正在下载的模型 ID
+    modelDownloadProgress: 0,   // 下载进度百分比
+    modelTestInput: '',         // 推理测试输入
+    modelTestResult: null,      // 推理测试结果
+    modelTestLoading: false,    // 推理测试加载中
+    modelStatusPollTimer: null, // 状态轮询定时器
+    modelScanLoading: false,    // 扫描加载中
+    modelScanResult: null,      // 扫描结果
+    modelImportPath: '',        // 导入文件路径
+
+    // 🛡️ 安全审查
+    safetyEnabled: true,        // 安全审查总开关
+    safetyConfig: null,         // 安全配置
+    safetyStats: null,          // 审查统计
+    safetyTestInput: '',        // 安全测试输入
+    safetyTestResult: null,     // 安全测试结果
+    safetyTestLoading: false,
+
+    // 🔌 离线模式
+    offlinePreferLocal: false,  // 优先使用本地模型
+
     // Computed: filtered skills
     get filteredSkills() {
       if (!this.skillSearch) return this.skills;
@@ -228,6 +259,7 @@ function promptCraftApp() {
     },
 
     init() {
+      this._migrateLocalStorage();     // 🔄 Phase 0: 旧键名一次性迁移
       this.loadTheme();
       this.loadSettings();
       this.loadDynamicDesignConfig();  // 🎬 加载动态设计独立配置
@@ -235,10 +267,46 @@ function promptCraftApp() {
       this.loadSkills();
       this.loadHistoryStats();
       this.loadFavoritesStats();
+      this.loadLocalModelStatus();     // 🤖 Phase 16: 加载模型状态
+      this.loadSafetyConfig();         // 🛡️ Phase 16: 加载安全配置
+      this.loadOfflineSettings();      // 🔌 Phase 16: 加载离线设置
+      
+      // 🎨 Phase A: 初始化 Lucide Icons（Alpine 渲染后重新扫描）
+      this.$nextTick(() => {
+        if (window.lucide) {
+          lucide.createIcons();
+        }
+      });
+    },
+
+    /**
+     * 🔄 Phase 0: localStorage 旧键名迁移
+     * 将 promptcraft_* 前缀的键迁移到 atelier_* 前缀，确保老用户升级后设置不丢失
+     * 此函数仅在检测到旧键时执行一次性迁移
+     */
+    _migrateLocalStorage() {
+      const keyMap = {
+        'promptcraft_theme': 'atelier_theme',
+        'promptcraft_settings': 'atelier_settings',
+        'promptcraft_dynamic_config': 'atelier_dynamic_config',
+        'promptcraft_offline': 'atelier_offline'
+      };
+      let migrated = false;
+      for (const [oldKey, newKey] of Object.entries(keyMap)) {
+        const oldValue = localStorage.getItem(oldKey);
+        if (oldValue !== null && localStorage.getItem(newKey) === null) {
+          localStorage.setItem(newKey, oldValue);
+          localStorage.removeItem(oldKey);
+          migrated = true;
+        }
+      }
+      if (migrated) {
+        console.log('[PromptAtelier] localStorage 键名已从 promptcraft_* 迁移到 atelier_*');
+      }
     },
 
     loadTheme() {
-      const savedTheme = localStorage.getItem('promptcraft_theme') || 'light';
+      const savedTheme = localStorage.getItem('atelier_theme') || 'light';
       this.theme = savedTheme;
       document.documentElement.setAttribute('data-theme', savedTheme);
     },
@@ -246,11 +314,15 @@ function promptCraftApp() {
     toggleTheme() {
       this.theme = this.theme === 'light' ? 'dark' : 'light';
       document.documentElement.setAttribute('data-theme', this.theme);
-      localStorage.setItem('promptcraft_theme', this.theme);
+      localStorage.setItem('atelier_theme', this.theme);
+      // 🎨 Phase A: 主题切换后刷新 Lucide Icons
+      this.$nextTick(() => {
+        if (window.lucide) lucide.createIcons();
+      });
     },
 
     loadSettings() {
-      const saved = localStorage.getItem('promptcraft_settings');
+      const saved = localStorage.getItem('atelier_settings');
       if (saved) {
         try {
           this.settings = { ...this.settings, ...JSON.parse(saved) };
@@ -261,14 +333,14 @@ function promptCraftApp() {
     },
 
     saveSettings() {
-      localStorage.setItem('promptcraft_settings', JSON.stringify(this.settings));
+      localStorage.setItem('atelier_settings', JSON.stringify(this.settings));
       this.showToast('设置已保存', 'success');
       this.showSettings = false;
     },
 
     // 🎬 Phase 13.1: 动态设计独立配置管理
     loadDynamicDesignConfig() {
-      const saved = localStorage.getItem('promptcraft_dynamic_config');
+      const saved = localStorage.getItem('atelier_dynamic_config');
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
@@ -281,7 +353,7 @@ function promptCraftApp() {
     },
 
     saveDynamicDesignConfig() {
-      localStorage.setItem('promptcraft_dynamic_config', JSON.stringify({
+      localStorage.setItem('atelier_dynamic_config', JSON.stringify({
         enabled: this.dynamicUseCustomConfig,
         config: this.dynamicConfig
       }));
@@ -854,8 +926,8 @@ function promptCraftApp() {
         let structuredPrompt = applyData.data.content; // 这是结构化的中文提示词（给AI看的）
         let baseSystemPrompt = applyData.data.system_prompt;
 
-        // 🔥 Phase 9: 检查是否已配置 API（baseUrl 和 model 必须存在）
-        if (this.settings.baseUrl && this.settings.model) {
+        // 🔥 Phase 9+16: 检查是否可以进行 AI 优化（配置了外部 API 或启用了本地模型优先）
+        if ((this.settings.baseUrl && this.settings.model) || this.offlinePreferLocal) {
           try {
             // 🔥 动态构建系统提示词 - 根据用户输入调整
             let dynamicSystemPrompt = this._buildDynamicSystemPrompt(
@@ -917,15 +989,19 @@ function promptCraftApp() {
             this.showToast(successMsg, 'success');
           } catch (aiError) {
             console.error('AI optimization error:', aiError);
-            // AI 调用失败，使用结构化提示词作为备选
+            // AI 调用失败，根据模式给出不同的排查建议
+            const isLocalMode = this.offlinePreferLocal;
+            const troubleshoot = isLocalMode
+              ? '请检查：\n1. 本地模型是否已加载（AI管理 → 确认状态为"已就绪"）\n2. 提示词是否过长（本地模型上下文窗口有限）\n3. 尝试在AI管理页面重新加载模型'
+              : '请检查：\n1. API 地址是否正确\n2. API 密钥是否有效（云端服务需要）\n3. 模型名称是否正确\n4. 本地服务是否已启动';
             this.designResult = {
-              finalPrompt: '【AI调用失败】\n' + aiError.message + '\n\n请检查：\n1. API 地址是否正确\n2. API 密钥是否有效（云端服务需要）\n3. 模型名称是否正确\n4. 本地服务是否已启动\n\n以下是结构化提示词，您可以手动复制给AI：\n\n' + structuredPrompt,
+              finalPrompt: '【AI调用失败】\n' + aiError.message + '\n\n' + troubleshoot + '\n\n以下是结构化提示词，您可以手动复制给AI：\n\n' + structuredPrompt,
               structuredPrompt: structuredPrompt,
               keywords: applyData.data.keywords || [],
               tips: applyData.data.outputTips || [],
               error: aiError.message
             };
-            this.showToast('⚠️ AI API 调用失败: ' + aiError.message, 'error');
+            this.showToast('⚠️ AI 调用失败: ' + aiError.message, 'error');
           }
         } else {
           this.designResult = {
@@ -934,7 +1010,7 @@ function promptCraftApp() {
             keywords: applyData.data.keywords || [],
             tips: applyData.data.outputTips || []
           };
-          this.showToast('⚠️ 未配置 AI API，无法生成专业图像提示词。请在设置中配置 API 地址和模型。', 'warning');
+          this.showToast('⚠️ 未配置 AI API 且未启用本地模型，无法生成专业图像提示词。请在设置中配置 API 或在离线模式中启用本地模型优先。', 'warning');
         }
       } catch (error) {
         this.showToast(error.message || '生成失败', 'error');
@@ -1502,7 +1578,9 @@ A minimalist logo design for a BBQ restaurant, featuring stylized flame and gril
           body: JSON.stringify({
             prompt: userPrompt,
             systemPrompt: systemPrompt || defaultSystemPrompt,
-            config: config
+            config: config,
+            preferLocal: this.offlinePreferLocal,
+            fallbackToLocal: true
           }),
           signal: controller.signal
         });
@@ -1513,6 +1591,12 @@ A minimalist logo design for a BBQ restaurant, featuring stylized flame and gril
         console.log('AI API Response:', data);
         
         if (data.success && data.data) {
+          // Phase 16: 显示降级通知
+          if (data.data.fallback) {
+            this.showToast('⚠️ 外部 API 不可用，已自动切换到本地模型', 'info');
+          } else if (data.data.source === 'local') {
+            console.log('🏠 使用本地模型完成');
+          }
           const result = data.data.improved || data.data.content;
           if (result) {
             return result;
@@ -2385,6 +2469,457 @@ window.addEventListener('load', function() {
         if (cleanup) cleanup();
         this.videoExporting = false;
       }
+    },
+
+    // ================================================================
+    // Phase 16: 本地模型管理
+    // ================================================================
+
+    /**
+     * 加载本地模型综合状态
+     * 后端返回的模型 key 是 'qwen3-0.6b' / 'tiny-toxic-detector'
+     * 前端归一化为 'generation' / 'classification' 方便模板引用
+     */
+    async loadLocalModelStatus() {
+      try {
+        const res = await fetch(`${MODEL_API}/status`);
+        const data = await res.json();
+        if (data.success) {
+          const raw = data.data;
+          // 归一化模型结构: 按 type 分组
+          const models = {};
+          if (raw.models) {
+            for (const [key, info] of Object.entries(raw.models)) {
+              const type = info.type || key; // 'generation' or 'classification'
+              models[type] = { ...info, _backendId: key };
+            }
+          }
+          this.localModels = {
+            models,
+            runtime: raw.runtime || {},
+            memory: raw.memory || {}
+          };
+        }
+      } catch (e) {
+        console.warn('加载模型状态失败:', e.message);
+      }
+    },
+
+    /**
+     * 将前端模型类型名解析为后端实际模型 ID
+     * @param {string} typeOrId - 'generation' | 'classification' | 实际模型ID
+     * @returns {string} 后端模型 ID
+     */
+    _resolveModelId(typeOrId) {
+      // 如果 localModels 中有归一化数据，取 _backendId
+      const model = this.localModels?.models?.[typeOrId];
+      if (model?._backendId) return model._backendId;
+      // 硬编码映射作为兜底
+      const map = { generation: 'qwen3-0.6b', classification: 'tiny-toxic-detector' };
+      return map[typeOrId] || typeOrId;
+    },
+
+    /**
+     * 获取模型状态的中文标签和样式
+     */
+    getModelStatusBadge(status) {
+      const map = {
+        'not_downloaded': { label: '未下载', class: 'badge-ghost' },
+        'downloading': { label: '下载中', class: 'badge-warning' },
+        'downloaded': { label: '已下载', class: 'badge-info' },
+        'loading': { label: '加载中', class: 'badge-warning' },
+        'ready': { label: '就绪', class: 'badge-success' },
+        'error': { label: '错误', class: 'badge-error' },
+        'unloading': { label: '卸载中', class: 'badge-warning' }
+      };
+      return map[status] || { label: status || '未知', class: 'badge-ghost' };
+    },
+
+    /**
+     * 下载指定模型
+     */
+    async downloadModel(modelType) {
+      const modelId = this._resolveModelId(modelType);
+      this.modelDownloading = modelType;
+      this.modelDownloadProgress = 0;
+      try {
+        // 启动下载
+        const res = await fetch(`${MODEL_API}/${modelId}/download`, { method: 'POST' });
+        const data = await res.json();
+        if (!data.success) {
+          throw new Error(data.error?.message || '下载启动失败');
+        }
+        this.showToast(`模型 ${modelId} 开始下载...`, 'info');
+
+        // SSE 监听下载进度
+        const evtSource = new EventSource(`${MODEL_API}/download-progress`);
+        evtSource.onmessage = (e) => {
+          try {
+            const msg = JSON.parse(e.data);
+            // SSE 格式: { type: 'progress'|'complete'|'error', data: { modelId, progress, ... } }
+            const payload = msg.data || msg;
+            if (payload.modelId === modelId) {
+              this.modelDownloadProgress = Math.round(payload.progress || 0);
+              if (msg.type === 'complete' || payload.status === 'completed') {
+                evtSource.close();
+                this.modelDownloading = null;
+                this.showToast(`模型 ${modelId} 下载完成！`, 'success');
+                this.loadLocalModelStatus();
+              } else if (msg.type === 'error' || payload.status === 'error') {
+                evtSource.close();
+                this.modelDownloading = null;
+                this.showToast(`下载失败: ${payload.error || '未知错误'}`, 'error');
+              }
+            }
+          } catch (err) { /* ignore parse errors */ }
+        };
+        evtSource.onerror = () => {
+          evtSource.close();
+          this.modelDownloading = null;
+        };
+      } catch (e) {
+        this.modelDownloading = null;
+        this.showToast('下载失败: ' + e.message, 'error');
+      }
+    },
+
+    /**
+     * 加载模型到内存
+     */
+    async loadModelToMemory(modelType) {
+      const modelId = this._resolveModelId(modelType);
+      try {
+        this.showToast(`正在加载模型 ${modelId}...`, 'info');
+        const res = await fetch(`${MODEL_API}/${modelId}/load`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          this.showToast(`模型 ${modelId} 加载成功！`, 'success');
+        } else {
+          throw new Error(data.error?.message || '加载失败');
+        }
+        await this.loadLocalModelStatus();
+      } catch (e) {
+        this.showToast('加载失败: ' + e.message, 'error');
+      }
+    },
+
+    /**
+     * 从内存卸载模型
+     */
+    async unloadModel(modelType) {
+      const modelId = this._resolveModelId(modelType);
+      try {
+        const res = await fetch(`${MODEL_API}/${modelId}/unload`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          this.showToast(`模型 ${modelId} 已卸载`, 'info');
+        }
+        await this.loadLocalModelStatus();
+      } catch (e) {
+        this.showToast('卸载失败: ' + e.message, 'error');
+      }
+    },
+
+    /**
+     * 删除已下载的模型
+     */
+    async deleteModel(modelType) {
+      const modelId = this._resolveModelId(modelType);
+      if (!confirm(`确定要删除模型 ${modelId} 吗？删除后需要重新下载。`)) return;
+      try {
+        const res = await fetch(`${MODEL_API}/${modelId}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) {
+          this.showToast(`模型 ${modelId} 已删除`, 'info');
+        }
+        await this.loadLocalModelStatus();
+      } catch (e) {
+        this.showToast('删除失败: ' + e.message, 'error');
+      }
+    },
+
+    /**
+     * 推理测试 — 生成
+     */
+    async testModelGenerate() {
+      if (!this.modelTestInput.trim()) {
+        this.showToast('请输入测试文本', 'warning');
+        return;
+      }
+      this.modelTestLoading = true;
+      this.modelTestResult = null;
+      try {
+        const res = await fetch(`${MODEL_API}/test/generate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: this.modelTestInput })
+        });
+        const data = await res.json();
+        if (data.success) {
+          this.modelTestResult = {
+            type: 'generate',
+            output: data.data.result,
+            time: data.data.elapsed,
+            tokens: data.data.tokensPerSecond ? `~${data.data.tokensPerSecond} tok/s` : '-'
+          };
+        } else {
+          throw new Error(data.error?.message || '生成失败');
+        }
+      } catch (e) {
+        this.modelTestResult = { type: 'error', output: e.message };
+      } finally {
+        this.modelTestLoading = false;
+      }
+    },
+
+    /**
+     * 推理测试 — 分类
+     */
+    async testModelClassify() {
+      if (!this.modelTestInput.trim()) {
+        this.showToast('请输入测试文本', 'warning');
+        return;
+      }
+      this.modelTestLoading = true;
+      this.modelTestResult = null;
+      try {
+        const res = await fetch(`${MODEL_API}/test/classify`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: this.modelTestInput })
+        });
+        const data = await res.json();
+        if (data.success) {
+          this.modelTestResult = {
+            type: 'classify',
+            output: data.data,  // 完整分类结果对象
+            time: data.data.elapsed
+          };
+        } else {
+          throw new Error(data.error?.message || '分类失败');
+        }
+      } catch (e) {
+        this.modelTestResult = { type: 'error', output: e.message };
+      } finally {
+        this.modelTestLoading = false;
+      }
+    },
+
+    /**
+     * 启动/停止模型状态轮询
+     */
+    startModelStatusPolling() {
+      this.stopModelStatusPolling();
+      this.loadLocalModelStatus();
+      this.modelStatusPollTimer = setInterval(() => this.loadLocalModelStatus(), 10000);
+    },
+    stopModelStatusPolling() {
+      if (this.modelStatusPollTimer) {
+        clearInterval(this.modelStatusPollTimer);
+        this.modelStatusPollTimer = null;
+      }
+    },
+
+    /**
+     * 扫描 models 目录，发现用户手动放置的模型文件
+     */
+    async scanModels() {
+      this.modelScanLoading = true;
+      this.modelScanResult = null;
+      try {
+        const res = await fetch(`${MODEL_API}/scan`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          this.modelScanResult = data.data;
+          const count = data.data?.found?.length || 0;
+          if (count > 0) {
+            this.showToast(`发现 ${count} 个模型文件，状态已更新`, 'success');
+          } else {
+            this.showToast('未发现新的模型文件。请将 .gguf 文件放入 models/ 目录后再试', 'warning');
+          }
+          await this.loadLocalModelStatus();
+        } else {
+          throw new Error(data.error?.message || '扫描失败');
+        }
+      } catch (e) {
+        this.showToast('扫描失败: ' + e.message, 'error');
+      } finally {
+        this.modelScanLoading = false;
+      }
+    },
+
+    /**
+     * 导入模型文件（指定路径）
+     */
+    async importModel(modelType) {
+      const modelId = this._resolveModelId(modelType);
+      const sourcePath = this.modelImportPath?.trim();
+      if (!sourcePath) {
+        this.showToast('请输入模型文件的完整路径', 'warning');
+        return;
+      }
+      try {
+        const res = await fetch(`${MODEL_API}/${modelId}/import`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sourcePath, move: false })
+        });
+        const data = await res.json();
+        if (data.success) {
+          this.showToast(`模型导入成功！(${data.data?.fileSizeDisplay || ''})`, 'success');
+          this.modelImportPath = '';
+          await this.loadLocalModelStatus();
+        } else {
+          throw new Error(data.error?.message || '导入失败');
+        }
+      } catch (e) {
+        this.showToast('导入失败: ' + e.message, 'error');
+      }
+    },
+
+    // ================================================================
+    // Phase 16: 安全审查管理
+    // ================================================================
+
+    /**
+     * 加载安全配置
+     */
+    async loadSafetyConfig() {
+      try {
+        const res = await fetch(`${SAFETY_API}/config`);
+        const data = await res.json();
+        if (data.success) {
+          this.safetyConfig = data.data;
+          this.safetyEnabled = data.data.enabled !== false;
+        }
+      } catch (e) {
+        console.warn('加载安全配置失败:', e.message);
+      }
+    },
+
+    /**
+     * 切换安全审查总开关
+     */
+    async toggleSafety() {
+      try {
+        const res = await fetch(`${SAFETY_API}/config`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ enabled: this.safetyEnabled })
+        });
+        const data = await res.json();
+        if (data.success) {
+          this.showToast(this.safetyEnabled ? '安全审查已启用' : '安全审查已禁用', 'info');
+        }
+      } catch (e) {
+        this.showToast('更新安全配置失败', 'error');
+      }
+    },
+
+    /**
+     * 加载安全审查统计
+     */
+    async loadSafetyStats() {
+      try {
+        const res = await fetch(`${SAFETY_API}/stats`);
+        const data = await res.json();
+        if (data.success) {
+          this.safetyStats = data.data;
+        }
+      } catch (e) {
+        console.warn('加载安全统计失败:', e.message);
+      }
+    },
+
+    /**
+     * 安全审查手动测试
+     */
+    async testSafetyCheck() {
+      if (!this.safetyTestInput.trim()) {
+        this.showToast('请输入测试文本', 'warning');
+        return;
+      }
+      this.safetyTestLoading = true;
+      this.safetyTestResult = null;
+      try {
+        const res = await fetch(`${SAFETY_API}/check`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: this.safetyTestInput })
+        });
+        const data = await res.json();
+        if (data.success) {
+          this.safetyTestResult = data.data;
+        } else {
+          throw new Error(data.error?.message || '审查失败');
+        }
+      } catch (e) {
+        this.safetyTestResult = { error: e.message };
+      } finally {
+        this.safetyTestLoading = false;
+      }
+    },
+
+    /**
+     * 重置安全统计
+     */
+    async resetSafetyStats() {
+      if (!confirm('确定要重置安全审查统计吗？')) return;
+      try {
+        const res = await fetch(`${SAFETY_API}/stats/reset`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          this.safetyStats = null;
+          this.showToast('安全统计已重置', 'success');
+        }
+      } catch (e) {
+        this.showToast('重置失败', 'error');
+      }
+    },
+
+    // ================================================================
+    // Phase 16: 离线模式管理
+    // ================================================================
+
+    loadOfflineSettings() {
+      const saved = localStorage.getItem('atelier_offline');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          this.offlinePreferLocal = parsed.preferLocal || false;
+        } catch (e) { /* ignore */ }
+      }
+    },
+
+    saveOfflineSettings() {
+      localStorage.setItem('atelier_offline', JSON.stringify({
+        preferLocal: this.offlinePreferLocal
+      }));
+      this.showToast(this.offlinePreferLocal ? '已启用本地模型优先' : '已切换回外部 API 优先', 'info');
+    },
+
+    /**
+     * 获取本地模型是否就绪（用于导航栏指示器）
+     */
+    get isLocalModelReady() {
+      const models = this.localModels?.models;
+      if (!models) return false;
+      return models.generation?.status === 'ready' || models.classification?.status === 'ready';
+    },
+
+    /**
+     * 获取内存使用的友好描述
+     */
+    formatMemory(bytes) {
+      if (!bytes || bytes <= 0) return '0 B';
+      const units = ['B', 'KB', 'MB', 'GB'];
+      let idx = 0;
+      let size = bytes;
+      while (size >= 1024 && idx < units.length - 1) {
+        size /= 1024;
+        idx++;
+      }
+      return `${size.toFixed(1)} ${units[idx]}`;
     }
   };
 }

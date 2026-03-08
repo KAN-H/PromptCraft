@@ -1373,10 +1373,12 @@ router.post('/improve', (req, res) => {
  * @body {string} [config.model] - 模型名称
  * @body {string} [config.apiKey] - API Key (云端)
  * @body {string} [config.baseUrl] - API Base URL (云端)
+ * @body {boolean} [preferLocal=false] - 优先使用本地模型 (Phase 16)
+ * @body {boolean} [fallbackToLocal=true] - API 失败时降级到本地模型 (Phase 16)
  */
 router.post('/improve/ai', async (req, res) => {
   try {
-    const { prompt, systemPrompt, config = {} } = req.body;
+    const { prompt, systemPrompt, config = {}, preferLocal = false, fallbackToLocal = true } = req.body;
     
     if (!prompt || typeof prompt !== 'string') {
       return res.status(400).json({
@@ -1385,8 +1387,11 @@ router.post('/improve/ai', async (req, res) => {
       });
     }
     
-    // 如果有自定义系统提示词，传递给服务
-    const result = await improverService.improveWithAI(prompt, config, systemPrompt);
+    // Phase 16: 传递 aiOptions（preferLocal / fallbackToLocal）
+    const result = await improverService.improveWithAI(prompt, config, systemPrompt, {
+      preferLocal,
+      fallbackToLocal
+    });
     
     res.json({
       success: true,

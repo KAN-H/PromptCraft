@@ -3,6 +3,134 @@
   "maxRecords": 100,
   "records": [
     {
+      "id": "h_31a3ab7c-ca55-4c64-9209-433ee613083d",
+      "timestamp": "2026-03-07T03:04:42.354Z",
+      "category": "image",
+      "subcategory": "logo-design",
+      "input": {
+        "brand_name": "Kone",
+        "industry": "设计",
+        "logo_type": "负空间Logo",
+        "style_preference": "渐变风",
+        "composition": "负空间构图",
+        "design_form": "极简主义",
+        "creative_direction": "负空间设计",
+        "color_preference": "黑白渐变",
+        "output_quality": "高清",
+        "keywords": "",
+        "additionalInput": ""
+      },
+      "output": {
+        "prompt": "logo of kone in negative space design with gradient color scheme, elegant and minimalist style, suitable for any size, unique and original.",
+        "matchedSkills": [
+          "NipponColors"
+        ]
+      },
+      "isFavorited": false
+    },
+    {
+      "id": "h_932a8730-71a6-41b3-82ce-dfede957a86e",
+      "timestamp": "2026-03-03T13:02:08.022Z",
+      "category": "image",
+      "subcategory": "ui-interface-design",
+      "input": {
+        "product_name": "KONe",
+        "page_type": "首页/主界面",
+        "platform": "响应式网页",
+        "industry": "设计",
+        "design_style": "清新文艺",
+        "color_tone": "冷色调",
+        "primary_color": "",
+        "output_quality": "高清",
+        "key_features": "设计助手，专业技能，动态设计，AI管理，设置",
+        "reference_style": "希望像Instagram一样简洁时尚",
+        "additionalInput": ""
+      },
+      "output": {
+        "prompt": "image: KONe homepage, responsive web design, clean and modern, color tone blue, design style elegant, high-quality output, key features design assistant, professional skills, dynamic design, AI management, settings, reference style Instagram-style, page_type homepage, industry design, color_tone cool, output_quality high.",
+        "matchedSkills": [
+          "NipponColors"
+        ]
+      },
+      "isFavorited": false
+    },
+    {
+      "id": "h_b94f8a53-438d-4fe5-b9e2-9f4b78dda5e9",
+      "timestamp": "2026-02-28T03:42:48.732Z",
+      "category": "image",
+      "subcategory": "logo-design",
+      "input": {
+        "brand_name": "Kone",
+        "industry": "公益机构",
+        "logo_type": "徽章Logo",
+        "style_preference": "复古",
+        "composition": "对称构图",
+        "design_form": "极简主义",
+        "creative_direction": "象征符号",
+        "color_preference": "红白黑渐变",
+        "output_quality": "高清",
+        "keywords": "",
+        "additionalInput": ""
+      },
+      "output": {
+        "prompt": "Kone emblem in red, white and black gradient, symmetrical design with a minimalist aesthetic, featuring a symbolic element, and designed for high-quality output.",
+        "matchedSkills": [
+          "NipponColors"
+        ]
+      },
+      "isFavorited": false
+    },
+    {
+      "id": "h_45866240-c8e8-484c-93ff-e76f1c944e55",
+      "timestamp": "2026-02-28T03:38:12.526Z",
+      "category": "image",
+      "subcategory": "logo-design",
+      "input": {
+        "brand_name": "Kone",
+        "industry": "公益机构",
+        "logo_type": "徽章Logo",
+        "style_preference": "复古",
+        "composition": "对称构图",
+        "design_form": "极简主义",
+        "creative_direction": "象征符号",
+        "color_preference": "",
+        "output_quality": "高清",
+        "keywords": "",
+        "additionalInput": ""
+      },
+      "output": {
+        "prompt": "logo of kone in emblem style with text integrated into a closed graphic, featuring a blue theme, symmetrical design, minimalist form, and symbolic elements, suitable for a humanitarian organization.",
+        "matchedSkills": [
+          "NipponColors"
+        ]
+      },
+      "isFavorited": false
+    },
+    {
+      "id": "h_5c7e0b5c-b748-49b7-a329-4b64dd82818f",
+      "timestamp": "2026-02-28T03:35:42.515Z",
+      "category": "image",
+      "subcategory": "logo-design",
+      "input": {
+        "brand_name": "Kone",
+        "industry": "公益机构",
+        "logo_type": "徽章Logo",
+        "style_preference": "复古",
+        "composition": "对称构图",
+        "design_form": "极简主义",
+        "creative_direction": "象征符号",
+        "color_preference": "红白黑渐变",
+        "output_quality": "高清",
+        "keywords": "",
+        "additionalInput": ""
+      },
+      "output": {
+        "prompt": "Kone's emblem in red, white, and black with a symmetrical design, incorporating symbols of unity and community, featuring a minimalist aesthetic.",
+        "matchedSkills": []
+      },
+      "isFavorited": false
+    },
+    {
       "id": "h_c1099884-ea2f-45ae-a9e6-68e8087393ec",
       "timestamp": "2026-02-23T05:23:07.736Z",
       "category": "image",
