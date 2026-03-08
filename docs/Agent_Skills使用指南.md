@@ -1,6 +1,6 @@
 # 🧠 Agent Skills 使用指南
 
-> PromptCraft 专业知识系统
+> PromptAtelier 专业知识系统
 
 ## 什么是 Skills？
 

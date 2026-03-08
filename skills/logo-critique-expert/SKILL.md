@@ -3,7 +3,7 @@ id: logo-critique-expert
 name: Logo 评审专家
 description: 专业分析和评估 Logo 设计，提供详细的设计评审意见和改进建议
 version: 1.0.0
-author: PromptCraft
+author: PromptAtelier
 created: 2026-01-29
 triggers:
   - "logo评审"

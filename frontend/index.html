@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PromptCraft - 智能提示词工作台</title>
+    <title>PromptAtelier - 智能提示词工作台</title>
     <!-- Tailwind CSS & DaisyUI -->
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
@@ -29,431 +29,352 @@
     <!-- 验证导出库加载状态 -->
     <script>
       window.addEventListener('DOMContentLoaded', function() {
-        if (!window.html2canvas) console.warn('[PromptCraft] html2canvas 加载失败，GIF/视频导出功能不可用');
-        if (!window.GIF) console.warn('[PromptCraft] gif.js 加载失败，GIF 导出功能不可用');
-        if (window.html2canvas && window.GIF) console.log('[PromptCraft] 导出库加载成功 ✓');
+        if (!window.html2canvas) console.warn('[PromptAtelier] html2canvas 加载失败，GIF/视频导出功能不可用');
+        if (!window.GIF) console.warn('[PromptAtelier] gif.js 加载失败，GIF 导出功能不可用');
+        if (window.html2canvas && window.GIF) console.log('[PromptAtelier] 导出库加载成功 ✓');
       });
     </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@0.312.0/dist/umd/lucide.min.js"></script>
+    <!-- i18n Language Packs -->
+    <script>window.i18nData = {};</script>
+    <script src="locales/zh.js"></script>
+    <script src="locales/en.js"></script>
     <!-- Custom CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-base-200 min-h-screen" x-data="promptCraftApp()">
+<body x-data="promptAtelierApp()" x-effect="document.title = $store.i18n.t('brand.name') + ' - ' + $store.i18n.t('brand.slogan')">
 
-    <!-- Navigation -->
-    <div class="navbar bg-base-100 shadow-lg sticky top-0 z-50">
-        <div class="navbar-start">
-            <a class="btn btn-ghost text-xl font-bold text-primary">
-                <span class="text-2xl">🎨</span> PromptCraft
-            </a>
-        </div>
-        <div class="navbar-center">
-            <div class="tabs tabs-boxed bg-base-200">
-                <a class="tab tab-lg" :class="{'tab-active': activeTab === 'design'}" @click="activeTab = 'design'">
-                    🎯 设计助手
-                </a>
-                <a class="tab tab-lg" :class="{'tab-active': activeTab === 'skills'}" @click="activeTab = 'skills'; loadSkills()">
-                    🧠 专业技能
-                </a>
-                <a class="tab tab-lg" :class="{'tab-active': activeTab === 'dynamic'}" @click="activeTab = 'dynamic'">
-                    🎬 动态设计
-                </a>
+    <!-- ========================== -->
+    <!-- Zen Workspace Layout -->
+    <!-- ========================== -->
+    <div class="zen-workspace">
+
+        <!-- Zen Sidebar Navigation -->
+        <nav class="zen-sidebar">
+            <!-- Brand Logo + Name -->
+            <div class="zen-sidebar-brand" @click="activeTab = 'design'">
+                <div class="brand-icon"><i data-lucide="sparkles"></i></div>
+                <span class="brand-text" x-text="$store.i18n.t('brand.name')">PromptAtelier</span>
             </div>
-        </div>
-        <div class="navbar-end gap-1">
-            <!-- 历史记录下拉菜单 -->
-            <div class="dropdown dropdown-end" @click.away="historyDropdownOpen = false">
-                <button class="btn btn-ghost btn-circle" @click="historyDropdownOpen = !historyDropdownOpen; if(historyDropdownOpen) loadHistory()" title="历史记录">
-                    📜
-                    <span x-show="historyCount > 0" class="badge badge-sm badge-primary absolute -top-1 -right-1" x-text="historyCount > 99 ? '99+' : historyCount"></span>
-                </button>
-                <div class="dropdown-content z-50 mt-2 shadow-xl bg-base-100 rounded-box w-80" x-show="historyDropdownOpen" x-transition>
-                    <div class="p-3 border-b border-base-200">
-                        <div class="flex justify-between items-center">
-                            <span class="font-bold">📜 历史记录</span>
-                            <button class="btn btn-ghost btn-xs text-error" @click="clearHistory" x-show="historyRecords.length > 0">🗑️ 清空</button>
-                        </div>
-                    </div>
-                    <ul class="menu menu-compact p-2 max-h-80 overflow-y-auto">
-                        <template x-if="historyRecords.length === 0">
-                            <li class="text-center py-4 opacity-50">
-                                <span class="pointer-events-none">暂无历史记录</span>
-                            </li>
-                        </template>
-                        <template x-for="record in historyRecords.slice(0, 10)" :key="record.id">
-                            <li>
-                                <a class="flex justify-between items-center gap-2 py-2" @click="loadHistoryRecord(record); historyDropdownOpen = false">
-                                    <div class="flex items-center gap-2 flex-1 min-w-0">
-                                        <span x-text="getCategoryIcon(record.subcategory)"></span>
-                                        <div class="flex-1 min-w-0">
-                                            <p class="text-sm font-medium truncate" x-text="record.input?.brandName || record.input?.description || '未命名'"></p>
-                                            <p class="text-xs opacity-50" x-text="formatTime(record.timestamp)"></p>
-                                        </div>
-                                        <span x-show="record.isFavorited" class="text-yellow-500 text-xs">⭐</span>
-                                    </div>
-                                    <button class="btn btn-ghost btn-xs" @click.stop="copyToClipboard(record.output?.prompt)" title="复制">📋</button>
-                                </a>
-                            </li>
-                        </template>
-                    </ul>
-                    <div class="p-2 border-t border-base-200 text-center" x-show="historyCount > 10">
-                        <button class="btn btn-ghost btn-sm btn-block" @click="showHistoryModal = true; historyDropdownOpen = false">
-                            查看全部 (<span x-text="historyCount"></span>) →
-                        </button>
+
+            <div class="zen-sidebar-nav">
+                <!-- Top: Main Navigation -->
+                <div class="zen-sidebar-nav-top">
+                    <button class="zen-nav-btn" :class="{'active': activeTab === 'design'}" @click="activeTab = 'design'; selectedDesignPreset = null" :title="$store.i18n.t('nav.design')">
+                        <i data-lucide="palette"></i>
+                        <span class="zen-nav-label" x-text="$store.i18n.t('nav.design')"></span>
+                    </button>
+                    <button class="zen-nav-btn" :class="{'active': activeTab === 'skills'}" @click="activeTab = 'skills'; loadSkills()" :title="$store.i18n.t('nav.skills')">
+                        <i data-lucide="brain"></i>
+                        <span class="zen-nav-label" x-text="$store.i18n.t('nav.skills')"></span>
+                    </button>
+                    <button class="zen-nav-btn" :class="{'active': activeTab === 'dynamic'}" @click="activeTab = 'dynamic'" :title="$store.i18n.t('nav.dynamic')">
+                        <i data-lucide="clapperboard"></i>
+                        <span class="zen-nav-label" x-text="$store.i18n.t('nav.dynamic')"></span>
+                    </button>
+                    <button class="zen-nav-btn" :class="{'active': activeTab === 'aiManage'}" @click="activeTab = 'aiManage'; startModelStatusPolling(); loadSafetyStats()" :title="$store.i18n.t('nav.ai')">
+                        <i data-lucide="cpu"></i>
+                        <span class="zen-nav-label" x-text="$store.i18n.t('nav.ai')"></span>
+                    </button>
+                </div>
+
+                <div class="zen-sidebar-divider"></div>
+
+                <!-- Bottom: Utilities -->
+                <div class="zen-sidebar-nav-bottom">
+                    <button class="zen-nav-btn" @click="historyDropdownOpen = !historyDropdownOpen; if(historyDropdownOpen) loadHistory()" :title="$store.i18n.t('nav.history')">
+                        <i data-lucide="history"></i>
+                        <span class="zen-nav-label" x-text="$store.i18n.t('nav.history')"></span>
+                    </button>
+                    <button class="zen-nav-btn" @click="favoritesDropdownOpen = !favoritesDropdownOpen; if(favoritesDropdownOpen) loadFavorites()" :title="$store.i18n.t('nav.favorites')">
+                        <i data-lucide="star"></i>
+                        <span class="zen-nav-label" x-text="$store.i18n.t('nav.favorites')"></span>
+                    </button>
+
+                    <div class="zen-sidebar-divider"></div>
+
+                    <button class="zen-nav-btn" @click="$store.i18n.toggle()" :title="$store.i18n.locale === 'zh' ? 'English' : '中文'">
+                        <i data-lucide="languages"></i>
+                        <span class="zen-nav-label" x-text="$store.i18n.locale === 'zh' ? 'English' : '中文'"></span>
+                    </button>
+                    <button class="zen-nav-btn" @click="toggleTheme" :title="theme === 'dark' ? 'Light' : 'Dark'">
+                        <template x-if="theme === 'dark'"><i data-lucide="sun"></i></template>
+                        <template x-if="theme !== 'dark'"><i data-lucide="moon"></i></template>
+                        <span class="zen-nav-label" x-text="$store.i18n.t('nav.theme')"></span>
+                    </button>
+                    <button class="zen-nav-btn" @click="showSettings = true" :title="$store.i18n.t('nav.settings')">
+                        <i data-lucide="settings"></i>
+                        <span class="zen-nav-label" x-text="$store.i18n.t('nav.settings')"></span>
+                    </button>
+
+                    <!-- AI Status Indicator -->
+                    <div class="zen-nav-btn" style="cursor:default;pointer-events:none;opacity:0.7">
+                        <div class="zen-ai-status" :class="isLocalModelReady ? 'ready' : 'offline'"></div>
+                        <span class="zen-nav-label text-xs" x-text="isLocalModelReady ? $store.i18n.t('nav.aiReady') : $store.i18n.t('nav.aiNotReady')"></span>
                     </div>
                 </div>
             </div>
+        </nav>
 
-            <!-- 收藏下拉菜单 -->
-            <div class="dropdown dropdown-end" @click.away="favoritesDropdownOpen = false">
-                <button class="btn btn-ghost btn-circle" @click="favoritesDropdownOpen = !favoritesDropdownOpen; if(favoritesDropdownOpen) loadFavorites()" title="我的收藏">
-                    ⭐
-                    <span x-show="favoritesCount > 0" class="badge badge-sm badge-secondary absolute -top-1 -right-1" x-text="favoritesCount > 99 ? '99+' : favoritesCount"></span>
-                </button>
-                <div class="dropdown-content z-50 mt-2 shadow-xl bg-base-100 rounded-box w-80" x-show="favoritesDropdownOpen" x-transition>
-                    <div class="p-3 border-b border-base-200">
-                        <div class="flex justify-between items-center">
-                            <span class="font-bold">⭐ 我的收藏</span>
-                            <span class="text-xs opacity-50" x-text="favoritesCount + ' 个'"></span>
-                        </div>
-                    </div>
-                    <ul class="menu menu-compact p-2 max-h-80 overflow-y-auto">
-                        <template x-if="favoriteItems.length === 0">
-                            <li class="text-center py-4 opacity-50">
-                                <span class="pointer-events-none">暂无收藏</span>
-                            </li>
-                        </template>
-                        <template x-for="item in favoriteItems.slice(0, 10)" :key="item.id">
-                            <li>
-                                <a class="flex justify-between items-center gap-2 py-2" @click="useFavoriteAsReference(item); favoritesDropdownOpen = false">
-                                    <div class="flex items-center gap-2 flex-1 min-w-0">
-                                        <span x-text="getCategoryIcon(item.subcategory)"></span>
-                                        <div class="flex-1 min-w-0">
-                                            <p class="text-sm font-medium truncate" x-text="item.name"></p>
-                                            <div class="flex items-center gap-1">
-                                                <span class="text-yellow-400 text-xs" x-text="'★'.repeat(item.rating)"></span>
-                                                <span class="text-xs opacity-50" x-text="item.tags?.slice(0,2).join(' · ')"></span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <button class="btn btn-ghost btn-xs" @click.stop="copyToClipboard(item.prompt)" title="复制">📋</button>
-                                </a>
-                            </li>
-                        </template>
-                    </ul>
-                    <div class="p-2 border-t border-base-200 text-center" x-show="favoritesCount > 10">
-                        <button class="btn btn-ghost btn-sm btn-block" @click="showFavoritesModal = true; favoritesDropdownOpen = false">
-                            管理收藏 (<span x-text="favoritesCount"></span>) →
-                        </button>
-                    </div>
+        <!-- Main Content Area -->
+        <div class="zen-main">
+
+        <!-- ========================== -->
+        <!-- Tab 1: 设计助手（两级交互） -->
+        <!-- ========================== -->
+        <div x-show="activeTab === 'design'"
+             class="zen-tab-panel zen-tab-full">
+
+            <!-- ===== 第一级：选择设计类型（全宽 Bento）===== -->
+            <div x-show="!selectedDesignPreset" class="design-level1">
+                <div class="design-level1-header">
+                    <h2 class="zen-section-title" style="font-size:1.35rem;margin-bottom:4px">
+                        <i data-lucide="palette" class="lucide-lg"></i>
+                        <span x-text="$store.i18n.t('design.selectType')"></span>
+                    </h2>
+                    <p class="zen-section-subtitle" x-text="$store.i18n.t('design.subtitle')"></p>
                 </div>
-            </div>
 
-            <button class="btn btn-ghost btn-circle" @click="toggleTheme">
-                <span x-show="theme === 'light'">🌙</span>
-                <span x-show="theme === 'dark'">☀️</span>
-            </button>
-            <button class="btn btn-ghost btn-circle" @click="showSettings = true">⚙️</button>
-        </div>
-    </div>
+                <!-- 加载态 -->
+                <div x-show="designPresets.length === 0" class="flex items-center justify-center py-16 opacity-50">
+                    <span class="loading loading-spinner loading-lg text-primary mr-3"></span>
+                    <span x-text="$store.i18n.t('design.loadingPresets')"></span>
+                </div>
 
-    <div class="container mx-auto px-4 py-8 max-w-7xl">
-
-        <!-- ========================== -->
-        <!-- Tab 1: 设计助手 -->
-        <!-- ========================== -->
-        <div x-show="activeTab === 'design'" x-transition:enter="transition ease-out duration-300">
-            
-            <div class="text-center mb-8">
-                <h1 class="text-4xl font-bold text-primary mb-2">🎨 专业设计提示词助手</h1>
-                <p class="text-lg opacity-75">选择设计类型，输入您的想法，AI 为您生成专业的绘图提示词</p>
-            </div>
-
-            <!-- Design Templates Grid -->
-            <div class="mb-8" x-show="!selectedDesignPreset">
-                <h2 class="text-2xl font-bold mb-4">选择设计类型</h2>
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                    <template x-for="preset in designPresets" :key="preset.id">
-                        <div class="card bg-base-100 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer hover:scale-105 border-2 border-transparent hover:border-primary"
+                <!-- Bento 网格（飞纸动画） -->
+                <div class="design-bento-grid">
+                    <template x-for="(preset, index) in designPresets" :key="preset.id">
+                        <div class="design-bento-item"
+                             :style="'animation-delay:' + (index * 60) + 'ms'"
                              @click="selectDesignPreset(preset)">
-                            <div class="card-body items-center text-center p-4">
-                                <span class="text-4xl mb-2" x-text="preset.icon"></span>
-                                <h3 class="card-title text-sm" x-text="preset.name"></h3>
-                                <p class="text-xs opacity-60 line-clamp-2" x-text="preset.description"></p>
-                            </div>
+                            <span class="design-bento-icon" x-text="preset.icon"></span>
+                            <span class="design-bento-name" x-text="preset.name"></span>
+                            <span class="design-bento-desc" x-text="preset.description || ''"></span>
                         </div>
                     </template>
                 </div>
             </div>
 
-            <!-- Selected Design Form -->
-            <div x-show="selectedDesignPreset" x-transition class="space-y-6">
-                
-                <div class="flex items-center gap-4 mb-6">
-                    <button class="btn btn-ghost btn-circle" @click="clearDesignPreset" title="返回选择设计类型" aria-label="返回">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                        </svg>
+            <!-- ===== 第二级：设计表单 + 生成结果 ===== -->
+            <div x-show="selectedDesignPreset" x-transition class="design-level2">
+
+                <!-- 返回按钮 -->
+                <div class="design-level2-topbar">
+                    <button class="btn btn-ghost btn-sm gap-1" @click="selectedDesignPreset = null; designResult = null" :title="$store.i18n.t('actions.back')">
+                        <i data-lucide="arrow-left" class="lucide-sm"></i>
+                        <span x-text="$store.i18n.t('actions.back')"></span>
                     </button>
-                    <div class="flex items-center gap-3">
-                        <span class="text-4xl" x-text="selectedDesignPreset?.icon"></span>
-                        <div>
-                            <h2 class="text-2xl font-bold" x-text="selectedDesignPreset?.name"></h2>
-                            <p class="text-sm opacity-60" x-text="selectedDesignPreset?.description"></p>
-                        </div>
-                    </div>
+                    <h2 class="design-level2-title">
+                        <span x-text="selectedDesignPreset?.icon"></span>
+                        <span x-text="selectedDesignPreset?.name"></span>
+                    </h2>
+                    <div class="flex-1"></div>
+                    <!-- 压缩开关 -->
+                    <label class="flex items-center gap-2 cursor-pointer mr-3">
+                        <input type="checkbox" class="toggle toggle-sm toggle-primary"
+                               x-model="settings.enableCompression"
+                               @change="localStorage.setItem('atelier_settings', JSON.stringify(settings))" />
+                        <span class="text-xs" x-text="settings.enableCompression ? $store.i18n.t('design.compressionOn') : $store.i18n.t('design.compression')"></span>
+                    </label>
+                    <button class="btn btn-primary btn-sm gap-2"
+                            @click="generateDesignPrompt"
+                            :disabled="designLoading"
+                            :title="$store.i18n.t('actions.generate')">
+                        <span x-show="designLoading" class="loading loading-spinner loading-xs"></span>
+                        <i x-show="!designLoading" data-lucide="sparkles" class="lucide-sm"></i>
+                        <span x-text="designLoading ? $store.i18n.t('actions.generating') : $store.i18n.t('actions.generate')"></span>
+                    </button>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    
-                    <!-- Left: Input Form -->
-                    <div class="card bg-base-100 shadow-xl">
-                        <div class="card-body">
-                            <h3 class="card-title text-lg mb-4">📝 填写设计信息</h3>
-                            
-                            <div class="space-y-4">
-                                <template x-for="variable in selectedDesignPreset?.template?.variables || []" :key="variable.name">
-                                    <div class="form-control">
-                                        <label class="label">
-                                            <span class="label-text font-medium">
-                                                <span x-text="variable.description"></span>
-                                                <span x-show="variable.required" class="text-error">*</span>
-                                            </span>
-                                        </label>
-                                        
-                                        <template x-if="variable.type === 'string'">
-                                            <input type="text" class="input input-bordered w-full" 
-                                                   :placeholder="variable.description"
-                                                   x-model="designVariables[variable.name]">
+                <!-- 上半区：表单 -->
+                <div class="design-form-area">
+                    <div class="design-form-grid">
+                        <!-- 动态变量字段 -->
+                        <template x-for="variable in selectedDesignPreset?.template?.variables || []" :key="variable.name">
+                            <div class="form-control">
+                                <label class="label py-1">
+                                    <span class="label-text text-sm font-medium">
+                                        <span x-text="variable.description"></span>
+                                        <span x-show="variable.required" class="text-error ml-1">*</span>
+                                    </span>
+                                </label>
+                                <template x-if="variable.type === 'string'">
+                                    <input type="text" class="input input-bordered input-sm w-full"
+                                           :placeholder="variable.description"
+                                           x-model="designVariables[variable.name]">
+                                </template>
+                                <template x-if="variable.type === 'enum'">
+                                    <select class="select select-bordered select-sm w-full" x-model="designVariables[variable.name]" :title="variable.description">
+                                        <option value="" x-text="$store.i18n.t('actions.search') + '...'"></option>
+                                        <template x-for="option in variable.options" :key="option">
+                                            <option :value="option" x-text="option"></option>
                                         </template>
-                                        
-                                        <template x-if="variable.type === 'enum'">
-                                            <select class="select select-bordered w-full" x-model="designVariables[variable.name]">
-                                                <option value="">请选择...</option>
-                                                <template x-for="option in variable.options" :key="option">
-                                                    <option :value="option" x-text="option"></option>
-                                                </template>
-                                            </select>
-                                        </template>
-                                    </div>
+                                    </select>
                                 </template>
                             </div>
+                        </template>
 
-                            <div class="form-control mt-4">
-                                <label class="label">
-                                    <span class="label-text font-medium">💡 补充说明（可选）</span>
-                                </label>
-                                <textarea class="textarea textarea-bordered w-full" rows="2"
-                                          placeholder="任何额外的设计要求或灵感描述..."
-                                          x-model="designAdditionalInput"></textarea>
-                            </div>
-
-                            <!-- 🔥 Phase 10: 风格参考选择器 (Few-shot Learning) -->
-                            <div class="form-control mt-4">
-                                <label class="label">
-                                    <span class="label-text font-medium">💡 风格参考（可选）</span>
-                                    <span class="label-text-alt opacity-50">选择收藏的提示词作为风格参考</span>
-                                </label>
-                                
-                                <!-- 有收藏可选时 -->
-                                <div x-show="availableReferences.length > 0">
-                                    <!-- 未选择时显示选择器 -->
-                                    <div x-show="!selectedReference">
-                                        <select class="select select-bordered w-full" @change="selectReferenceById($event.target.value)" title="选择风格参考">
-                                            <option value="">从收藏中选择参考风格...</option>
-                                            <template x-for="fav in availableReferences" :key="fav.id">
-                                                <option :value="fav.id" x-text="fav.name + ' ' + '★'.repeat(fav.rating || 0)"></option>
-                                            </template>
-                                        </select>
-                                        <p class="text-xs opacity-50 mt-1">
-                                            📚 已找到 <span x-text="availableReferences.length"></span> 个同类型收藏可作为参考
-                                        </p>
-                                    </div>
-                                    
-                                    <!-- 已选择时显示卡片 -->
-                                    <div x-show="selectedReference" class="flex items-center gap-2 p-3 bg-primary/10 rounded-lg border border-primary/30">
-                                        <span class="text-xl" x-text="getCategoryIcon(selectedReference?.subcategory)"></span>
-                                        <div class="flex-1 min-w-0">
-                                            <p class="font-medium text-sm truncate" x-text="selectedReference?.name"></p>
-                                            <p class="text-xs opacity-60">
-                                                <span class="text-yellow-500" x-text="'★'.repeat(selectedReference?.rating || 0)"></span>
-                                                <span x-text="selectedReference?.tags?.slice(0,3).join(' · ')"></span>
-                                            </p>
-                                        </div>
-                                        <button type="button" class="btn btn-ghost btn-xs btn-circle" @click="clearReference()" title="移除参考">✕</button>
-                                    </div>
-                                    
-                                    <p class="text-xs text-success mt-1" x-show="selectedReference">
-                                        ✨ AI 将学习此风格生成相似的提示词
-                                    </p>
-                                </div>
-                                
-                                <!-- 没有收藏时的提示 -->
-                                <div x-show="availableReferences.length === 0" class="text-sm opacity-60 p-3 bg-base-200 rounded-lg">
-                                    <p>📭 暂无同类型的收藏</p>
-                                    <p class="text-xs mt-1">生成满意的提示词后，点击「⭐ 收藏」可在下次作为参考</p>
-                                </div>
-                            </div>
-
-                            <div class="card-actions justify-between items-center mt-6">
-                                <!-- 🔥 Phase 11: 压缩快捷开关 -->
-                                <div class="flex items-center gap-2">
-                                    <label class="label cursor-pointer gap-2 p-0">
-                                        <input type="checkbox" class="toggle toggle-sm toggle-primary" 
-                                               x-model="settings.enableCompression" 
-                                               @change="localStorage.setItem('promptcraft_settings', JSON.stringify(settings))" />
-                                        <span class="label-text text-sm">
-                                            <span x-show="!settings.enableCompression">⚡ 压缩</span>
-                                            <span x-show="settings.enableCompression" class="text-primary font-medium">
-                                                ⚡ 已开启 (<span x-text="settings.compressionLevel == 1 ? '精简' : '超轻量'"></span>)
-                                            </span>
-                                        </span>
-                                    </label>
-                                    <div class="tooltip tooltip-top" data-tip="为 token 限制小的模型（如 2K）压缩提示词">
-                                        <button class="btn btn-ghost btn-xs btn-circle">?</button>
-                                    </div>
-                                </div>
-                                
-                                <button class="btn btn-primary btn-lg gap-2" 
-                                        @click="generateDesignPrompt" 
-                                        :disabled="designLoading">
-                                    <span x-show="designLoading" class="loading loading-spinner"></span>
-                                    <span x-show="!designLoading">✨</span>
-                                    <span x-text="designLoading ? '生成中...' : '生成专业提示词'"></span>
-                                </button>
-                            </div>
+                        <!-- 补充说明 -->
+                        <div class="form-control">
+                            <label class="label py-1">
+                                <span class="label-text text-sm font-medium">
+                                    <i data-lucide="lightbulb" class="lucide-inline-sm mr-1"></i>
+                                    <span x-text="$store.i18n.t('design.additionalInput')"></span>
+                                </span>
+                            </label>
+                            <textarea class="textarea textarea-bordered textarea-sm w-full" rows="2"
+                                      :placeholder="$store.i18n.t('design.additionalPlaceholder')"
+                                      x-model="designAdditionalInput"></textarea>
                         </div>
-                    </div>
 
-                    <!-- Right: Output Panel -->
-                    <div class="card bg-base-100 shadow-xl">
-                        <div class="card-body">
-                            <h3 class="card-title text-lg mb-4">🎨 生成结果</h3>
-                            
-                            <div x-show="!designResult" class="flex flex-col items-center justify-center py-12 opacity-50">
-                                <span class="text-6xl mb-4">🖼️</span>
-                                <p>填写左侧信息后点击生成</p>
+                        <!-- 风格参考（内联在表单网格中） -->
+                        <div class="form-control" x-show="availableReferences.length > 0">
+                            <label class="label py-1">
+                                <span class="label-text text-sm font-medium">
+                                    <i data-lucide="sparkles" class="lucide-inline-sm mr-1"></i>
+                                    <span x-text="$store.i18n.t('design.styleReference')"></span>
+                                </span>
+                            </label>
+                            <div x-show="!selectedReference">
+                                <select class="select select-bordered select-sm w-full" @change="selectReferenceById($event.target.value)" :title="$store.i18n.t('design.styleReference')">
+                                    <option value="" x-text="$store.i18n.t('design.selectReference')"></option>
+                                    <template x-for="fav in availableReferences" :key="fav.id">
+                                        <option :value="fav.id" x-text="fav.name + ' ' + '★'.repeat(fav.rating || 0)"></option>
+                                    </template>
+                                </select>
                             </div>
-
-                            <div x-show="designResult" class="space-y-4">
-                                <!-- 最终图像提示词 -->
-                                <div class="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg p-4 border-2 border-primary">
-                                    <div class="flex justify-between items-center mb-3">
-                                        <div class="flex items-center gap-2">
-                                            <span class="badge badge-lg badge-primary">✨ 最终图像提示词</span>
-                                            <span class="text-xs opacity-75">（可直接用于 Midjourney/DALL-E/SD）</span>
-                                        </div>
-                                        <button class="btn btn-sm btn-primary" @click="copyToClipboard(designResult?.finalPrompt)">
-                                            📋 复制
-                                        </button>
-                                    </div>
-                                    <div class="prose prose-sm max-w-none whitespace-pre-wrap bg-base-100 p-3 rounded" 
-                                         x-text="designResult?.finalPrompt"></div>
-                                </div>
-
-                                <!-- 结构化提示词（可折叠） -->
-                                <details class="collapse collapse-arrow bg-base-200">
-                                    <summary class="collapse-title text-sm font-medium">
-                                        📋 查看结构化提示词（中文版，用于理解）
-                                    </summary>
-                                    <div class="collapse-content">
-                                        <div class="prose prose-sm max-w-none whitespace-pre-wrap p-3" 
-                                             x-text="designResult?.structuredPrompt"></div>
-                                    </div>
-                                </details>
-
-                                <!-- 🔥 Phase 11: 压缩状态和 Token 统计 -->
-                                <div x-show="designResult?.compressionApplied && settings.showTokenEstimate" 
-                                     class="alert alert-success shadow-sm py-2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-5 w-5" fill="none" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    <div class="flex-1">
-                                        <span class="font-medium">⚡ 提示词已压缩</span>
-                                        <span class="text-sm ml-2">
-                                            <span x-text="designResult?.tokenEstimate?.originalTokens || 0"></span> → 
-                                            <span x-text="designResult?.tokenEstimate?.compressedTokens || 0"></span> tokens
-                                            <span class="badge badge-sm badge-success ml-1">
-                                                -<span x-text="designResult?.tokenEstimate?.ratio || 0"></span>%
-                                            </span>
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <!-- 🧠 显示匹配的专业技能 -->
-                                <div x-show="designResult?.matchedSkills?.length > 0" class="mt-4">
-                                    <h4 class="font-medium mb-2">🧠 应用的专业技能</h4>
-                                    <div class="flex flex-wrap gap-2">
-                                        <template x-for="skillName in designResult?.matchedSkills || []" :key="skillName">
-                                            <span class="badge badge-secondary badge-lg gap-1" x-text="skillName">
-                                            </span>
-                                        </template>
-                                    </div>
-                                    <p class="text-xs text-base-content/60 mt-1">
-                                        ✨ 根据您的输入自动匹配了相关专业技能，提供更专业的设计指导
-                                    </p>
-                                </div>
-
-                                <div x-show="designResult?.keywords?.length > 0" class="mt-4">
-                                    <h4 class="font-medium mb-2">🏷️ 推荐关键词</h4>
-                                    <div class="flex flex-wrap gap-2">
-                                        <template x-for="keyword in designResult?.keywords || []" :key="keyword">
-                                            <span class="badge badge-outline cursor-pointer hover:badge-primary" 
-                                                  @click="copyToClipboard(keyword)"
-                                                  x-text="keyword"></span>
-                                        </template>
-                                    </div>
-                                </div>
-
-                                <div x-show="designResult?.tips?.length > 0" class="alert alert-info">
-                                    <div>
-                                        <h4 class="font-bold mb-1">💡 输出建议</h4>
-                                        <ul class="text-sm space-y-1">
-                                            <template x-for="tip in designResult?.tips || []" :key="tip">
-                                                <li x-text="tip"></li>
-                                            </template>
-                                        </ul>
-                                    </div>
-                                </div>
-
-                                <div class="flex gap-2 mt-6">
-                                    <button class="btn btn-outline flex-1" @click="copyToClipboard(designResult?.finalPrompt)">
-                                        📋 复制提示词
-                                    </button>
-                                    <button class="btn btn-secondary flex-1" @click="openFavoriteModal()" 
-                                            :class="{'btn-disabled': currentHistoryRecord?.isFavorited}">
-                                        <span x-show="!currentHistoryRecord?.isFavorited">⭐ 收藏</span>
-                                        <span x-show="currentHistoryRecord?.isFavorited">✅ 已收藏</span>
-                                    </button>
-                                    <button class="btn btn-primary flex-1" @click="regenerateDesignPrompt">
-                                        🔄 重新生成
-                                    </button>
-                                </div>
-                                <!-- 🎬 动态设计按钮（仅适配角色显示） -->
-                                <div x-show="isDynamicDesignSupported()" class="mt-3">
-                                    <button class="btn btn-accent w-full" @click="sendToMotionDesign()">
-                                        🎬 生成动态设计
-                                    </button>
-                                </div>
+                            <div x-show="selectedReference" class="flex items-center gap-2 p-2 bg-primary/10 rounded-lg border border-primary/30">
+                                <span class="text-lg" x-text="getCategoryIcon(selectedReference?.subcategory)"></span>
+                                <p class="flex-1 font-medium text-xs truncate" x-text="selectedReference?.name"></p>
+                                <button type="button" class="btn btn-ghost btn-xs btn-circle" @click="clearReference()" :title="$store.i18n.t('actions.clear')">✕</button>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div x-show="designPresets.length === 0 && !selectedDesignPreset" class="text-center py-12">
-                <span class="loading loading-spinner loading-lg text-primary"></span>
-                <p class="mt-4 opacity-75">加载设计模板中...</p>
-            </div>
-        </div>
+                <!-- 下半区：生成结果 -->
+                <div class="design-result-area">
+                    <!-- 空态 -->
+                    <div x-show="!designResult" class="design-result-empty">
+                        <i data-lucide="image-plus" class="lucide-xxl"></i>
+                        <p x-text="$store.i18n.t('design.emptyResult')"></p>
+                    </div>
+
+                    <!-- 结果双栏 -->
+                    <div x-show="designResult" class="design-result-grid">
+                        <!-- 左栏：最终提示词 -->
+                        <div class="design-result-card result-highlight">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="badge badge-primary gap-1">
+                                    <i data-lucide="sparkles" class="lucide-xs"></i>
+                                    <span x-text="$store.i18n.t('design.finalPrompt')"></span>
+                                </span>
+                                <button class="btn btn-primary btn-xs gap-1" @click="copyToClipboard(designResult?.finalPrompt)" :title="$store.i18n.t('actions.copy')">
+                                    <i data-lucide="copy" class="lucide-xs"></i>
+                                    <span x-text="$store.i18n.t('actions.copy')"></span>
+                                </button>
+                            </div>
+                            <div class="prose prose-sm max-w-none whitespace-pre-wrap p-3 rounded-lg bg-surface-2 text-sm"
+                                 x-text="designResult?.finalPrompt"></div>
+
+                            <!-- 匹配技能 & 推荐关键词 -->
+                            <div x-show="designResult?.matchedSkills?.length > 0" class="mt-3">
+                                <h4 class="text-xs font-medium mb-1 flex items-center gap-1 opacity-70">
+                                    <i data-lucide="brain" class="lucide-xs lucide-brand2"></i>
+                                    <span x-text="$store.i18n.t('design.matchedSkills')"></span>
+                                </h4>
+                                <div class="flex flex-wrap gap-1">
+                                    <template x-for="s in designResult?.matchedSkills || []" :key="s">
+                                        <span class="badge badge-primary text-xs" x-text="s"></span>
+                                    </template>
+                                </div>
+                            </div>
+                            <div x-show="designResult?.keywords?.length > 0" class="mt-2">
+                                <div class="flex flex-wrap gap-1">
+                                    <template x-for="kw in designResult?.keywords || []" :key="kw">
+                                        <span class="badge badge-ghost text-xs cursor-pointer hover:badge-primary" @click="copyToClipboard(kw)" x-text="kw"></span>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 右栏：结构化提示词 -->
+                        <div class="design-result-card glass-card">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="badge badge-ghost gap-1">
+                                    <i data-lucide="file-text" class="lucide-xs"></i>
+                                    <span x-text="$store.i18n.t('design.structuredPrompt')"></span>
+                                </span>
+                                <button class="btn btn-ghost btn-xs gap-1" @click="copyToClipboard(designResult?.structuredPrompt)" :title="$store.i18n.t('actions.copy')">
+                                    <i data-lucide="copy" class="lucide-xs"></i>
+                                </button>
+                            </div>
+                            <div class="prose prose-sm max-w-none whitespace-pre-wrap p-3 rounded-lg bg-surface-3 text-sm"
+                                 x-text="designResult?.structuredPrompt"></div>
+
+                            <!-- 输出建议 -->
+                            <div x-show="designResult?.tips?.length > 0" class="mt-3">
+                                <h4 class="text-xs font-medium mb-1 flex items-center gap-1 opacity-70">
+                                    <i data-lucide="lightbulb" class="lucide-xs lucide-accent"></i>
+                                    <span x-text="$store.i18n.t('design.tips')"></span>
+                                </h4>
+                                <ul class="text-xs space-y-1 opacity-70">
+                                    <template x-for="tip in designResult?.tips || []" :key="tip">
+                                        <li x-text="tip"></li>
+                                    </template>
+                                </ul>
+                            </div>
+
+                            <!-- 压缩统计 -->
+                            <div x-show="designResult?.compressionApplied" class="mt-3 flex items-center gap-2 text-xs">
+                                <i data-lucide="zap" class="lucide-xs lucide-success"></i>
+                                <span x-text="(designResult?.tokenEstimate?.originalTokens||0)+' → '+(designResult?.tokenEstimate?.compressedTokens||0)+' tokens'"></span>
+                                <span class="badge badge-sm badge-success-soft">
+                                    -<span x-text="designResult?.tokenEstimate?.ratio || 0"></span>%
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 操作按钮组（右下角） -->
+                    <div x-show="designResult" class="design-result-actions">
+                        <button class="btn btn-ghost btn-sm gap-1" @click="copyToClipboard(designResult?.finalPrompt)" :title="$store.i18n.t('actions.copyPrompt')">
+                            <i data-lucide="copy" class="lucide-sm"></i>
+                            <span x-text="$store.i18n.t('actions.copyPrompt')"></span>
+                        </button>
+                        <button class="btn btn-sm btn-brand-secondary gap-1"
+                                @click="openFavoriteModal()"
+                                :class="{'opacity-50 pointer-events-none': currentHistoryRecord?.isFavorited}"
+                                :title="$store.i18n.t('actions.favorite')">
+                            <i data-lucide="star" class="lucide-sm"></i>
+                            <span x-show="!currentHistoryRecord?.isFavorited" x-text="$store.i18n.t('actions.favorite')"></span>
+                            <span x-show="currentHistoryRecord?.isFavorited" x-text="$store.i18n.t('actions.favorited')"></span>
+                        </button>
+                        <button class="btn btn-primary btn-sm gap-1" @click="regenerateDesignPrompt" :title="$store.i18n.t('actions.regenerate')">
+                            <i data-lucide="refresh-cw" class="lucide-sm"></i>
+                            <span x-text="$store.i18n.t('actions.regenerate')"></span>
+                        </button>
+                        <button x-show="isDynamicDesignSupported()" class="btn btn-sm btn-brand-accent gap-1"
+                                @click="sendToMotionDesign()" :title="$store.i18n.t('design.generateDynamic')">
+                            <i data-lucide="clapperboard" class="lucide-sm"></i>
+                            <span x-text="$store.i18n.t('design.generateDynamic')"></span>
+                        </button>
+                    </div>
+                </div><!-- /结果区 -->
+
+            </div><!-- /第二级 -->
+
+        </div><!-- /Tab 1 -->
 
         <!-- ========================== -->
         <!-- Tab 2: Skills 专业技能 -->
         <!-- ========================== -->
-        <div x-show="activeTab === 'skills'" x-transition:enter="transition ease-out duration-300">
+        <div x-show="activeTab === 'skills'" x-transition:enter="transition ease-out duration-300" class="zen-tab-full">
             
             <div class="text-center mb-8">
-                <h1 class="text-4xl font-bold text-primary mb-2">🧠 专业技能库</h1>
-                <p class="text-lg opacity-75">AI Agent Skills - 为设计任务提供专业知识支持</p>
+                <h1 class="text-4xl font-bold text-primary mb-2" x-text="$store.i18n.t('skills.title')"></h1>
+                <p class="text-lg opacity-75" x-text="$store.i18n.t('skills.subtitle')"></p>
             </div>
 
             <!-- Skills Stats -->
@@ -462,21 +383,21 @@
                     <div class="stat-figure text-primary">
                         <span class="text-3xl">🧠</span>
                     </div>
-                    <div class="stat-title">总技能数</div>
+                    <div class="stat-title" x-text="$store.i18n.t('skills.totalSkills')"></div>
                     <div class="stat-value text-primary" x-text="skills.length"></div>
                 </div>
                 <div class="stat">
                     <div class="stat-figure text-success">
                         <span class="text-3xl">✅</span>
                     </div>
-                    <div class="stat-title">已启用</div>
+                    <div class="stat-title" x-text="$store.i18n.t('skills.enabled')"></div>
                     <div class="stat-value text-success" x-text="skills.filter(s => s.enabled).length"></div>
                 </div>
                 <div class="stat">
                     <div class="stat-figure text-secondary">
                         <span class="text-3xl">🏷️</span>
                     </div>
-                    <div class="stat-title">触发词总数</div>
+                    <div class="stat-title" x-text="$store.i18n.t('skills.totalTriggers')"></div>
                     <div class="stat-value text-secondary" x-text="skills.reduce((sum, s) => sum + (s.triggers?.length || 0), 0)"></div>
                 </div>
             </div>
@@ -485,20 +406,20 @@
             <div class="flex justify-between items-center mb-6">
                 <div class="flex gap-2">
                     <button class="btn btn-primary btn-sm gap-2" @click="showCreateSkillModal = true">
-                        <span>➕</span> 创建新 Skill
+                        <span>➕</span> <span x-text="$store.i18n.t('skills.createNew')"></span>
                     </button>
                     <label class="btn btn-outline btn-sm gap-2">
-                        <span>📥</span> 导入 JSON
+                        <span>📥</span> <span x-text="$store.i18n.t('skills.importJson')"></span>
                         <input type="file" class="hidden" accept=".json" @change="importSkillFromFile($event)" />
                     </label>
                     <button class="btn btn-outline btn-sm gap-2" @click="rescanSkills" :disabled="skillsLoading">
                         <span x-show="!skillsLoading">🔄</span>
                         <span x-show="skillsLoading" class="loading loading-spinner loading-xs"></span>
-                        重新扫描
+                        <span x-text="$store.i18n.t('skills.rescan')"></span>
                     </button>
                 </div>
                 <div class="form-control">
-                    <input type="text" placeholder="🔍 搜索技能..." class="input input-bordered input-sm w-64"
+                    <input type="text" :placeholder="'🔍 ' + $store.i18n.t('skills.searchPlaceholder')" class="input input-bordered input-sm w-64"
                            x-model="skillSearch" />
                 </div>
             </div>
@@ -532,7 +453,7 @@
 
                             <!-- Triggers -->
                             <div class="mt-3">
-                                <p class="text-xs font-medium mb-1 opacity-60">🎯 触发词：</p>
+                                <p class="text-xs font-medium mb-1 opacity-60">🎯 <span x-text="$store.i18n.t('skills.triggers')"></span></p>
                                 <div class="flex flex-wrap gap-1">
                                     <template x-for="trigger in skill.triggers?.slice(0, 4)" :key="trigger">
                                         <span class="badge badge-outline badge-xs" x-text="trigger"></span>
@@ -554,16 +475,16 @@
                             <!-- Actions -->
                             <div class="card-actions justify-end mt-4">
                                 <button class="btn btn-ghost btn-xs" @click="viewSkillDetail(skill.id)">
-                                    👁️ 查看
+                                    👁️ <span x-text="$store.i18n.t('actions.view')"></span>
                                 </button>
                                 <button class="btn btn-ghost btn-xs" @click="editSkill(skill.id)">
-                                    ✏️ 编辑
+                                    ✏️ <span x-text="$store.i18n.t('actions.edit')"></span>
                                 </button>
                                 <button class="btn btn-ghost btn-xs" @click="exportSkill(skill.id)">
-                                    📤 导出
+                                    📤 <span x-text="$store.i18n.t('actions.export')"></span>
                                 </button>
                                 <button class="btn btn-ghost btn-xs text-error" @click="confirmDeleteSkill(skill)">
-                                    🗑️ 删除
+                                    🗑️ <span x-text="$store.i18n.t('actions.delete')"></span>
                                 </button>
                             </div>
                         </div>
@@ -574,9 +495,9 @@
             <!-- Empty State -->
             <div class="text-center py-12" x-show="filteredSkills.length === 0 && !skillsLoading">
                 <div class="text-6xl mb-4">🧠</div>
-                <p class="text-lg opacity-75 mb-4">还没有任何专业技能</p>
+                <p class="text-lg opacity-75 mb-4" x-text="$store.i18n.t('skills.emptyState')"></p>
                 <button class="btn btn-primary" @click="showCreateSkillModal = true">
-                    ➕ 创建第一个 Skill
+                    ➕ <span x-text="$store.i18n.t('skills.createFirst')"></span>
                 </button>
             </div>
 
@@ -589,7 +510,7 @@
         <!-- ========================== -->
         <!-- Tab 3: 🎬 动态设计 -->
         <!-- ========================== -->
-        <div x-show="activeTab === 'dynamic'" x-transition:enter="transition ease-out duration-300">
+        <div x-show="activeTab === 'dynamic'" x-transition:enter="transition ease-out duration-300" class="zen-tab-full">
             <div class="max-w-7xl mx-auto px-4 py-6">
                 
                 <!-- � 动态设计独立 API 配置 (Phase 13.1) -->
@@ -599,23 +520,22 @@
                             <div class="flex items-center gap-3">
                                 <label class="label cursor-pointer gap-2 p-0">
                                     <input type="checkbox" class="toggle toggle-primary toggle-sm" x-model="dynamicUseCustomConfig">
-                                    <span class="label-text font-medium text-sm">🔌 使用独立 AI 模型</span>
+                                    <span class="label-text font-medium text-sm" x-text="'🔌 ' + $store.i18n.t('dynamic.useCustomApi')"></span>
                                 </label>
                                 <span class="badge badge-sm" 
                                       :class="dynamicUseCustomConfig ? 'badge-primary' : 'badge-ghost'"
                                       x-text="dynamicUseCustomConfig 
-                                        ? '独立: ' + (dynamicConfig.model || '未配置') 
-                                        : '跟随全局: ' + (settings.model || '未配置')">
+                                        ? $store.i18n.t('dynamic.customLabel') + ': ' + (dynamicConfig.model || $store.i18n.t('dynamic.notConfigured')) 
+                                        : $store.i18n.t('dynamic.globalLabel') + ': ' + (settings.model || $store.i18n.t('dynamic.notConfigured'))">
                                 </span>
                             </div>
                             <button x-show="dynamicUseCustomConfig" 
                                     class="btn btn-ghost btn-xs"
                                     @click="showDynamicConfigPanel = !showDynamicConfigPanel">
-                                <span x-text="showDynamicConfigPanel ? '▲ 收起' : '▼ 展开配置'"></span>
+                                <span x-text="showDynamicConfigPanel ? ('▲ ' + $store.i18n.t('dynamic.collapseConfig')) : ('▼ ' + $store.i18n.t('dynamic.expandConfig'))"></span>
                             </button>
                         </div>
-                        <p class="text-xs opacity-50 mt-1" x-show="!dynamicUseCustomConfig">
-                            💡 动态设计需要生成代码，建议使用擅长编码的模型（如 GPT-4o、Claude、DeepSeek-Coder）
+                        <p class="text-xs opacity-50 mt-1" x-show="!dynamicUseCustomConfig" x-text="'💡 ' + $store.i18n.t('dynamic.apiTip')">
                         </p>
 
                         <!-- 展开的独立配置面板 -->
@@ -632,30 +552,30 @@
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                                 <div class="form-control">
-                                    <label class="label py-0.5"><span class="label-text text-xs">API 地址</span></label>
+                                    <label class="label py-0.5"><span class="label-text text-xs" x-text="$store.i18n.t('settings.apiUrl')"></span></label>
                                     <input type="text" class="input input-bordered input-sm w-full" 
                                            x-model="dynamicConfig.baseUrl" placeholder="http://localhost:11434/v1">
                                 </div>
                                 <div class="form-control">
-                                    <label class="label py-0.5"><span class="label-text text-xs">API 密钥</span></label>
+                                    <label class="label py-0.5"><span class="label-text text-xs" x-text="$store.i18n.t('settings.apiKey')"></span></label>
                                     <input type="password" class="input input-bordered input-sm w-full" 
-                                           x-model="dynamicConfig.apiKey" placeholder="sk-...（本地可留空）">
+                                           x-model="dynamicConfig.apiKey" :placeholder="'sk-... (' + $store.i18n.t('settingsExtra.localCanEmpty') + ')'">
                                 </div>
                                 <div class="form-control">
                                     <label class="label py-0.5">
-                                        <span class="label-text text-xs">模型</span>
+                                        <span class="label-text text-xs" x-text="$store.i18n.t('settings.selectModel')"></span>
                                         <button type="button" class="btn btn-xs btn-ghost gap-0.5" 
                                                 @click="refreshDynamicModels()" :disabled="dynamicModelsLoading">
                                             <span x-show="!dynamicModelsLoading">🔄</span>
                                             <span x-show="dynamicModelsLoading" class="loading loading-spinner loading-xs"></span>
-                                            <span class="text-xs" x-text="dynamicModelsLoading ? '...' : '刷新'"></span>
+                                            <span class="text-xs" x-text="dynamicModelsLoading ? '...' : $store.i18n.t('actions.refresh')"></span>
                                         </button>
                                     </label>
                                     <div>
                                         <select class="select select-bordered select-sm w-full" 
                                                 x-model="dynamicConfig.model" 
                                                 x-show="dynamicAvailableModels.length > 0">
-                                            <option value="" disabled>请选择模型</option>
+                                            <option value="" disabled x-text="$store.i18n.t('animOptions.selectModel')"></option>
                                             <template x-for="model in dynamicAvailableModels" :key="model.id">
                                                 <option :value="model.id" x-text="model.name"></option>
                                             </template>
@@ -663,12 +583,12 @@
                                         <input type="text" class="input input-bordered input-sm w-full" 
                                                x-model="dynamicConfig.model" 
                                                x-show="dynamicAvailableModels.length === 0"
-                                               placeholder="输入模型名或点击刷新">
+                                               :placeholder="$store.i18n.t('animOptions.inputModelOrRefresh')">
                                     </div>
                                 </div>
                             </div>
                             <div class="flex justify-end mt-2">
-                                <button class="btn btn-primary btn-xs" @click="saveDynamicDesignConfig()">💾 保存配置</button>
+                                <button class="btn btn-primary btn-xs" @click="saveDynamicDesignConfig()">💾 <span x-text="$store.i18n.t('dynamic.saveConfig')"></span></button>
                             </div>
                         </div>
                     </div>
@@ -677,49 +597,49 @@
                 <!-- �🚪 独立入口：简化输入面板（仅独立模式显示） -->
                 <div x-show="!dynamicDesignFromAssistant" class="card bg-base-100 shadow-xl mb-6">
                     <div class="card-body">
-                        <h2 class="card-title text-lg">🎬 动态设计工作台</h2>
-                        <p class="text-sm opacity-70">输入设计信息，AI 将生成可交互的 HTML/CSS/SVG 动态效果</p>
+                        <h2 class="card-title text-lg" x-text="'🎬 ' + $store.i18n.t('dynamic.title')"></h2>
+                        <p class="text-sm opacity-70" x-text="$store.i18n.t('dynamic.subtitle')"></p>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                             <div class="form-control">
-                                <label class="label"><span class="label-text font-medium">设计类型</span></label>
+                                <label class="label"><span class="label-text font-medium" x-text="$store.i18n.t('dynamic.designType')"></span></label>
                                 <select class="select select-bordered w-full" x-model="dynamicParams.designType">
-                                    <option value="logo-design">🎨 Logo 设计</option>
-                                    <option value="icon-design">🔷 图标设计</option>
-                                    <option value="promo-poster">📢 促销海报</option>
-                                    <option value="social-media-graphic">📱 社媒配图</option>
-                                    <option value="event-poster">🎉 活动海报</option>
-                                    <option value="ad-creative">📺 广告创意</option>
+                                    <option value="logo-design" x-text="$store.i18n.t('dynamicTypes.logoDesign')"></option>
+                                    <option value="icon-design" x-text="$store.i18n.t('dynamicTypes.iconDesign')"></option>
+                                    <option value="promo-poster" x-text="$store.i18n.t('dynamicTypes.promoPoster')"></option>
+                                    <option value="social-media-graphic" x-text="$store.i18n.t('dynamicTypes.socialMedia')"></option>
+                                    <option value="event-poster" x-text="$store.i18n.t('dynamicTypes.eventPoster')"></option>
+                                    <option value="ad-creative" x-text="$store.i18n.t('dynamicTypes.adCreative')"></option>
                                 </select>
                             </div>
                             <div class="form-control">
-                                <label class="label"><span class="label-text font-medium">品牌/标题名称</span></label>
+                                <label class="label"><span class="label-text font-medium" x-text="$store.i18n.t('dynamic.brandName')"></span></label>
                                 <input type="text" class="input input-bordered w-full" 
-                                       placeholder="例如: TechFlow、618大促" 
+                                       :placeholder="$store.i18n.t('dynamic.brandPlaceholder')" 
                                        x-model="dynamicParams.brandName">
                             </div>
                             <div class="form-control">
-                                <label class="label"><span class="label-text font-medium">标语/口号 (可选)</span></label>
+                                <label class="label"><span class="label-text font-medium" x-text="$store.i18n.t('dynamic.slogan')"></span></label>
                                 <input type="text" class="input input-bordered w-full" 
-                                       placeholder="例如: Innovation Starts Here" 
+                                       :placeholder="$store.i18n.t('dynamic.sloganPlaceholder')" 
                                        x-model="dynamicParams.slogan">
                             </div>
                             <div class="form-control">
-                                <label class="label"><span class="label-text font-medium">设计风格</span></label>
+                                <label class="label"><span class="label-text font-medium" x-text="$store.i18n.t('dynamic.style')"></span></label>
                                 <input type="text" class="input input-bordered w-full" 
-                                       placeholder="例如: 科技感、极简、渐变" 
+                                       :placeholder="$store.i18n.t('dynamic.stylePlaceholder')" 
                                        x-model="dynamicParams.style">
                             </div>
                             <div class="form-control">
-                                <label class="label"><span class="label-text font-medium">颜色方案 (可选)</span></label>
+                                <label class="label"><span class="label-text font-medium" x-text="$store.i18n.t('dynamic.colors')"></span></label>
                                 <input type="text" class="input input-bordered w-full" 
-                                       placeholder="例如: #6366F1, #06B6D4 或 蓝紫渐变" 
+                                       :placeholder="$store.i18n.t('dynamic.colorsPlaceholder')" 
                                        x-model="dynamicParams.colors">
                             </div>
                             <div class="form-control">
-                                <label class="label"><span class="label-text font-medium">补充描述 (可选)</span></label>
+                                <label class="label"><span class="label-text font-medium" x-text="$store.i18n.t('dynamic.extraDesc')"></span></label>
                                 <input type="text" class="input input-bordered w-full" 
-                                       placeholder="任何额外的设计要求" 
+                                       :placeholder="$store.i18n.t('dynamic.extraPlaceholder')" 
                                        x-model="dynamicParams.description">
                             </div>
                         </div>
@@ -730,17 +650,17 @@
                 <div x-show="dynamicDesignFromAssistant" class="alert alert-info mb-6 shadow-lg">
                     <div class="flex items-center justify-between w-full">
                         <div>
-                            <span class="font-bold">📋 来自设计助手</span>
+                            <span class="font-bold" x-text="'📋 ' + $store.i18n.t('dynamic.fromAssistant')"></span>
                             <span class="text-sm ml-2" x-text="dynamicAssistantSummary"></span>
                         </div>
-                        <button class="btn btn-ghost btn-sm" @click="clearDynamicAssistantData()">✕ 清除</button>
+                        <button class="btn btn-ghost btn-sm" @click="clearDynamicAssistantData()">✕ <span x-text="$store.i18n.t('dynamic.clearAssistant')"></span></button>
                     </div>
                 </div>
 
                 <!-- 🎭 动画效果配置 -->
                 <div class="card bg-base-100 shadow-xl mb-6">
                     <div class="card-body">
-                        <h3 class="font-bold text-md">🎭 动画效果</h3>
+                        <h3 class="font-bold text-md" x-text="'🎭 ' + $store.i18n.t('dynamic.animationEffects')"></h3>
                         <div class="flex flex-wrap gap-2 mt-2">
                             <template x-for="(effect, key) in dynamicAnimationEffects" :key="key">
                                 <label class="label cursor-pointer gap-2 p-2 rounded-lg border border-base-300 hover:border-primary transition-colors"
@@ -755,30 +675,30 @@
                         </div>
                         <div class="grid grid-cols-3 gap-4 mt-3">
                             <div class="form-control">
-                                <label class="label py-1"><span class="label-text text-sm">⏱️ 时长</span></label>
+                                <label class="label py-1"><span class="label-text text-sm" x-text="'⏱️ ' + $store.i18n.t('dynamic.duration')"></span></label>
                                 <select class="select select-bordered select-sm" x-model="dynamicParams.animation.duration">
-                                    <option value="0.5s">0.5s 快速</option>
-                                    <option value="1s">1s 标准</option>
-                                    <option value="2s" selected>2s 适中</option>
-                                    <option value="3s">3s 缓慢</option>
-                                    <option value="5s">5s 很慢</option>
+                                    <option value="0.5s" x-text="$store.i18n.t('animOptions.fast')"></option>
+                                    <option value="1s" x-text="$store.i18n.t('animOptions.standard')"></option>
+                                    <option value="2s" selected x-text="$store.i18n.t('animOptions.moderate')"></option>
+                                    <option value="3s" x-text="$store.i18n.t('animOptions.slow')"></option>
+                                    <option value="5s" x-text="$store.i18n.t('animOptions.verySlow')"></option>
                                 </select>
                             </div>
                             <div class="form-control">
-                                <label class="label py-1"><span class="label-text text-sm">🔄 缓动</span></label>
+                                <label class="label py-1"><span class="label-text text-sm" x-text="'🔄 ' + $store.i18n.t('dynamic.easing')"></span></label>
                                 <select class="select select-bordered select-sm" x-model="dynamicParams.animation.easing">
-                                    <option value="ease">Ease 默认</option>
-                                    <option value="ease-in-out">Ease In-Out</option>
-                                    <option value="linear">Linear 线性</option>
-                                    <option value="cubic-bezier(0.68, -0.55, 0.265, 1.55)">Back 回弹</option>
+                                    <option value="ease" x-text="$store.i18n.t('animOptions.easeDefault')"></option>
+                                    <option value="ease-in-out" x-text="$store.i18n.t('animOptions.easeInOut')"></option>
+                                    <option value="linear" x-text="$store.i18n.t('animOptions.linear')"></option>
+                                    <option value="cubic-bezier(0.68, -0.55, 0.265, 1.55)" x-text="$store.i18n.t('animOptions.back')"></option>
                                 </select>
                             </div>
                             <div class="form-control">
-                                <label class="label py-1"><span class="label-text text-sm">♾️ 循环</span></label>
+                                <label class="label py-1"><span class="label-text text-sm" x-text="'♾️ ' + $store.i18n.t('dynamic.loop')"></span></label>
                                 <select class="select select-bordered select-sm" x-model="dynamicParams.animation.loop">
-                                    <option value="1">1 次</option>
-                                    <option value="3">3 次</option>
-                                    <option value="infinite" selected>无限循环</option>
+                                    <option value="1" x-text="$store.i18n.t('animOptions.once')"></option>
+                                    <option value="3" x-text="$store.i18n.t('animOptions.threeTimes')"></option>
+                                    <option value="infinite" selected x-text="$store.i18n.t('animOptions.infinite')"></option>
                                 </select>
                             </div>
                         </div>
@@ -787,8 +707,8 @@
                                     @click="generateDynamicDesign()"
                                     :class="{'loading': dynamicLoading}"
                                     :disabled="dynamicLoading">
-                                <span x-show="!dynamicLoading">🎬 生成动态设计</span>
-                                <span x-show="dynamicLoading">⏳ AI 正在创作...</span>
+                                <span x-show="!dynamicLoading" x-text="'🎬 ' + $store.i18n.t('dynamic.generateBtn')"></span>
+                                <span x-show="dynamicLoading" x-text="'⏳ ' + $store.i18n.t('dynamic.generatingBtn')"></span>
                             </button>
                         </div>
                     </div>
@@ -801,10 +721,10 @@
                         <div class="card bg-base-100 shadow-xl">
                             <div class="card-body p-4">
                                 <div class="flex justify-between items-center mb-2">
-                                    <h3 class="font-bold">👁 实时预览</h3>
+                                    <h3 class="font-bold" x-text="'👁 ' + $store.i18n.t('dynamic.preview')"></h3>
                                     <div class="flex gap-1">
-                                        <button class="btn btn-ghost btn-xs" @click="refreshDynamicPreview()" title="刷新预览">🔄</button>
-                                        <button class="btn btn-ghost btn-xs" @click="toggleDynamicFullscreen()" title="全屏">⛶</button>
+                                        <button class="btn btn-ghost btn-xs" @click="refreshDynamicPreview()" :title="$store.i18n.t('dynamic.refreshPreview')">🔄</button>
+                                        <button class="btn btn-ghost btn-xs" @click="toggleDynamicFullscreen()" :title="$store.i18n.t('dynamic.fullscreen')">⛶</button>
                                     </div>
                                 </div>
                                 <div class="border border-base-300 rounded-lg overflow-hidden bg-white" 
@@ -831,9 +751,9 @@
                         <div class="card bg-base-100 shadow-xl">
                             <div class="card-body p-4">
                                 <div class="flex justify-between items-center mb-2">
-                                    <h3 class="font-bold">💻 代码编辑</h3>
-                                    <button class="btn btn-ghost btn-xs" @click="applyCodeEdit()" title="应用修改">
-                                        ▶ 应用
+                                    <h3 class="font-bold" x-text="'💻 ' + $store.i18n.t('dynamic.codeEditor')"></h3>
+                                    <button class="btn btn-ghost btn-xs" @click="applyCodeEdit()" :title="$store.i18n.t('dynamic.applyCode')">
+                                        ▶ <span x-text="$store.i18n.t('dynamic.applyCode')"></span>
                                     </button>
                                 </div>
                                 <textarea class="textarea textarea-bordered w-full font-mono text-xs leading-relaxed"
@@ -841,7 +761,7 @@
                                           x-model="dynamicCodeEdit"
                                           @keydown.ctrl.enter="applyCodeEdit()"
                                           spellcheck="false"></textarea>
-                                <p class="text-xs opacity-50 mt-1">Ctrl+Enter 应用修改</p>
+                                <p class="text-xs opacity-50 mt-1" x-text="$store.i18n.t('dynamic.applyCodeHint')"></p>
                             </div>
                         </div>
                     </div>
@@ -851,30 +771,30 @@
                         <div class="card-body py-3">
                             <div class="flex flex-wrap gap-2 justify-between items-center">
                                 <div class="flex gap-2">
-                                    <button class="btn btn-sm btn-outline" @click="exportDynamicDesign('html')">💾 导出 HTML</button>
-                                    <button class="btn btn-sm btn-outline" @click="copyToClipboard(dynamicCode)">📋 复制代码</button>
+                                    <button class="btn btn-sm btn-outline" @click="exportDynamicDesign('html')">💾 <span x-text="$store.i18n.t('dynamic.exportHtml')"></span></button>
+                                    <button class="btn btn-sm btn-outline" @click="copyToClipboard(dynamicCode)">📋 <span x-text="$store.i18n.t('dynamic.copyCode')"></span></button>
                                     <button class="btn btn-sm btn-outline" @click="exportDynamicAsGif()"
                                             :class="{'loading': gifExporting}"
                                             :disabled="gifExporting || videoExporting">
-                                        <span x-show="!gifExporting">🎞️ 导出 GIF</span>
+                                        <span x-show="!gifExporting" x-text="'🎞️ ' + $store.i18n.t('dynamic.exportGif')"></span>
                                     </button>
                                     <button class="btn btn-sm btn-outline" @click="exportDynamicAsVideo()"
                                             :class="{'loading': videoExporting}"
                                             :disabled="gifExporting || videoExporting">
-                                        <span x-show="!videoExporting">🎥 导出视频</span>
+                                        <span x-show="!videoExporting" x-text="'🎥 ' + $store.i18n.t('dynamic.exportVideo')"></span>
                                     </button>
                                 </div>
                                 <div class="flex gap-2">
                                     <!-- 迭代修改 -->
                                     <input type="text" class="input input-bordered input-sm w-64" 
-                                           placeholder="输入修改指令，如：加大字体、改为红色" 
+                                           :placeholder="$store.i18n.t('dynamic.iterateInstruction')" 
                                            x-model="dynamicIterateInstruction"
                                            @keydown.enter="iterateDynamicDesign()">
                                     <button class="btn btn-sm btn-primary" 
                                             @click="iterateDynamicDesign()"
                                             :class="{'loading': dynamicIterating}"
                                             :disabled="dynamicIterating || !dynamicIterateInstruction.trim()">
-                                        🔄 迭代修改
+                                        🔄 <span x-text="$store.i18n.t('dynamic.iterate')"></span>
                                     </button>
                                 </div>
                             </div>
@@ -884,8 +804,6 @@
 
             </div>
         </div>
-
-    </div>
 
     <!-- ========================== -->
     <!-- Preset Detail Modal -->
@@ -913,36 +831,36 @@
 
                     <!-- Template Preview -->
                     <div class="bg-base-200 p-4 rounded-lg mb-4" x-show="selectedPreset.template">
-                        <h4 class="font-medium mb-2">模板结构预览</h4>
+                        <h4 class="font-medium mb-2" x-text="$store.i18n.t('presets.templatePreview')"></h4>
                         <div class="text-sm space-y-2">
-                            <p x-show="selectedPreset.template?.role"><strong>角色：</strong><span x-text="selectedPreset.template?.role"></span></p>
-                            <p x-show="selectedPreset.template?.context"><strong>上下文：</strong><span x-text="selectedPreset.template?.context"></span></p>
-                            <p x-show="selectedPreset.template?.task"><strong>任务：</strong><span x-text="selectedPreset.template?.task"></span></p>
+                            <p x-show="selectedPreset.template?.role"><strong x-text="$store.i18n.t('presets.role') + '：'"></strong><span x-text="selectedPreset.template?.role"></span></p>
+                            <p x-show="selectedPreset.template?.context"><strong x-text="$store.i18n.t('presets.context') + '：'"></strong><span x-text="selectedPreset.template?.context"></span></p>
+                            <p x-show="selectedPreset.template?.task"><strong x-text="$store.i18n.t('presets.task') + '：'"></strong><span x-text="selectedPreset.template?.task"></span></p>
                             <div x-show="selectedPreset.template?.constraints?.length > 0">
-                                <strong>约束条件：</strong>
+                                <strong x-text="$store.i18n.t('presets.constraints') + '：'"></strong>
                                 <ul class="list-disc list-inside ml-2">
                                     <template x-for="c in selectedPreset.template?.constraints || []" :key="c">
                                         <li x-text="c"></li>
                                     </template>
                                 </ul>
                             </div>
-                            <p x-show="selectedPreset.template?.output"><strong>输出格式：</strong><span x-text="selectedPreset.template?.output"></span></p>
+                            <p x-show="selectedPreset.template?.output"><strong x-text="$store.i18n.t('presets.outputFormat') + '：'"></strong><span x-text="selectedPreset.template?.output"></span></p>
                         </div>
                     </div>
 
                     <!-- Variables Form -->
                     <div x-show="selectedPreset.template?.variables?.length > 0" class="mb-4">
-                        <h4 class="font-medium mb-3">填写变量</h4>
+                        <h4 class="font-medium mb-3" x-text="$store.i18n.t('presets.fillVariables')"></h4>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                             <template x-for="v in selectedPreset.template.variables" :key="v.name">
                                 <div class="form-control">
                                     <label class="label">
                                         <span class="label-text" x-text="v.name"></span>
-                                        <span class="label-text-alt text-error" x-show="v.required">必填</span>
+                                        <span class="label-text-alt text-error" x-show="v.required" x-text="$store.i18n.t('presets.required')"></span>
                                     </label>
                                     <template x-if="v.type === 'enum'">
                                         <select class="select select-bordered select-sm" x-model="presetVariables[v.name]">
-                                            <option value="">请选择</option>
+                                            <option value="" x-text="$store.i18n.t('presets.pleaseSelect')"></option>
                                             <template x-for="opt in v.options" :key="opt">
                                                 <option :value="opt" x-text="opt"></option>
                                             </template>
@@ -970,14 +888,14 @@
 
                     <!-- Generated Result -->
                     <div x-show="presetResult" class="bg-success/10 p-4 rounded-lg mb-4">
-                        <h4 class="font-medium mb-2 text-success">生成结果</h4>
+                        <h4 class="font-medium mb-2 text-success" x-text="$store.i18n.t('presets.generatedResult')"></h4>
                         <p class="text-sm whitespace-pre-wrap" x-text="presetResult"></p>
                     </div>
 
                     <div class="modal-action">
-                        <button class="btn btn-outline" @click="selectedPreset = null">关闭</button>
-                        <button class="btn btn-primary" @click="applyPreset">✨ 应用模板</button>
-                        <button class="btn btn-success" x-show="presetResult" @click="copyToClipboard(presetResult)">📋 复制结果</button>
+                        <button class="btn btn-outline" @click="selectedPreset = null" x-text="$store.i18n.t('actions.close')"></button>
+                        <button class="btn btn-primary" @click="applyPreset">✨ <span x-text="$store.i18n.t('presets.applyTemplate')"></span></button>
+                        <button class="btn btn-success" x-show="presetResult" @click="copyToClipboard(presetResult)">📋 <span x-text="$store.i18n.t('presets.copyResult')"></span></button>
                     </div>
                 </div>
             </template>
@@ -1010,14 +928,14 @@
                                 <span class="badge badge-outline badge-sm" x-text="'v' + selectedSkill.meta?.version"></span>
                                 <span class="badge badge-ghost badge-sm" x-text="'by ' + selectedSkill.meta?.author"></span>
                                 <span class="badge" :class="selectedSkill.meta?.enabled ? 'badge-success' : 'badge-warning'"
-                                      x-text="selectedSkill.meta?.enabled ? '已启用' : '已禁用'"></span>
+                                      x-text="selectedSkill.meta?.enabled ? $store.i18n.t('skills.enableSkill') : $store.i18n.t('skills.disableSkill')"></span>
                             </div>
                         </div>
                     </div>
 
                     <!-- Triggers -->
                     <div class="mb-4">
-                        <h4 class="font-medium mb-2">🎯 触发词</h4>
+                        <h4 class="font-medium mb-2" x-text="'🎯 ' + $store.i18n.t('skills.triggers')"></h4>
                         <div class="flex flex-wrap gap-2">
                             <template x-for="trigger in selectedSkill.meta?.triggers" :key="trigger">
                                 <span class="badge badge-primary" x-text="trigger"></span>
@@ -1027,7 +945,7 @@
 
                     <!-- Tags -->
                     <div class="mb-4">
-                        <h4 class="font-medium mb-2">🏷️ 标签</h4>
+                        <h4 class="font-medium mb-2" x-text="'🏷️ ' + $store.i18n.t('skills.tags')"></h4>
                         <div class="flex flex-wrap gap-2">
                             <template x-for="tag in selectedSkill.meta?.tags" :key="tag">
                                 <span class="badge badge-secondary" x-text="tag"></span>
@@ -1037,7 +955,7 @@
 
                     <!-- Instructions (Skill Content) -->
                     <div class="mb-4">
-                        <h4 class="font-medium mb-2">📋 Skill 指令内容</h4>
+                        <h4 class="font-medium mb-2" x-text="'📋 ' + $store.i18n.t('skills.instructions')"></h4>
                         <div class="bg-base-200 rounded-lg p-4 max-h-80 overflow-y-auto">
                             <div class="prose prose-sm max-w-none" x-html="markdownToHtml(selectedSkill.instructions)"></div>
                         </div>
@@ -1046,7 +964,7 @@
                     <!-- References & Assets -->
                     <div class="grid grid-cols-2 gap-4 mb-4">
                         <div>
-                            <h4 class="font-medium mb-2">📚 参考文档</h4>
+                            <h4 class="font-medium mb-2" x-text="'📚 ' + $store.i18n.t('skills.references')"></h4>
                             <div class="bg-base-200 rounded-lg p-3 min-h-16">
                                 <template x-if="selectedSkill.references?.length > 0">
                                     <ul class="text-sm space-y-1">
@@ -1058,11 +976,11 @@
                                         </template>
                                     </ul>
                                 </template>
-                                <p x-show="!selectedSkill.references?.length" class="text-sm opacity-50">暂无参考文档</p>
+                                <p x-show="!selectedSkill.references?.length" class="text-sm opacity-50" x-text="$store.i18n.t('skills.noReferences')"></p>
                             </div>
                         </div>
                         <div>
-                            <h4 class="font-medium mb-2">📦 资源文件</h4>
+                            <h4 class="font-medium mb-2" x-text="'📦 ' + $store.i18n.t('skills.assets')"></h4>
                             <div class="bg-base-200 rounded-lg p-3 min-h-16">
                                 <template x-if="selectedSkill.assets?.length > 0">
                                     <ul class="text-sm space-y-1">
@@ -1074,15 +992,15 @@
                                         </template>
                                     </ul>
                                 </template>
-                                <p x-show="!selectedSkill.assets?.length" class="text-sm opacity-50">暂无资源文件</p>
+                                <p x-show="!selectedSkill.assets?.length" class="text-sm opacity-50" x-text="$store.i18n.t('skills.noAssets')"></p>
                             </div>
                         </div>
                     </div>
 
                     <div class="modal-action">
-                        <button class="btn btn-outline" @click="selectedSkill = null">关闭</button>
+                        <button class="btn btn-outline" @click="selectedSkill = null" x-text="$store.i18n.t('actions.close')"></button>
                         <button class="btn btn-primary" @click="toggleSkill(selectedSkill.meta?.id, !selectedSkill.meta?.enabled); selectedSkill = null"
-                                x-text="selectedSkill.meta?.enabled ? '禁用此 Skill' : '启用此 Skill'"></button>
+                                x-text="selectedSkill.meta?.enabled ? $store.i18n.t('skills.disableSkill') : $store.i18n.t('skills.enableSkill')"></button>
                     </div>
                 </div>
             </template>
@@ -1098,71 +1016,71 @@
     <dialog class="modal" :class="{ 'modal-open': showCreateSkillModal }">
         <div class="modal-box max-w-3xl">
             <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" @click="showCreateSkillModal = false">✕</button>
-            <h3 class="font-bold text-lg mb-4">➕ 创建新 Skill</h3>
+            <h3 class="font-bold text-lg mb-4" x-text="'➕ ' + $store.i18n.t('skills.createNew')"></h3>
             
             <div class="space-y-4">
                 <div class="grid grid-cols-2 gap-4">
                     <div class="form-control">
-                        <label class="label"><span class="label-text">Skill ID <span class="text-error">*</span></span></label>
+                        <label class="label"><span class="label-text" x-text="$store.i18n.t('skills.skillId')"><span class="text-error">*</span></span></label>
                         <input type="text" class="input input-bordered" 
                                x-model="newSkill.id" 
                                placeholder="my-skill-name"
                                pattern="[a-z0-9-]+"
                                @input="newSkill.id = newSkill.id.toLowerCase().replace(/[^a-z0-9-]/g, '-')" />
-                        <label class="label"><span class="label-text-alt">只能使用小写字母、数字和连字符</span></label>
+                        <label class="label"><span class="label-text-alt" x-text="$store.i18n.t('skills.skillIdHint')"></span></label>
                     </div>
                     <div class="form-control">
-                        <label class="label"><span class="label-text">名称 <span class="text-error">*</span></span></label>
+                        <label class="label"><span class="label-text" x-text="$store.i18n.t('skills.skillName')"><span class="text-error">*</span></span></label>
                         <input type="text" class="input input-bordered" 
                                x-model="newSkill.name" 
-                               placeholder="我的专业技能" />
+                               :placeholder="$store.i18n.t('skills.skillName')" />
                     </div>
                 </div>
 
                 <div class="form-control">
-                    <label class="label"><span class="label-text">描述</span></label>
+                    <label class="label"><span class="label-text" x-text="$store.i18n.t('skills.description')"></span></label>
                     <input type="text" class="input input-bordered" 
                            x-model="newSkill.description" 
-                           placeholder="简短描述这个 Skill 的功能..." />
+                           :placeholder="$store.i18n.t('skills.description')" />
                 </div>
 
                 <div class="form-control">
-                    <label class="label"><span class="label-text">触发词（逗号分隔）</span></label>
+                    <label class="label"><span class="label-text" x-text="$store.i18n.t('skills.triggersLabel')"></span></label>
                     <input type="text" class="input input-bordered" 
                            x-model="newSkill.triggersText" 
-                           placeholder="关键词1, 关键词2, 关键词3" />
-                    <label class="label"><span class="label-text-alt">当用户输入包含这些词时会自动匹配此 Skill</span></label>
+                           placeholder="keyword1, keyword2, keyword3" />
+                    <label class="label"><span class="label-text-alt" x-text="$store.i18n.t('skills.triggersHint')"></span></label>
                 </div>
 
                 <div class="form-control">
-                    <label class="label"><span class="label-text">标签（逗号分隔）</span></label>
+                    <label class="label"><span class="label-text" x-text="$store.i18n.t('skills.tagsLabel')"></span></label>
                     <input type="text" class="input input-bordered" 
                            x-model="newSkill.tagsText" 
-                           placeholder="设计, 品牌, 专业" />
+                           placeholder="design, brand, professional" />
                 </div>
 
                 <div class="form-control">
-                    <label class="label"><span class="label-text">Skill 指令内容（Markdown）</span></label>
+                    <label class="label"><span class="label-text" x-text="$store.i18n.t('skills.instructionsLabel')"></span></label>
                     <textarea class="textarea textarea-bordered h-48 font-mono text-sm" 
                               x-model="newSkill.instructions" 
-                              placeholder="# 技能名称
+                              placeholder="# Skill Name
 
-## 角色定位
-你是一位...
+## Role
+You are a...
 
-## 工作流程
-1. 首先...
-2. 然后...
+## Workflow
+1. First...
+2. Then...
 
-## 输出格式
+## Output Format
 ..."></textarea>
                 </div>
             </div>
 
             <div class="modal-action">
-                <button class="btn btn-outline" @click="showCreateSkillModal = false">取消</button>
+                <button class="btn btn-outline" @click="showCreateSkillModal = false" x-text="$store.i18n.t('actions.cancel')"></button>
                 <button class="btn btn-primary" @click="createSkill" :disabled="!newSkill.id || !newSkill.name">
-                    ✨ 创建 Skill
+                    ✨ <span x-text="$store.i18n.t('skills.createNew')"></span>
                 </button>
             </div>
         </div>
@@ -1177,36 +1095,36 @@
     <dialog class="modal" :class="{ 'modal-open': editingSkill }">
         <div class="modal-box max-w-3xl max-h-[90vh]">
             <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" @click="editingSkill = null">✕</button>
-            <h3 class="font-bold text-lg mb-4">✏️ 编辑 Skill</h3>
+            <h3 class="font-bold text-lg mb-4" x-text="'✏️ ' + $store.i18n.t('actions.edit') + ' Skill'"></h3>
             
             <template x-if="editingSkill">
                 <div class="space-y-4">
                     <div class="alert alert-info text-sm">
-                        <span>📌 Skill ID: <strong x-text="editingSkill.id"></strong>（不可修改）</span>
+                        <span>📌 Skill ID: <strong x-text="editingSkill.id"></strong> (<span x-text="$store.i18n.t('settingsExtra.immutable')"></span>)</span>
                     </div>
 
                     <div class="form-control">
-                        <label class="label"><span class="label-text">名称 <span class="text-error">*</span></span></label>
+                        <label class="label"><span class="label-text" x-text="$store.i18n.t('skills.skillName')"><span class="text-error">*</span></span></label>
                         <input type="text" class="input input-bordered" x-model="editingSkill.name" />
                     </div>
 
                     <div class="form-control">
-                        <label class="label"><span class="label-text">描述</span></label>
+                        <label class="label"><span class="label-text" x-text="$store.i18n.t('skills.description')"></span></label>
                         <input type="text" class="input input-bordered" x-model="editingSkill.description" />
                     </div>
 
                     <div class="form-control">
-                        <label class="label"><span class="label-text">触发词（逗号分隔）</span></label>
+                        <label class="label"><span class="label-text" x-text="$store.i18n.t('skills.triggersLabel')"></span></label>
                         <input type="text" class="input input-bordered" x-model="editingSkill.triggersText" />
                     </div>
 
                     <div class="form-control">
-                        <label class="label"><span class="label-text">标签（逗号分隔）</span></label>
+                        <label class="label"><span class="label-text" x-text="$store.i18n.t('skills.tagsLabel')"></span></label>
                         <input type="text" class="input input-bordered" x-model="editingSkill.tagsText" />
                     </div>
 
                     <div class="form-control">
-                        <label class="label"><span class="label-text">Skill 指令内容（Markdown）</span></label>
+                        <label class="label"><span class="label-text" x-text="$store.i18n.t('skills.instructionsLabel')"></span></label>
                         <textarea class="textarea textarea-bordered h-64 font-mono text-sm" 
                                   x-model="editingSkill.instructions"></textarea>
                     </div>
@@ -1214,9 +1132,9 @@
             </template>
 
             <div class="modal-action">
-                <button class="btn btn-outline" @click="editingSkill = null">取消</button>
+                <button class="btn btn-outline" @click="editingSkill = null" x-text="$store.i18n.t('actions.cancel')"></button>
                 <button class="btn btn-primary" @click="saveSkillEdit" :disabled="!editingSkill?.name">
-                    💾 保存修改
+                    💾 <span x-text="$store.i18n.t('actions.save')"></span>
                 </button>
             </div>
         </div>
@@ -1230,15 +1148,15 @@
     <!-- ========================== -->
     <dialog class="modal" :class="{ 'modal-open': skillToDelete }">
         <div class="modal-box">
-            <h3 class="font-bold text-lg text-error">⚠️ 确认删除</h3>
+            <h3 class="font-bold text-lg text-error" x-text="'⚠️ ' + $store.i18n.t('skills.deleteConfirm')"></h3>
             <p class="py-4">
-                确定要删除 Skill "<span class="font-bold" x-text="skillToDelete?.name"></span>" 吗？
+                <span x-text="$store.i18n.t('skills.deleteQuestion').replace('{name}', skillToDelete?.name || '')"></span>
                 <br><br>
-                <span class="text-warning">此操作不可撤销，相关的 SKILL.md 文件和目录都将被删除。</span>
+                <span class="text-warning" x-text="$store.i18n.t('skills.deleteWarning')"></span>
             </p>
             <div class="modal-action">
-                <button class="btn btn-outline" @click="skillToDelete = null">取消</button>
-                <button class="btn btn-error" @click="deleteSkill(skillToDelete?.id)">🗑️ 确认删除</button>
+                <button class="btn btn-outline" @click="skillToDelete = null" x-text="$store.i18n.t('actions.cancel')"></button>
+                <button class="btn btn-error" @click="deleteSkill(skillToDelete?.id)">🗑️ <span x-text="$store.i18n.t('actions.confirm')"></span></button>
             </div>
         </div>
         <form method="dialog" class="modal-backdrop">
@@ -1247,16 +1165,408 @@
     </dialog>
 
     <!-- ========================== -->
+    <!-- Tab 4: AI 管理面板 (Phase 16) -->
+    <!-- ========================== -->
+    <div x-show="activeTab === 'aiManage'" x-transition:enter="transition ease-out duration-300" @hide="stopModelStatusPolling()" class="zen-tab-full">
+        
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-primary mb-2" x-text="'🤖 ' + $store.i18n.t('ai.title')"></h1>
+            <p class="text-lg opacity-75" x-text="$store.i18n.t('ai.subtitle')"></p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            <!-- ========== 左列：模型管理 ========== -->
+            <div class="space-y-6">
+
+                <!-- 模型状态卡片 -->
+                <div class="card bg-base-100 shadow-xl">
+                    <div class="card-body">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="card-title text-lg" x-text="'📦 ' + $store.i18n.t('ai.localModels')"></h3>
+                            <div class="flex gap-1">
+                                <button class="btn btn-ghost btn-sm" @click="scanModels()" :disabled="modelScanLoading" :title="$store.i18n.t('ai.scan')">
+                                    <span x-show="!modelScanLoading">🔍 <span x-text="$store.i18n.t('ai.scan')"></span></span>
+                                    <span x-show="modelScanLoading" class="loading loading-spinner loading-xs"></span>
+                                </button>
+                                <button class="btn btn-ghost btn-sm" @click="loadLocalModelStatus()" :title="$store.i18n.t('actions.refresh')">🔄</button>
+                            </div>
+                        </div>
+
+                        <!-- 模型目录提示 -->
+                        <div class="alert alert-info text-xs mb-3 py-2">
+                            <span x-text="'💡 ' + $store.i18n.t('ai.modelDir') + ': models/. ' + $store.i18n.t('ai.modelDirTip')"></span>
+                        </div>
+
+                        <!-- 手动导入 -->
+                        <div class="collapse collapse-arrow bg-base-200 mb-3">
+                            <input type="checkbox" />
+                            <div class="collapse-title text-sm font-medium py-2 min-h-0" x-text="'📂 ' + $store.i18n.t('ai.importModel')"></div>
+                            <div class="collapse-content">
+                                <div class="form-control mt-2">
+                                    <label class="label py-1"><span class="label-text text-xs" x-text="$store.i18n.t('ai.importPathHint')"></span></label>
+                                    <input type="text" class="input input-bordered input-sm w-full" 
+                                           x-model="modelImportPath"
+                                           :placeholder="$store.i18n.t('ai.importPathPlaceholder')" />
+                                </div>
+                                <button class="btn btn-sm btn-primary mt-2" 
+                                        @click="importModel('generation')"
+                                        :disabled="!modelImportPath?.trim()">
+                                    📥 <span x-text="$store.i18n.t('ai.importAsQwen')"></span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 生成模型 (Qwen3-0.6B) -->
+                        <div class="border rounded-lg p-4 mb-3">
+                            <div class="flex justify-between items-center mb-2">
+                                <div>
+                                    <span class="font-bold" x-text="'🧠 ' + $store.i18n.t('ai.qwenModel')"></span>
+                                    <span class="text-xs opacity-60 ml-2" x-text="$store.i18n.t('ai.qwenDesc')"></span>
+                                </div>
+                                <span class="badge" :class="getModelStatusBadge(localModels?.models?.generation?.status)?.class"
+                                      x-text="getModelStatusBadge(localModels?.models?.generation?.status)?.label"></span>
+                            </div>
+                            
+                            <!-- 下载进度条 -->
+                            <div x-show="modelDownloading === 'generation'" class="mb-2">
+                                <progress class="progress progress-primary w-full" :value="modelDownloadProgress" max="100"></progress>
+                                <span class="text-xs" x-text="modelDownloadProgress + '%'"></span>
+                            </div>
+
+                            <div class="flex gap-2 flex-wrap">
+                                <button class="btn btn-xs btn-primary" 
+                                        x-show="localModels?.models?.generation?.status === 'not_downloaded'"
+                                        @click="downloadModel('generation')"
+                                        :disabled="modelDownloading">
+                                    ⬇️ <span x-text="$store.i18n.t('actions.download')"></span>
+                                </button>
+                                <button class="btn btn-xs btn-success" 
+                                        x-show="localModels?.models?.generation?.status === 'downloaded'"
+                                        @click="loadModelToMemory('generation')">
+                                    ▶️ <span x-text="$store.i18n.t('actions.load')"></span>
+                                </button>
+                                <button class="btn btn-xs btn-warning" 
+                                        x-show="localModels?.models?.generation?.status === 'ready'"
+                                        @click="unloadModel('generation')">
+                                    ⏸️ <span x-text="$store.i18n.t('actions.unload')"></span>
+                                </button>
+                                <button class="btn btn-xs btn-error btn-outline" 
+                                        x-show="['downloaded','ready'].includes(localModels?.models?.generation?.status)"
+                                        @click="deleteModel('generation')">
+                                    🗑️ <span x-text="$store.i18n.t('actions.delete')"></span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 分类模型 (Tiny-Toxic-Detector) -->
+                        <div class="border rounded-lg p-4">
+                            <div class="flex justify-between items-center mb-2">
+                                <div>
+                                    <span class="font-bold" x-text="'🛡️ ' + $store.i18n.t('ai.toxicModel')"></span>
+                                    <span class="text-xs opacity-60 ml-2" x-text="$store.i18n.t('ai.toxicDesc')"></span>
+                                </div>
+                                <span class="badge" :class="getModelStatusBadge(localModels?.models?.classification?.status)?.class"
+                                      x-text="getModelStatusBadge(localModels?.models?.classification?.status)?.label"></span>
+                            </div>
+                            
+                            <!-- 下载进度条 -->
+                            <div x-show="modelDownloading === 'classification'" class="mb-2">
+                                <progress class="progress progress-secondary w-full" :value="modelDownloadProgress" max="100"></progress>
+                                <span class="text-xs" x-text="modelDownloadProgress + '%'"></span>
+                            </div>
+
+                            <div class="flex gap-2 flex-wrap">
+                                <button class="btn btn-xs btn-primary" 
+                                        x-show="localModels?.models?.classification?.status === 'not_downloaded'"
+                                        @click="downloadModel('classification')"
+                                        :disabled="modelDownloading">
+                                    ⬇️ <span x-text="$store.i18n.t('actions.download')"></span>
+                                </button>
+                                <button class="btn btn-xs btn-success" 
+                                        x-show="localModels?.models?.classification?.status === 'downloaded'"
+                                        @click="loadModelToMemory('classification')">
+                                    ▶️ <span x-text="$store.i18n.t('actions.load')"></span>
+                                </button>
+                                <button class="btn btn-xs btn-warning" 
+                                        x-show="localModels?.models?.classification?.status === 'ready'"
+                                        @click="unloadModel('classification')">
+                                    ⏸️ <span x-text="$store.i18n.t('actions.unload')"></span>
+                                </button>
+                                <button class="btn btn-xs btn-error btn-outline" 
+                                        x-show="['downloaded','ready'].includes(localModels?.models?.classification?.status)"
+                                        @click="deleteModel('classification')">
+                                    🗑️ <span x-text="$store.i18n.t('actions.delete')"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 内存监控 -->
+                <div class="card bg-base-100 shadow-xl">
+                    <div class="card-body">
+                        <h3 class="card-title text-lg mb-3" x-text="'💾 ' + $store.i18n.t('ai.memory')"></h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="stat bg-base-200 rounded-lg p-3">
+                                <div class="stat-title text-xs" x-text="$store.i18n.t('ai.rssMemory')"></div>
+                                <div class="stat-value text-lg" x-text="localModels?.memory?.processRSS || '-'"></div>
+                            </div>
+                            <div class="stat bg-base-200 rounded-lg p-3">
+                                <div class="stat-title text-xs" x-text="$store.i18n.t('ai.heapMemory')"></div>
+                                <div class="stat-value text-lg" x-text="localModels?.memory?.processHeap || '-'"></div>
+                            </div>
+                            <div class="stat bg-base-200 rounded-lg p-3">
+                                <div class="stat-title text-xs" x-text="$store.i18n.t('ai.loadedModels')"></div>
+                                <div class="stat-value text-lg" x-text="(localModels?.memory?.totalLoaded || 0)"></div>
+                            </div>
+                            <div class="stat bg-base-200 rounded-lg p-3">
+                                <div class="stat-title text-xs" x-text="$store.i18n.t('ai.systemFree')"></div>
+                                <div class="stat-value text-lg" x-text="localModels?.runtime?.freeMemory || '-'"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 推理测试 -->
+                <div class="card bg-base-100 shadow-xl">
+                    <div class="card-body">
+                        <h3 class="card-title text-lg mb-3" x-text="'🧪 ' + $store.i18n.t('ai.inferTest')"></h3>
+                        <div class="form-control mb-3">
+                            <textarea class="textarea textarea-bordered w-full" rows="2"
+                                      x-model="modelTestInput"
+                                      :placeholder="$store.i18n.t('ai.testInputPlaceholder')"></textarea>
+                        </div>
+                        <div class="flex gap-2 mb-3">
+                            <button class="btn btn-sm btn-primary flex-1" 
+                                    @click="testModelGenerate()" 
+                                    :disabled="modelTestLoading || localModels?.models?.generation?.status !== 'ready'">
+                                <span x-show="!modelTestLoading" x-text="'🧠 ' + $store.i18n.t('ai.generateTest')"></span>
+                                <span x-show="modelTestLoading" class="loading loading-spinner loading-xs"></span>
+                            </button>
+                            <button class="btn btn-sm btn-secondary flex-1" 
+                                    @click="testModelClassify()" 
+                                    :disabled="modelTestLoading || localModels?.models?.classification?.status !== 'ready'">
+                                <span x-show="!modelTestLoading" x-text="'🛡️ ' + $store.i18n.t('ai.classifyTest')"></span>
+                                <span x-show="modelTestLoading" class="loading loading-spinner loading-xs"></span>
+                            </button>
+                        </div>
+                        <!-- 测试结果 -->
+                        <div x-show="modelTestResult" class="bg-base-200 rounded-lg p-3">
+                            <template x-if="modelTestResult?.type === 'error'">
+                                <div class="text-error text-sm" x-text="'❌ ' + modelTestResult?.output"></div>
+                            </template>
+                            <template x-if="modelTestResult?.type === 'generate'">
+                                <div>
+                                    <div class="text-xs opacity-60 mb-1">
+                                        ⏱️ <span x-text="modelTestResult?.time || '-'"></span>
+                                        · 🔤 <span x-text="modelTestResult?.tokens || '-'"></span>
+                                    </div>
+                                    <p class="text-sm whitespace-pre-wrap" x-text="modelTestResult?.output"></p>
+                                </div>
+                            </template>
+                            <template x-if="modelTestResult?.type === 'classify'">
+                                <div>
+                                    <div class="text-xs opacity-60 mb-1">⏱️ <span x-text="modelTestResult?.time || '-'"></span></div>
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="badge" :class="modelTestResult?.output?.isToxic ? 'badge-error' : 'badge-success'"
+                                              x-text="modelTestResult?.output?.isToxic ? ('⚠️ ' + $store.i18n.t('ai.unsafe')) : ('✅ ' + $store.i18n.t('ai.safe'))"></span>
+                                        <span class="text-sm" x-text="$store.i18n.t('ai.confidence') + ': ' + ((modelTestResult?.output?.confidence || 0) * 100).toFixed(1) + '%'"></span>
+                                    </div>
+                                    <div class="text-xs opacity-60">
+                                        <span x-text="$store.i18n.t('ai.labelField') + ': '"></span><span class="font-mono" x-text="modelTestResult?.output?.label || '-'"></span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========== 右列：安全审查 + 离线模式 ========== -->
+            <div class="space-y-6">
+
+                <!-- 安全审查配置 -->
+                <div class="card bg-base-100 shadow-xl">
+                    <div class="card-body">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="card-title text-lg">🛡️ <span x-text="$store.i18n.t('ai.safety')"></span></h3>
+                            <input type="checkbox" class="toggle toggle-success" x-model="safetyEnabled" @change="toggleSafety()" />
+                        </div>
+                        
+                        <div class="text-sm opacity-70 mb-4" x-show="safetyConfig">
+                            <p x-text="$store.i18n.t('ai.safetyDesc')"></p>
+                            <p class="mt-1"><span x-text="$store.i18n.t('ai.safetyWhitelist')"></span>：<span class="badge badge-sm" x-text="(safetyConfig?.designSafeTerms?.length || 0)"></span></p>
+                        </div>
+
+                        <!-- 安全统计 -->
+                        <div x-show="safetyStats" class="mb-4">
+                            <div class="divider text-xs">📊 <span x-text="$store.i18n.t('ai.safetyStats')"></span></div>
+                            <div class="grid grid-cols-3 gap-3">
+                                <div class="stat bg-base-200 rounded-lg p-2 text-center">
+                                    <div class="stat-title text-xs" x-text="$store.i18n.t('ai.totalChecks')"></div>
+                                    <div class="stat-value text-lg" x-text="safetyStats?.totalChecks || 0"></div>
+                                </div>
+                                <div class="stat bg-success/10 rounded-lg p-2 text-center">
+                                    <div class="stat-title text-xs" x-text="$store.i18n.t('ai.passed')"></div>
+                                    <div class="stat-value text-lg text-success" x-text="safetyStats?.passed || 0"></div>
+                                </div>
+                                <div class="stat bg-error/10 rounded-lg p-2 text-center">
+                                    <div class="stat-title text-xs" x-text="$store.i18n.t('ai.blocked')"></div>
+                                    <div class="stat-value text-lg text-error" x-text="safetyStats?.blocked || 0"></div>
+                                </div>
+                            </div>
+                            <div class="flex justify-end mt-2">
+                                <button class="btn btn-ghost btn-xs text-error" @click="resetSafetyStats()" x-text="$store.i18n.t('ai.resetStats')"></button>
+                            </div>
+                        </div>
+
+                        <!-- 安全手动测试 -->
+                        <div class="divider text-xs">🧪 <span x-text="$store.i18n.t('ai.manualTest')"></span></div>
+                        <div class="form-control mb-3">
+                            <textarea class="textarea textarea-bordered w-full" rows="2"
+                                      x-model="safetyTestInput"
+                                      :placeholder="$store.i18n.t('ai.testSafetyPlaceholder')"></textarea>
+                        </div>
+                        <button class="btn btn-sm btn-outline btn-block mb-3" 
+                                @click="testSafetyCheck()" 
+                                :disabled="safetyTestLoading">
+                            <span x-show="!safetyTestLoading">🔍 <span x-text="$store.i18n.t('ai.testSafety')"></span></span>
+                            <span x-show="safetyTestLoading" class="loading loading-spinner loading-xs"></span>
+                        </button>
+                        
+                        <!-- 安全测试结果 -->
+                        <div x-show="safetyTestResult" class="bg-base-200 rounded-lg p-3">
+                            <template x-if="safetyTestResult?.error">
+                                <div class="text-error text-sm" x-text="'❌ ' + safetyTestResult.error"></div>
+                            </template>
+                            <template x-if="!safetyTestResult?.error && safetyTestResult">
+                                <div>
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="badge" :class="safetyTestResult.safe ? 'badge-success' : 'badge-error'"
+                                              x-text="safetyTestResult.safe ? ('✅ ' + $store.i18n.t('ai.safe')) : ('❌ ' + $store.i18n.t('ai.unsafe'))"></span>
+                                        <span class="badge badge-outline badge-sm" x-text="$store.i18n.t('ai.riskLevel') + ': ' + (safetyTestResult.riskLevel || 'none')"></span>
+                                    </div>
+                                    <template x-if="safetyTestResult.flags?.length > 0">
+                                        <div class="text-sm">
+                                            <p class="font-medium mb-1" x-text="$store.i18n.t('ai.triggerFlags') + '：'"></p>
+                                            <template x-for="flag in safetyTestResult.flags" :key="flag">
+                                                <span class="badge badge-warning badge-sm mr-1 mb-1" x-text="flag"></span>
+                                            </template>
+                                        </div>
+                                    </template>
+                                    <template x-if="safetyTestResult.reason">
+                                        <p class="text-xs opacity-60 mt-1" x-text="safetyTestResult.reason"></p>
+                                    </template>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 离线模式 -->
+                <div class="card bg-base-100 shadow-xl">
+                    <div class="card-body">
+                        <h3 class="card-title text-lg mb-4">🔌 <span x-text="$store.i18n.t('ai.offline')"></span></h3>
+                        
+                        <div class="alert mb-4" :class="isLocalModelReady ? 'alert-success' : 'alert-warning'">
+                            <span x-text="isLocalModelReady ? ('🟢 ' + $store.i18n.t('ai.offlineReady')) : ('⚪ ' + $store.i18n.t('ai.offlineNotReady'))"></span>
+                        </div>
+
+                        <div class="form-control mb-4">
+                            <label class="label cursor-pointer justify-start gap-3">
+                                <input type="checkbox" class="toggle toggle-primary" x-model="offlinePreferLocal" @change="saveOfflineSettings()" />
+                                <div>
+                                    <span class="label-text font-medium" x-text="$store.i18n.t('ai.preferLocal')"></span>
+                                    <p class="text-xs text-base-content/50" x-text="$store.i18n.t('ai.preferLocalDesc')"></p>
+                                </div>
+                            </label>
+                        </div>
+
+                        <div class="divider text-xs" x-text="$store.i18n.t('ai.fallbackStrategy')"></div>
+                        <div class="text-sm space-y-2">
+                            <div class="flex items-center gap-2">
+                                <span class="badge badge-sm badge-primary">1</span>
+                                <span x-text="offlinePreferLocal ? $store.i18n.t('ai.localPrimary') : $store.i18n.t('ai.apiPrimary')"></span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="badge badge-sm badge-secondary">2</span>
+                                <span x-text="offlinePreferLocal ? $store.i18n.t('ai.apiFallback') : $store.i18n.t('ai.localFallback')"></span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="badge badge-sm badge-ghost">3</span>
+                                <span x-text="$store.i18n.t('ai.ruleEngine')"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 系统信息 -->
+                <div class="card bg-base-100 shadow-xl">
+                    <div class="card-body">
+                        <h3 class="card-title text-lg mb-3">📋 <span x-text="$store.i18n.t('ai.systemInfo')"></span></h3>
+                        <div class="text-sm space-y-2">
+                            <div class="flex justify-between">
+                                <span class="opacity-60" x-text="$store.i18n.t('ai.sysVersion')"></span>
+                                <span class="font-mono">v5.0.0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="opacity-60" x-text="$store.i18n.t('ai.sysRuntime')"></span>
+                                <span class="font-mono" x-text="localModels?.runtime?.nodeVersion || '-'"></span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="opacity-60" x-text="$store.i18n.t('ai.sysPlatform')"></span>
+                                <span class="font-mono" x-text="(localModels?.runtime?.platform || '-') + ' / ' + (localModels?.runtime?.arch || '-')"></span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="opacity-60" x-text="$store.i18n.t('ai.sysGenModel')"></span>
+                                <span class="font-mono" x-text="localModels?.models?.generation?.status || '-'"></span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="opacity-60" x-text="$store.i18n.t('ai.sysClassModel')"></span>
+                                <span class="font-mono" x-text="localModels?.models?.classification?.status || '-'"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        </div><!-- /zen-main -->
+    </div><!-- /zen-workspace -->
+
+    <!-- Mobile Bottom Tab Bar -->
+    <div class="zen-mobile-tabbar">
+        <button class="zen-mobile-tab" :class="{'active': activeTab === 'design'}" @click="activeTab = 'design'" :aria-label="$store.i18n.t('nav.design')">
+            <i data-lucide="palette"></i>
+            <span x-text="$store.i18n.t('nav.design')"></span>
+        </button>
+        <button class="zen-mobile-tab" :class="{'active': activeTab === 'skills'}" @click="activeTab = 'skills'; loadSkills()" :aria-label="$store.i18n.t('nav.skills')">
+            <i data-lucide="brain"></i>
+            <span x-text="$store.i18n.t('nav.skills')"></span>
+        </button>
+        <button class="zen-mobile-tab" :class="{'active': activeTab === 'dynamic'}" @click="activeTab = 'dynamic'" :aria-label="$store.i18n.t('nav.dynamic')">
+            <i data-lucide="clapperboard"></i>
+            <span x-text="$store.i18n.t('nav.dynamic')"></span>
+        </button>
+        <button class="zen-mobile-tab" :class="{'active': activeTab === 'aiManage'}" @click="activeTab = 'aiManage'; startModelStatusPolling(); loadSafetyStats()" :aria-label="$store.i18n.t('nav.ai')">
+            <i data-lucide="cpu"></i>
+            <span x-text="$store.i18n.t('nav.ai')"></span>
+        </button>
+    </div>
+
+    <!-- ========================== -->
     <!-- Settings Modal -->
     <!-- ========================== -->
     <dialog class="modal" :class="{ 'modal-open': showSettings }">
         <div class="modal-box max-w-lg">
             <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" @click="showSettings = false">✕</button>
-            <h3 class="font-bold text-lg mb-4">⚙️ API 设置</h3>
+            <h3 class="font-bold text-lg mb-4">⚙️ <span x-text="$store.i18n.t('settings.title')"></span></h3>
             
             <!-- 服务商选择 -->
             <div class="form-control mb-4">
-                <label class="label"><span class="label-text font-medium">选择服务商</span></label>
+                <label class="label"><span class="label-text font-medium" x-text="$store.i18n.t('settings.selectProvider')"></span></label>
                 <div class="grid grid-cols-3 gap-2">
                     <template x-for="(preset, key) in apiProviders" :key="key">
                         <button type="button" 
@@ -1278,7 +1588,7 @@
                     <a x-show="apiProviders[settings.provider]?.signupUrl" 
                        :href="apiProviders[settings.provider]?.signupUrl" 
                        target="_blank" 
-                       class="link link-primary ml-1">获取 API Key →</a>
+                       class="link link-primary ml-1" x-text="$store.i18n.t('settings.getApiKey')"></a>
                 </div>
             </div>
 
@@ -1286,8 +1596,8 @@
             <div class="space-y-3">
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text">API 地址</span>
-                        <span class="label-text-alt text-base-content/50">OpenAI 兼容格式</span>
+                        <span class="label-text" x-text="$store.i18n.t('settings.apiUrl')"></span>
+                        <span class="label-text-alt text-base-content/50" x-text="$store.i18n.t('settings.apiUrlHint')"></span>
                     </label>
                     <input type="text" class="input input-bordered w-full" 
                            x-model="settings.baseUrl" 
@@ -1296,8 +1606,8 @@
                 
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text">API 密钥</span>
-                        <span class="label-text-alt text-base-content/50" x-show="!apiProviders[settings.provider]?.requiresKey">本地服务可留空</span>
+                        <span class="label-text" x-text="$store.i18n.t('settings.apiKey')"></span>
+                        <span class="label-text-alt text-base-content/50" x-show="!apiProviders[settings.provider]?.requiresKey" x-text="$store.i18n.t('settings.apiKeyLocal')"></span>
                     </label>
                     <input type="password" class="input input-bordered w-full" 
                            x-model="settings.apiKey" 
@@ -1306,16 +1616,16 @@
                 
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text">选择模型</span>
+                        <span class="label-text" x-text="$store.i18n.t('settings.selectModel')"></span>
                         <button type="button" class="btn btn-xs btn-ghost gap-1" @click="refreshModels" :disabled="modelsLoading">
                             <span x-show="!modelsLoading">🔄</span>
                             <span x-show="modelsLoading" class="loading loading-spinner loading-xs"></span>
-                            <span x-text="modelsLoading ? '加载中...' : '刷新列表'"></span>
+                            <span x-text="modelsLoading ? $store.i18n.t('settings.loading') : $store.i18n.t('settings.refreshList')"></span>
                         </button>
                     </label>
                     <div class="flex gap-2">
                         <select class="select select-bordered flex-1" x-model="settings.model" x-show="availableModels.length > 0">
-                            <option value="" disabled>请选择模型</option>
+                            <option value="" disabled x-text="$store.i18n.t('settings.selectModelPlaceholder')"></option>
                             <template x-for="model in availableModels" :key="model.id">
                                 <option :value="model.id" x-text="model.name"></option>
                             </template>
@@ -1323,55 +1633,66 @@
                         <input type="text" class="input input-bordered flex-1" 
                                x-model="settings.model" 
                                x-show="availableModels.length === 0"
-                               placeholder="输入模型名称或点击刷新" />
+                               :placeholder="$store.i18n.t('settings.modelManual')" />
                     </div>
                     <p class="text-xs text-base-content/50 mt-1" x-show="availableModels.length === 0">
-                        💡 点击刷新按钮自动获取可用模型，或手动输入模型名称
+                        💡 <span x-text="$store.i18n.t('settings.modelTip')"></span>
                     </p>
                 </div>
 
                 <!-- 🔥 超轻量模型优化设置 -->
-                <div class="divider text-xs opacity-60">⚡ 小模型优化</div>
+                <div class="divider text-xs opacity-60">⚡ <span x-text="$store.i18n.t('settings.optimization')"></span></div>
+
+                <!-- 🔌 Phase 16: 离线模式快捷开关 -->
+                <div class="form-control">
+                    <label class="label cursor-pointer justify-start gap-3">
+                        <input type="checkbox" class="toggle toggle-success toggle-sm" x-model="offlinePreferLocal" @change="saveOfflineSettings()" />
+                        <div>
+                            <span class="label-text font-medium">🔌 <span x-text="$store.i18n.t('settings.preferLocalToggle')"></span></span>
+                            <p class="text-xs text-base-content/50" x-text="$store.i18n.t('settings.preferLocalDesc')"></p>
+                        </div>
+                    </label>
+                </div>
                 
                 <div class="form-control">
                     <label class="label cursor-pointer justify-start gap-3">
                         <input type="checkbox" class="toggle toggle-primary toggle-sm" x-model="settings.enableCompression" />
                         <div>
-                            <span class="label-text font-medium">启用提示词压缩</span>
-                            <p class="text-xs text-base-content/50">适用于 token 限制较小的模型（如 2K）</p>
+                            <span class="label-text font-medium" x-text="$store.i18n.t('settings.enableCompression')"></span>
+                            <p class="text-xs text-base-content/50" x-text="$store.i18n.t('settings.compressionDesc')"></p>
                         </div>
                     </label>
                 </div>
 
                 <div class="form-control" x-show="settings.enableCompression" x-transition>
                     <label class="label">
-                        <span class="label-text">压缩等级</span>
+                        <span class="label-text" x-text="$store.i18n.t('settings.compressionLevel')"></span>
                         <span class="badge badge-sm" :class="{
                             'badge-info': settings.compressionLevel == 1,
                             'badge-warning': settings.compressionLevel == 2
                         }" x-text="settings.compressionLevel == 1 ? '~4K tokens' : '~1.5K tokens'"></span>
                     </label>
                     <select class="select select-bordered select-sm w-full" x-model.number="settings.compressionLevel">
-                        <option value="1">📄 精简模式 - 移除示例，保留核心指令</option>
-                        <option value="2">⚡ 超轻量模式 - 极度精简，适合 2K 限制</option>
+                        <option value="1" x-text="'📄 ' + $store.i18n.t('settings.compressionSimple')"></option>
+                        <option value="2" x-text="'⚡ ' + $store.i18n.t('settings.compressionUltra')"></option>
                     </select>
                     <div class="alert alert-warning mt-2 py-2" x-show="settings.compressionLevel == 2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-5 w-5" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                        <span class="text-xs">超轻量模式会移除大部分专业指导，可能影响输出质量</span>
+                        <span class="text-xs" x-text="$store.i18n.t('settings.compressionWarning')"></span>
                     </div>
                 </div>
 
                 <div class="form-control" x-show="settings.enableCompression" x-transition>
                     <label class="label cursor-pointer justify-start gap-3">
                         <input type="checkbox" class="checkbox checkbox-sm checkbox-primary" x-model="settings.showTokenEstimate" />
-                        <span class="label-text text-sm">在生成时显示 Token 估算</span>
+                        <span class="label-text text-sm" x-text="$store.i18n.t('settings.showTokenEstimate')"></span>
                     </label>
                 </div>
             </div>
 
             <div class="modal-action">
-                <button class="btn btn-outline" @click="showSettings = false">取消</button>
-                <button class="btn btn-primary" @click="saveSettings">💾 保存设置</button>
+                <button class="btn btn-outline" @click="showSettings = false" x-text="$store.i18n.t('actions.cancel')"></button>
+                <button class="btn btn-primary" @click="saveSettings">💾 <span x-text="$store.i18n.t('settings.saveSettings')"></span></button>
             </div>
         </div>
         <form method="dialog" class="modal-backdrop">
@@ -1385,26 +1706,26 @@
     <dialog class="modal" :class="{ 'modal-open': showFavoriteModal }">
         <div class="modal-box max-w-md">
             <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" @click="showFavoriteModal = false">✕</button>
-            <h3 class="font-bold text-lg mb-4">⭐ 收藏提示词</h3>
+            <h3 class="font-bold text-lg mb-4">⭐ <span x-text="$store.i18n.t('favorites.addTitle')"></span></h3>
             
             <div class="space-y-4">
                 <!-- 名称 -->
                 <div class="form-control">
-                    <label class="label"><span class="label-text font-medium">收藏名称</span></label>
+                    <label class="label"><span class="label-text font-medium" x-text="$store.i18n.t('favorites.nameLabel')"></span></label>
                     <input type="text" class="input input-bordered w-full" 
                            x-model="favoriteForm.name" 
-                           placeholder="给这个提示词起个名字" />
+                           :placeholder="$store.i18n.t('favorites.namePlaceholder')" />
                 </div>
 
                 <!-- 分类显示 -->
                 <div class="flex gap-4">
                     <div class="form-control flex-1">
-                        <label class="label"><span class="label-text">分类</span></label>
+                        <label class="label"><span class="label-text" x-text="$store.i18n.t('favorites.category')"></span></label>
                         <input type="text" class="input input-bordered input-sm w-full" 
                                :value="getCategoryName(favoriteForm.category)" readonly />
                     </div>
                     <div class="form-control flex-1">
-                        <label class="label"><span class="label-text">类型</span></label>
+                        <label class="label"><span class="label-text" x-text="$store.i18n.t('favorites.type')"></span></label>
                         <input type="text" class="input input-bordered input-sm w-full" 
                                :value="getSubcategoryName(favoriteForm.subcategory)" readonly />
                     </div>
@@ -1412,7 +1733,7 @@
 
                 <!-- 标签 -->
                 <div class="form-control">
-                    <label class="label"><span class="label-text font-medium">标签</span></label>
+                    <label class="label"><span class="label-text font-medium" x-text="$store.i18n.t('favorites.tagsLabel')"></span></label>
                     <div class="flex flex-wrap gap-2 mb-2">
                         <template x-for="(tag, index) in favoriteForm.tags" :key="index">
                             <span class="badge badge-primary gap-1">
@@ -1425,23 +1746,23 @@
                         <input type="text" class="input input-bordered input-sm flex-1" 
                                x-model="newTag" 
                                @keydown.enter.prevent="addTag"
-                               placeholder="输入标签后按回车" />
-                        <button type="button" class="btn btn-sm btn-outline" @click="addTag">添加</button>
+                               :placeholder="$store.i18n.t('favorites.tagPlaceholder')" />
+                        <button type="button" class="btn btn-sm btn-outline" @click="addTag" x-text="$store.i18n.t('favorites.addTag')"></button>
                     </div>
                 </div>
 
                 <!-- 备注 -->
                 <div class="form-control">
-                    <label class="label"><span class="label-text font-medium">备注</span></label>
+                    <label class="label"><span class="label-text font-medium" x-text="$store.i18n.t('favorites.notes')"></span></label>
                     <textarea class="textarea textarea-bordered" 
                               x-model="favoriteForm.notes" 
-                              placeholder="添加备注（可选）"
+                              :placeholder="$store.i18n.t('favorites.notesPlaceholder')"
                               rows="2"></textarea>
                 </div>
 
                 <!-- 评分 -->
                 <div class="form-control">
-                    <label class="label"><span class="label-text font-medium">评分</span></label>
+                    <label class="label"><span class="label-text font-medium" x-text="$store.i18n.t('favorites.rating')"></span></label>
                     <div class="rating rating-lg">
                         <template x-for="i in 5" :key="i">
                             <input type="radio" 
@@ -1455,7 +1776,7 @@
 
                 <!-- 提示词预览 -->
                 <div class="form-control">
-                    <label class="label"><span class="label-text font-medium">提示词预览</span></label>
+                    <label class="label"><span class="label-text font-medium" x-text="$store.i18n.t('favorites.promptPreview')"></span></label>
                     <div class="bg-base-200 p-3 rounded-lg text-sm max-h-32 overflow-y-auto">
                         <p x-text="favoriteForm.prompt?.substring(0, 200) + (favoriteForm.prompt?.length > 200 ? '...' : '')"></p>
                     </div>
@@ -1463,9 +1784,9 @@
             </div>
 
             <div class="modal-action">
-                <button class="btn btn-outline" @click="showFavoriteModal = false">取消</button>
+                <button class="btn btn-outline" @click="showFavoriteModal = false" x-text="$store.i18n.t('actions.cancel')"></button>
                 <button class="btn btn-primary" @click="saveFavorite" :disabled="!favoriteForm.name">
-                    ⭐ 保存收藏
+                    ⭐ <span x-text="$store.i18n.t('favorites.saveFavorite')"></span>
                 </button>
             </div>
         </div>
@@ -1481,6 +1802,54 @@
         </div>
     </div>
 
+    <!-- i18n Alpine Store + Lucide Init (must load before script.js) -->
+    <script>
+      // Register i18n Alpine.js Store
+      document.addEventListener('alpine:init', () => {
+        Alpine.store('i18n', {
+          locale: localStorage.getItem('atelier_lang') || 'zh',
+          
+          // 使用 getter 返回翻译函数，确保 Alpine 追踪 locale 变化
+          get t() {
+            const locale = this.locale;  // Alpine 响应式追踪点
+            const data = window.i18nData?.[locale];
+            return (key) => {
+              if (!data) return key;
+              return key.split('.').reduce((obj, k) => obj?.[k], data) || key;
+            };
+          },
+          
+          toggle() {
+            this.locale = this.locale === 'zh' ? 'en' : 'zh';
+            localStorage.setItem('atelier_lang', this.locale);
+            document.documentElement.lang = this.locale === 'zh' ? 'zh-CN' : 'en';
+            console.log('[i18n] 语言切换:', this.locale);
+            // Re-render Lucide icons after language change
+            if (window.lucide) {
+              requestAnimationFrame(() => lucide.createIcons());
+            }
+          },
+
+          setLocale(lang) {
+            if (window.i18nData?.[lang]) {
+              this.locale = lang;
+              localStorage.setItem('atelier_lang', this.locale);
+              document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+            }
+          }
+        });
+      });
+
+      // Initialize Lucide Icons after DOM ready
+      document.addEventListener('DOMContentLoaded', () => {
+        if (window.lucide) {
+          lucide.createIcons();
+          console.log('[PromptAtelier] Lucide Icons 初始化完成 ✓');
+        } else {
+          console.warn('[PromptAtelier] Lucide Icons 未加载');
+        }
+      });
+    </script>
     <script src="script.js"></script>
 </body>
 </html>

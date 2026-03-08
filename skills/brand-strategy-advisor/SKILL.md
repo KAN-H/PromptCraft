@@ -3,7 +3,7 @@ id: brand-strategy-advisor
 name: 品牌战略顾问
 description: 提供专业的品牌定位、品牌故事和设计方向建议，帮助构建强大的品牌识别系统
 version: 1.0.0
-author: PromptCraft
+author: PromptAtelier
 created: 2026-01-29
 triggers:
   - "品牌定位"

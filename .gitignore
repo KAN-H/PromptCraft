@@ -1,4 +1,4 @@
-# PromptCraft .gitignore
+# PromptAtelier .gitignore
 # ======================
 
 # Dependencies
@@ -82,6 +82,16 @@ pids/
 *.pid
 *.seed
 *.pid.lock
+
+# Local AI Models (Phase 13 - v5.0)
+# Keep directory structure but ignore large model files
+models/*.gguf
+models/*.onnx
+models/*.bin
+models/*.safetensors
+models/cache/
+!models/.gitkeep
+!models/README.md
 
 # Optional: Keep empty logs directory
 !logs/.gitkeep

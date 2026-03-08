@@ -1,9 +1,9 @@
-# PromptCraft 提示词生成器 - 6小时开发版 PRD
+# PromptAtelier 提示词生成器 - 6小时开发版 PRD
 
 ## 1. 产品概述
 
 ### 1.1 产品名称
-PromptCraft 提示词生成器（精简版）
+PromptAtelier 提示词生成器（精简版）
 
 ### 1.2 产品定位
 轻量化、高效的AI提示词生成工具，专注核心功能，6小时内完成开发部署。
@@ -63,8 +63,8 @@ PromptCraft 提示词生成器（精简版）
 ## 4. 业务流程
 
 ### 4.1 用户使用流程
-1. 用户下载并解压缩 `PromptCraft.zip`。
-2. 用户双击 `PromptCraft.exe` 启动程序。
+1. 用户下载并解压缩 `PromptAtelier.zip`。
+2. 用户双击 `PromptAtelier.exe` 启动程序。
 3. 程序在后台自动启动本地服务。
 4. 默认浏览器自动打开 `http://localhost:3000`。
 5. 用户在网页上输入内容，选择提示词风格。

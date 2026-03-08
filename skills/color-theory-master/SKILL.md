@@ -3,7 +3,7 @@ id: color-theory-master
 name: 色彩理论大师
 description: 专业的色彩搭配和色彩心理学专家，为设计项目提供科学的配色方案
 version: 1.0.0
-author: PromptCraft
+author: PromptAtelier
 created: 2026-01-29
 triggers:
   - "配色"

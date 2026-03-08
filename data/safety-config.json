@@ -1,0 +1,191 @@
+{
+  "enabled": true,
+  "version": "1.0.0",
+  "description": "PromptAtelier 内容安全审查配置",
+  "layers": {
+    "keyword": {
+      "enabled": true,
+      "description": "Layer 1: 关键词预过滤（正则表达式）",
+      "action": "block"
+    },
+    "ai_classify": {
+      "enabled": true,
+      "description": "Layer 2: AI 毒性分类（Tiny-Toxic-Detector）",
+      "threshold": 0.75,
+      "action": "block"
+    },
+    "semantic": {
+      "enabled": false,
+      "description": "Layer 3: 语义深度审查（Qwen3-0.6B，可选）",
+      "threshold": 0.8,
+      "action": "warn"
+    }
+  },
+  "blockedKeywords": [
+    "自杀方法",
+    "制造炸弹",
+    "制造武器",
+    "制造毒品",
+    "how to make a bomb",
+    "how to make drugs",
+    "how to kill",
+    "child exploitation",
+    "child abuse"
+  ],
+  "blockedPatterns": [
+    "\\b(suicide|self.?harm)\\s+(method|guide|how.?to)\\b",
+    "\\b(make|build|create)\\s+(bomb|explosive|weapon)\\b",
+    "\\b(drug|narcotic)\\s+(recipe|synthesis|manufacture)\\b"
+  ],
+  "designSafeTerms": [
+    "nude tone",
+    "nude color",
+    "裸色",
+    "肤色",
+    "flesh color",
+    "flesh tone",
+    "skin tone",
+    "body language",
+    "肢体语言",
+    "figure drawing",
+    "人体素描",
+    "人体工学",
+    "anatomy",
+    "解剖学",
+    "解剖结构",
+    "provocative design",
+    "大胆设计",
+    "sensual",
+    "性感风格",
+    "exposed brick",
+    "裸露砖墙",
+    "bare minimum",
+    "极简主义",
+    "strip layout",
+    "条带布局",
+    "bleed",
+    "出血",
+    "出血位",
+    "knockout",
+    "镂空",
+    "kill line",
+    "裁切线",
+    "widow",
+    "orphan",
+    "孤行",
+    "寡行",
+    "negative space",
+    "留白",
+    "bleeding edge",
+    "前沿",
+    "drop shadow",
+    "投影",
+    "stroke",
+    "描边",
+    "mask",
+    "蒙版",
+    "遮罩",
+    "saturation",
+    "饱和度",
+    "burn",
+    "加深",
+    "减淡",
+    "dodge",
+    "destructive editing",
+    "破坏性编辑",
+    "aggressive typography",
+    "激进排版",
+    "grunge style",
+    "脏旧风格",
+    "distressed texture",
+    "做旧纹理",
+    "blood red",
+    "血红色",
+    "femme fatale",
+    "致命女性",
+    "gothic",
+    "哥特风格",
+    "dark theme",
+    "暗色主题",
+    "skull motif",
+    "骷髅图案",
+    "crossbone",
+    "交叉骨",
+    "poison green",
+    "毒绿色",
+    "acid color",
+    "酸性色彩",
+    "bullet point",
+    "项目符号",
+    "target audience",
+    "目标受众",
+    "execution",
+    "执行方案",
+    "shot list",
+    "拍摄清单",
+    "shooting schedule",
+    "拍摄日程"
+  ],
+  "categories": {
+    "toxic": {
+      "description": "有毒/有害内容",
+      "threshold": 0.75,
+      "action": "block"
+    },
+    "insult": {
+      "description": "侮辱性内容",
+      "threshold": 0.85,
+      "action": "warn"
+    },
+    "threat": {
+      "description": "威胁性内容",
+      "threshold": 0.7,
+      "action": "block"
+    },
+    "hate": {
+      "description": "仇恨言论",
+      "threshold": 0.7,
+      "action": "block"
+    },
+    "sexual": {
+      "description": "色情内容",
+      "threshold": 0.8,
+      "action": "block"
+    }
+  },
+  "middleware": {
+    "protectedPaths": [
+      "/api/prompts"
+    ],
+    "skipPaths": [
+      "/api/safety",
+      "/api/models",
+      "/api/history",
+      "/api/favorites"
+    ],
+    "protectedMethods": [
+      "POST",
+      "PUT"
+    ],
+    "textFields": [
+      "prompt",
+      "input",
+      "text",
+      "content",
+      "description",
+      "brandName",
+      "keywords",
+      "scenario"
+    ]
+  },
+  "rateLimit": {
+    "maxChecksPerMinute": 60,
+    "description": "每分钟最大安全检查次数"
+  },
+  "logging": {
+    "enabled": true,
+    "logBlocked": true,
+    "logWarnings": true,
+    "logFile": "logs/safety.log"
+  }
+}
