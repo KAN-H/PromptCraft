@@ -418,7 +418,7 @@ class SafetyService {
 
         try {
             // 尝试解析 JSON 回复
-            const jsonMatch = result.text.match(/\{[^}]+\}/);
+            const jsonMatch = result.match(/\{[^}]+\}/);
             if (jsonMatch) {
                 const parsed = JSON.parse(jsonMatch[0]);
                 const isFlagged = parsed.safe === false && 
