@@ -130,12 +130,34 @@ PromptCraft/
 - **测试**：Jest
 - **代码规范**：ESLint
 
-## � 文档
+## 🤖 自动化发布
+
+本项目使用 [semantic-release](https://github.com/semantic-release/semantic-release) 实现全自动版本管理和发布：
+
+- ✅ 基于提交信息自动确定版本号（major/minor/patch）
+- ✅ 自动生成和更新 CHANGELOG.md
+- ✅ 自动创建 Git 标签
+- ✅ 自动发布 GitHub Releases
+
+**提交信息规范**：遵循 [Conventional Commits](https://www.conventionalcommits.org/) 规范
+
+```bash
+feat: 新功能 (minor version bump)
+fix: 修复 bug (patch version bump)
+feat!: 破坏性变更 (major version bump)
+docs: 文档更新 (patch version bump)
+chore: 其他变更 (no release)
+```
+
+详细说明请参考：[语义化发布配置文档](docs/SEMANTIC_RELEASE.md)
+
+## 📚 文档
 
 - [Agent Skills 使用指南](docs/Agent_Skills使用指南.md)
 - [项目开发计划](docs/项目开发计划.md)
 - [快速开始指南](rules/快速开始指南.md)
 - [技术规范文档](rules/技术规范文档.md)
+- [语义化发布配置](docs/SEMANTIC_RELEASE.md)
 
 ## 🔄 更新日志
 

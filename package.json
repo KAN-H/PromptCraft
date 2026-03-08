@@ -28,9 +28,12 @@
     "open": "8.4.2"
   },
   "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
     "jest": "^30.2.0",
     "nodemon": "^3.1.10",
-    "pkg": "^5.8.1"
+    "pkg": "^5.8.1",
+    "semantic-release": "^24.2.0"
   },
   "pkg": {
     "assets": [
